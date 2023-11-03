@@ -1,0 +1,57 @@
+@import "../base.scss";
+@import "~pdfjs-dist/web/pdf_viewer.css";
+
+.grid {
+  display: grid;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  grid-template-rows: 2fr 10px 1fr;
+  grid-template-columns: 1fr 10px 2fr 10px 1fr;
+  grid-template-areas:
+    "l gl t  gr r"
+    "l gl gm gr r"
+    "l gl b  gr r";
+  padding: 10px;
+
+  tabs-element {
+    &.left {
+      grid-area: l;
+    }
+
+    &.right {
+      grid-area: r;
+    }
+
+    &.top {
+      grid-area: t;
+    }
+
+    &.bottom {
+      grid-area: b;
+    }
+  }
+
+  span {
+    &.left:hover,
+    &.right:hover {
+      cursor: col-resize;
+    }
+
+    &.middle:hover {
+      cursor: row-resize;
+    }
+
+    &.left {
+      grid-area: gl;
+    }
+
+    &.right {
+      grid-area: gr;
+    }
+
+    &.middle {
+      grid-area: gm;
+    }
+  }
+}

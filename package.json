@@ -10,7 +10,9 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.8.1",
+    "extract-loader": "^5.1.0",
     "lit-scss-loader": "^2.0.1",
     "sass": "^1.69.5",
     "sass-loader": "^13.3.2",
@@ -20,6 +22,8 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
-    "lit": "^3.0.1"
+    "lit": "^3.0.1",
+    "pdfjs-dist": "^3.11.174",
+    "split-grid": "^1.0.11"
   }
 }

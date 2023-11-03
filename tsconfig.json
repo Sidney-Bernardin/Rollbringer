@@ -4,5 +4,8 @@
     "module": "commonjs",
     "experimentalDecorators": true
   },
-  "include": ["web/**/*", "node_modules/lit-scss-loader/types.d.ts"]
+  "include": [
+    "web/**/*",
+    "node_modules/lit-scss-loader/types.d.ts"
+  ]
 }
