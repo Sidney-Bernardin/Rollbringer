@@ -1,3 +1,4 @@
+import "../components/dynamic-tabs";
 import Split from "split-grid";
 import Styles from "./game.scss";
 

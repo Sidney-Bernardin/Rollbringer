@@ -14,7 +14,8 @@
     "l gl b  gr r";
   padding: 10px;
 
-  tabs-element {
+  div,
+  dynamic-tabs {
     &.left {
       grid-area: l;
     }

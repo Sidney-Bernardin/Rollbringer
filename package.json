@@ -22,6 +22,7 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
+    "iconify-icon": "^1.0.8",
     "lit": "^3.0.1",
     "pdfjs-dist": "^3.11.174",
     "split-grid": "^1.0.11"
