@@ -1,36 +1,34 @@
 <html lang="en">
+  <head>
+    {{ template "base_head" }}
 
-<head>
-  {{ template "base_head" }}
+    <script src="static/game.js" defer></script>
+  </head>
 
-  <script src="static/game.js" defer></script>
-</head>
+  <body>
+    <div class="grid">
+      <!-- Character Sheets -->
+      <tabs-element class="left">
+        <div slot="hoid">HOID!</div>
 
-<body>
-  <div class="grid">
-    <!-- Character Sheets -->
-    <dynamic-tabs class="left">
-      <div slot="hoid">HOID!</div>
+        <div slot="lee">LEE!</div>
 
-      <div slot="lee">LEE!</div>
+        <div slot="yama">YAMA!</div>
+      </tabs-element>
 
-      <div slot="yama">YAMA!</div>
-    </dynamic-tabs>
+      <!-- Chat -->
+      <tabs-element class="right"></tabs-element>
 
-    <!-- Chat -->
-    <dynamic-tabs class="right"></dynamic-tabs>
+      <!-- Scenes -->
+      <tabs-element class="top"></tabs-element>
 
-    <!-- Scenes -->
-    <dynamic-tabs class="top"></dynamic-tabs>
+      <!-- Other -->
+      <tabs-element class="bottom"></tabs-element>
 
-    <!-- Other -->
-    <dynamic-tabs class="bottom"></dynamic-tabs>
-
-    <!-- Gutters -->
-    <span class="left"></span>
-    <span class="middle"></span>
-    <span class="right"></span>
-  </div>
-</body>
-
+      <!-- Gutters -->
+      <span class="left"></span>
+      <span class="middle"></span>
+      <span class="right"></span>
+    </div>
+  </body>
 </html>
