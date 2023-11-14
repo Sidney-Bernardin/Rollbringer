@@ -1,8 +1,13 @@
+import {GlobalWorkerOptions} from "pdfjs-dist"
+
 import "../components/tabs";
+import "../components/character-sheet";
 import Split from "split-grid";
 import Styles from "./game.scss";
 
 document.adoptedStyleSheets.push(Styles.styleSheet);
+
+GlobalWorkerOptions.workerSrc = "static/pdf.worker.js";
 
 const grid = document.querySelector(".grid") as HTMLElement;
 const computedStyles = grid.computedStyleMap();

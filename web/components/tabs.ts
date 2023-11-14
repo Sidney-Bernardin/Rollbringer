@@ -13,7 +13,7 @@ export class Tabs extends LitElement {
   constructor() {
     super();
 
-    this.tabTitles = [...this.querySelectorAll("div[slot]")].map(
+    this.tabTitles = [...this.querySelectorAll("*[slot]")].map(
       (tabElem) => tabElem.attributes.getNamedItem("slot").value,
     );
     this.currentTab = this.tabTitles[0];

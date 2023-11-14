@@ -1,0 +1,28 @@
+@import "../base.scss";
+
+.wrapper {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+
+  ul {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    background: $bg2;
+    margin: 0;
+    padding: 0 0 5px 0;
+    list-style-type: none;
+    justify-content: space-around;
+    align-self: center;
+
+    li {
+      text-transform: capitalize;
+    }
+  }
+
+  pdf-element {
+    border: 2px solid $shadow;
+    flex: 5;
+  }
+}
