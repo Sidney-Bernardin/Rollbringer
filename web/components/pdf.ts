@@ -14,8 +14,16 @@ import Styles from "./pdf.scss";
 export class PDF extends LitElement {
   static styles = Styles;
 
-  @query(".viewer-container")
-  viewerContainer: HTMLDivElement;
+  @property() zoom: number;
+  @property() panning: boolean;
+
+  @query(".wrapper") wrapper: HTMLDivElement;
+  @query(".viewer-container") viewerContainer: HTMLDivElement;
+
+  constructor() {
+    super();
+    this.zoom = 100;
+  }
 
   async connectedCallback(): Promise<void> {
     super.connectedCallback();
@@ -41,11 +49,32 @@ export class PDF extends LitElement {
     // }, 1000);
   }
 
+  setZoom(e: WheelEvent) {
+    const newZoom = this.zoom - e.deltaY * 0.1;
+    if (newZoom > 5 && newZoom < 300) this.zoom = newZoom;
+  }
+
+  pan(e: PointerEvent) {
+    if (!this.panning) return;
+    this.wrapper.scrollTop -= e.movementY;
+    this.wrapper.scrollLeft -= e.movementX;
+  }
+
   render() {
     return html`
-      <div class="wrapper">
-        <div class="viewer-container">
-          <div class="viewer"></div>
+      <div
+        class="wrapper"
+        style="zoom: ${this.zoom}%"
+        @wheel=${this.setZoom}
+        @pointerdown=${() => (this.panning = true)}
+        @pointerup=${() => (this.panning = false)}
+        @pointerleave=${() => (this.panning = false)}
+        @pointermove=${this.pan}
+      >
+        <div class="content">
+          <div class="viewer-container">
+            <div class="viewer"></div>
+          </div>
         </div>
       </div>
     `;

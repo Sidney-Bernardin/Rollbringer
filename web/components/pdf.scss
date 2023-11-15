@@ -4,9 +4,16 @@
   position: relative;
   width: 100%;
   height: 100%;
-  overflow: scroll;
+  scroll-padding-left: 50%;
+  background: gray;
+  overflow: hidden;
 
-  .viewer-container {
+  .content {
     position: absolute;
+    padding: 50%;
+
+    .viewer-container {
+      position: relative;
+    }
   }
 }
