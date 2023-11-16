@@ -1,4 +1,4 @@
-import {GlobalWorkerOptions} from "pdfjs-dist"
+import { GlobalWorkerOptions } from "pdfjs-dist";
 
 import "../components/tabs";
 import "../components/character-sheet";

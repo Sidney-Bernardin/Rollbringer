@@ -17,7 +17,21 @@
     align-self: center;
 
     li {
+      display: flex;
+      cursor: pointer;
+      gap: 5px;
+      color: $txt4;
+      font-weight: bolder;
       text-transform: capitalize;
+      align-items: center;
+
+      &.active {
+        color: $txt1;
+      }
+
+      iconify-icon {
+        font-size: 1.5rem;
+      }
     }
   }
 
