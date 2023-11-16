@@ -1,48 +1,30 @@
 import { LitElement, html } from "lit";
-import { customElement, property, query } from "lit/decorators.js";
+import { customElement, property, state, query } from "lit/decorators.js";
 
 import { PDFDocumentProxy, getDocument } from "pdfjs-dist";
 import { EventBus, PDFPageView } from "pdfjs-dist/web/pdf_viewer";
 
-import Styles from "./pdf.scss";
+import Styles from "./pdf-viewer.scss";
 
-@customElement("pdf-element")
-export class PDF extends LitElement {
+@customElement("pdf-viewer")
+export class PDFViewerElement extends LitElement {
   static styles = Styles;
 
   @property() pdfURL: string;
-  @property() zoom: number;
-  @property() panning: boolean;
+
+  @state() protected zoom: number = 100;
 
   @query(".wrapper") wrapper: HTMLDivElement;
   @query(".viewer-container") viewerContainer: HTMLDivElement;
 
   pdfDoc: PDFDocumentProxy;
   pageView: PDFPageView;
-
-  constructor() {
-    super();
-    this.zoom = 100;
-  }
+  panning: boolean;
 
   async connectedCallback(): Promise<void> {
     super.connectedCallback();
     await this.updateComplete;
-
-    this.pdfDoc = await getDocument(this.pdfURL).promise;
-    const firstPage = await this.pdfDoc.getPage(1);
-
-    const eventBus = new EventBus();
-    this.pageView = new PDFPageView({
-      id: 1,
-      container: this.viewerContainer,
-      eventBus,
-      defaultViewport: firstPage.getViewport({ scale: 1.0 }),
-      scale: 1,
-    });
-
-    this.pageView.setPdfPage(firstPage);
-    this.pageView.draw();
+    this.setPageView();
   }
 
   async setPage(pageNum: number) {
@@ -50,21 +32,36 @@ export class PDF extends LitElement {
     this.pageView.draw();
   }
 
-  setZoom(e: WheelEvent) {
+  protected async setPageView() {
+    this.pdfDoc = await getDocument(this.pdfURL).promise;
+    const firstPage = await this.pdfDoc.getPage(1);
+
+    this.pageView = new PDFPageView({
+      id: 1,
+      container: this.viewerContainer,
+      eventBus: new EventBus(),
+      defaultViewport: firstPage.getViewport({ scale: 1.0 }),
+      scale: 1,
+    });
+
+    await this.setPage(1);
+  }
+
+  protected setZoom(e: WheelEvent) {
     e.preventDefault();
     const newZoom = this.zoom - e.deltaY * 0.1;
     if (newZoom > 5 && newZoom < 300) this.zoom = newZoom;
   }
 
-  startPanning(e: PointerEvent) {
+  protected startPanning(e: PointerEvent) {
     this.panning =
       e.target instanceof HTMLInputElement ||
-      e.target instanceof HTMLTextAreaElement
+        e.target instanceof HTMLTextAreaElement
         ? false
         : true;
   }
 
-  pan(e: PointerEvent) {
+  protected pan(e: PointerEvent) {
     if (!this.panning) return;
     this.wrapper.scrollTop -= e.movementY;
     this.wrapper.scrollLeft -= e.movementX;
@@ -76,10 +73,10 @@ export class PDF extends LitElement {
         class="wrapper"
         style="zoom: ${this.zoom}%"
         @wheel=${this.setZoom}
+        @pointermove=${this.pan}
         @pointerdown=${this.startPanning}
         @pointerup=${() => (this.panning = false)}
         @pointerleave=${() => (this.panning = false)}
-        @pointermove=${this.pan}
       >
         <div class="content">
           <div class="viewer-container">
