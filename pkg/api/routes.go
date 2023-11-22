@@ -15,4 +15,5 @@ func (a *api) doRoutes(staticFS fs.FS) {
 
 	a.router.Get("/", a.handlePage("home.html"))
 	a.router.Get("/game", a.handlePage("game.html"))
+	a.router.Handle("/ws", a.handleWS())
 }

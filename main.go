@@ -7,7 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"rollbringer/api"
+	"rollbringer/pkg/api"
 
 	"github.com/kelseyhightower/envconfig"
 	"github.com/rs/zerolog"

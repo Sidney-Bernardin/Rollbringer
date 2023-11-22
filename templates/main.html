@@ -1,0 +1,23 @@
+{{ define "base_head" }}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Rollbringer</title>
+{{ end }}
+
+
+{{ define "updated_pdf_fields" }}
+  {{ if .TextArea }}
+    <textarea 
+      name="{{ .Name }}"
+      value="{{ .Value }}"
+      hx-swap-oob="outerHTML:input[name={{ .Name }}]"
+    ></textarea>
+  {{ else }}
+    <input 
+      type="{{ .Type }}"
+      name="{{ .Name }}"
+      value="{{ .Value }}"
+      hx-swap-oob="outerHTML:input[name={{ .Name }}]" />
+  {{ end }}
+{{ end }}

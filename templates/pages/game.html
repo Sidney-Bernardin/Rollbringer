@@ -1,34 +1,12 @@
 <html lang="en">
-  <head>
-    {{ template "base_head" }}
 
-    <script src="static/game.js" defer></script>
-  </head>
+<head>
+  {{ template "base_head" }}
 
-  <body>
-    <div class="grid">
-      <!-- Character Sheets -->
-      <tabs-element class="left">
-        <character-sheet slot="hoid"></character-sheet>
+  <link rel="stylesheet" href="static/game.css" />
+  <script src="static/game.js" defer></script>
+</head>
 
-        <div slot="lee">LEE!</div>
+<body></body>
 
-        <character-sheet slot="yama"></character-sheet>
-      </tabs-element>
-
-      <!-- Chat -->
-      <tabs-element class="right"></tabs-element>
-
-      <!-- Scenes -->
-      <tabs-element class="top"></tabs-element>
-
-      <!-- Other -->
-      <tabs-element class="bottom"></tabs-element>
-
-      <!-- Gutters -->
-      <span class="left"></span>
-      <span class="middle"></span>
-      <span class="right"></span>
-    </div>
-  </body>
 </html>
