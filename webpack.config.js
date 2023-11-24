@@ -49,7 +49,11 @@ module.exports = {
       },
       {
         test: /\.(css|scss|sass)$/,
-        use: [MiniCssExtractPlugin.loader, "css-loader", "sass-loader"],
+        use: [
+          MiniCssExtractPlugin.loader,
+          { loader: "css-loader", options: { url: false } }, // https://github.com/peerigon/extract-loader/issues/102#issuecomment-865339845
+          "sass-loader",
+        ],
       },
     ],
   },

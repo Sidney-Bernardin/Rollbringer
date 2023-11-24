@@ -26,6 +26,7 @@
   "dependencies": {
     "htmx.org": "^1.9.8",
     "lit": "^3.0.1",
+    "panzoom": "^9.4.3",
     "pdfjs-dist": "^3.11.174",
     "split-grid": "^1.0.11"
   }

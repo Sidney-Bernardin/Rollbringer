@@ -1,25 +1,30 @@
-<script>
+<script lang="ts">
   import Icon from "@iconify/svelte";
-  import PDFViewer from "./PDFViewer";
+  import PDFViewer from "./PDFViewer.svelte";
+
+  export let title: string;
+  let currentPage: number = 1;
 </script>
 
-<div class="dnd-character-sheet" {...$$props}>
+<div class="dnd-character-sheet" {title}>
   <ul>
-    <li>
+    <button class:active={currentPage == 1} on:click={() => (currentPage = 1)}>
       <Icon icon="system-uicons:list" />
       main
-    </li>
+    </button>
 
-    <li>
+    <button class:active={currentPage == 2} on:click={() => (currentPage = 2)}>
       <Icon icon="material-symbols:history-edu" />
       info
-    </li>
+    </button>
 
-    <li>
+    <button class:active={currentPage == 3} on:click={() => (currentPage = 3)}>
       <Icon icon="game-icons:spell-book" />
       spells
-    </li>
+    </button>
   </ul>
+
+  <PDFViewer pdfURL="static/assets/character_sheet.pdf" {currentPage} />
 </div>
 
 <style lang="scss">
@@ -41,17 +46,19 @@
       justify-content: space-around;
       align-self: center;
 
-      li {
+      button {
         display: flex;
         cursor: pointer;
         gap: 5px;
+        border: none;
         color: $txt4;
+        background: transparent;
         font-weight: bolder;
         text-transform: capitalize;
         align-items: center;
 
         &.active {
-          color: $txt1;
+          color: #b8bb26;
         }
 
         iconify-icon {
@@ -60,7 +67,7 @@
       }
     }
 
-    .pdf-viewer {
+    :global(.pdf-viewer) {
       border: 2px solid $shadow;
       flex: 5;
     }
