@@ -1,7 +1,11 @@
 <script lang="ts">
+  export let oauthURL;
 </script>
 
-<template>
-</template>
+<a href={oauthURL}>LOGIN WITH GOOGLE</a>
 
-<style lang="scss"></style>
+<style lang="scss">
+  h1 {
+    background: green;
+  }
+</style>

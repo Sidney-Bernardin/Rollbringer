@@ -5,8 +5,7 @@ const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
   entry: {
-    home: path.resolve(__dirname, "web/home.js"),
-    game: path.resolve(__dirname, "web/game.js"),
+    main: path.resolve(__dirname, "web/main.js"),
     "pdf.worker": path.resolve(
       __dirname,
       "node_modules/pdfjs-dist/build/pdf.worker.js",

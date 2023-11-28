@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte";
+  import DiceBag from "./DiceBag.svelte";
   import PDFViewer from "./PDFViewer.svelte";
 
   export let title: string;
@@ -25,15 +26,25 @@
   </ul>
 
   <PDFViewer pdfURL="static/assets/character_sheet.pdf" {currentPage} />
+
+  <!--DiceBag /-->
 </div>
 
 <style lang="scss">
   @import "../global.scss";
 
   .dnd-character-sheet {
+    position: relative;
     display: flex;
     height: 100%;
     flex-direction: column;
+
+    :global(.dice-bag) {
+      position: absolute;
+      top: 5%;
+      right: 3%;
+      flex: 0;
+    }
 
     ul {
       display: flex;
@@ -48,7 +59,6 @@
 
       button {
         display: flex;
-        cursor: pointer;
         gap: 5px;
         border: none;
         color: $txt4;
@@ -58,7 +68,7 @@
         align-items: center;
 
         &.active {
-          color: #b8bb26;
+          color: $green;
         }
 
         iconify-icon {

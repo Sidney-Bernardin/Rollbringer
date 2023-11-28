@@ -13,7 +13,8 @@ func (a *api) doRoutes(staticFS fs.FS) {
 		http.StripPrefix("/static/", http.FileServer(http.FS(staticFS))),
 	)
 
-	a.router.Get("/", a.handlePage("home.html"))
-	a.router.Get("/game", a.handlePage("game.html"))
+	a.router.Get("/", a.handlePage("Home"))
+	a.router.Get("/game", a.handleGamePage())
+	a.router.Get("/signin-callback", a.handleSigninCallback())
 	a.router.Handle("/ws", a.handleWS())
 }

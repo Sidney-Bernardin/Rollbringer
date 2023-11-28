@@ -21,7 +21,6 @@
     // Create a MutationObserver that resets tab data whenever a tab is
     // added/removed from wrapper.
     new MutationObserver(() => {
-      console.log("HI");
       tabTitles = [...wrapper.querySelectorAll("[title]")].map(
         (tt) => tt.attributes["title"].value
       );
@@ -90,7 +89,6 @@
 
       button {
         display: flex;
-        cursor: pointer;
         gap: 5px;
         border: 2px solid $bg1;
         border-bottom: none;
@@ -107,7 +105,6 @@
         }
 
         button {
-          cursor: pointer;
           border: none;
           border-radius: 50%;
           background: none;

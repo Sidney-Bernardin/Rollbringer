@@ -1,4 +1,4 @@
-FROM node:20.5.1 AS webpack
+FROM node:20.5.1 AS bundle
 
 COPY package.json .
 
@@ -14,7 +14,7 @@ COPY go.* .
 RUN go mod download 
 
 COPY . .
-COPY --from=webpack static static
+COPY --from=bundle static static
 
 RUN --mount=type=cache,target=/root/.cache/go-build \
     go build -o app . 

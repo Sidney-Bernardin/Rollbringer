@@ -7,19 +7,26 @@ import (
 	"os/signal"
 	"syscall"
 
-	"rollbringer/pkg/api"
-
 	"github.com/kelseyhightower/envconfig"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/rs/zerolog/pkgerrors"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
+
+	"rollbringer/pkg/api"
+	"rollbringer/pkg/database"
 )
 
 //go:embed templates
 var templatesFS embed.FS
 
 type Config struct {
-	Address string `required:"true" split_words:"true"`
+	Address           string `required:"true" split_words:"true"`
+	DBAddress         string `required:"true" split_words:"true"`
+	OauthClientID     string `required:"true" split_words:"true"`
+	OauthClientSecret string `required:"true" split_words:"true"`
+	OauthRedirectURL  string `required:"true" split_words:"true"`
 }
 
 func main() {
@@ -35,8 +42,23 @@ func main() {
 		logger.Fatal().Stack().Err(err).Msg("Cannot generate configuration")
 	}
 
+	// Create a database.
+	db, err := database.New(config.DBAddress)
+	if err != nil {
+		logger.Fatal().Stack().Err(err).Msg("Cannot create database")
+	}
+
+	// Create an oauth2 configuration.
+	oauthConfig := &oauth2.Config{
+		Endpoint:     google.Endpoint,
+		ClientID:     config.OauthClientID,
+		ClientSecret: config.OauthClientSecret,
+		RedirectURL:  config.OauthRedirectURL,
+		Scopes: []string{},
+	}
+
 	// Create the API.
-	a, err := api.NewAPI(&logger, templatesFS, os.DirFS("static"))
+	a, err := api.NewAPI(db, &logger, oauthConfig, templatesFS, os.DirFS("static"))
 	if err != nil {
 		logger.Fatal().Stack().Err(err).Msg("Cannot create API")
 	}
