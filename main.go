@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/kelseyhightower/envconfig"
 	"github.com/rs/zerolog"
@@ -22,8 +23,11 @@ import (
 var templatesFS embed.FS
 
 type Config struct {
-	Address           string `required:"true" split_words:"true"`
-	DBAddress         string `required:"true" split_words:"true"`
+	Address   string `required:"true" split_words:"true"`
+	DBAddress string `required:"true" split_words:"true"`
+
+	UserSessionTimeout time.Duration `required:"true" split_words:"true"`
+
 	OauthClientID     string `required:"true" split_words:"true"`
 	OauthClientSecret string `required:"true" split_words:"true"`
 	OauthRedirectURL  string `required:"true" split_words:"true"`
@@ -49,16 +53,22 @@ func main() {
 	}
 
 	// Create an oauth2 configuration.
-	oauthConfig := &oauth2.Config{
+	googleOAuthConfig := &oauth2.Config{
 		Endpoint:     google.Endpoint,
 		ClientID:     config.OauthClientID,
 		ClientSecret: config.OauthClientSecret,
 		RedirectURL:  config.OauthRedirectURL,
-		Scopes: []string{},
+		Scopes:       []string{"openid", "email"},
 	}
 
 	// Create the API.
-	a, err := api.NewAPI(db, &logger, oauthConfig, templatesFS, os.DirFS("static"))
+	a, err := api.NewAPI(
+		db,
+		&logger,
+		googleOAuthConfig,
+		config.UserSessionTimeout,
+		templatesFS, os.DirFS("static"))
+
 	if err != nil {
 		logger.Fatal().Stack().Err(err).Msg("Cannot create API")
 	}
@@ -70,7 +80,9 @@ func main() {
 
 	// Serve the API in another go-routine.
 	logger.Info().Str("address", config.Address).Msg("Serving")
-	go func() { errChan <- http.ListenAndServe(config.Address, a) }()
+	go func() {
+		errChan <- http.ListenAndServe(config.Address, a)
+	}()
 
 	// Have interrupt and termination signals sent to the signal-channel.
 	signal.Notify(signalChan, os.Interrupt, syscall.SIGTERM)

@@ -1,9 +1,13 @@
 import "./global.scss";
 
-const tmplData = JSON.parse(document.querySelector("#tmpl-data").textContent);
-const { default: Page } = await import(`./pages/${tmplData.name}.svelte`);
+// Get the page-data from the document.
+const script = document.querySelector("[data-page-data]");
+const pageData = JSON.parse(script.dataset.pageData);
 
-export default new Page({ 
+// Import the page-data's corresponding Svelte page.
+const { default: Page } = await import(`./pages/${pageData.name}.svelte`);
+
+export default new Page({
   target: document.body,
-  props: tmplData,
+  props: pageData,
 });

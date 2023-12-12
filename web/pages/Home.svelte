@@ -1,11 +1,14 @@
 <script lang="ts">
-  export let oauthURL;
+  import { onMount } from "svelte";
+  import htmx from "htmx.org";
+
+  onMount(() => htmx.process(document.querySelector("body")));
 </script>
 
-<a href={oauthURL}>LOGIN WITH GOOGLE</a>
+<a href="/users/oauth-login"> LOGIN WITH GOOGLE </a>
 
 <style lang="scss">
-  h1 {
-    background: green;
+  button {
+    color: #000;
   }
 </style>
