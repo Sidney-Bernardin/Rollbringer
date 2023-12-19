@@ -3,18 +3,13 @@ package api
 import (
 	"crypto/rand"
 	"encoding/hex"
-	"encoding/json"
-	"html/template"
+
+	jwt "github.com/golang-jwt/jwt/v5"
 )
 
-var templateUtils = template.FuncMap{
-	"mustJSONIFY": func(v any) string {
-		b, err := json.Marshal(v)
-		if err != nil {
-			panic(err)
-		}
-		return string(b)
-	},
+type openIDConnectClaims struct {
+	*jwt.RegisteredClaims
+	GivenName string `json:"given_name"`
 }
 
 func mustGetRandHexStr() string {

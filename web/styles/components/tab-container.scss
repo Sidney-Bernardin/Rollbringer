@@ -1,0 +1,53 @@
+@use "../global.scss" as *;
+
+.tab-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  &__wrapper {
+    border: 5px solid $bg2;
+    outline: 2px solid $shadow;
+    flex: 5;
+  }
+
+  &__list {
+    z-index: 1;
+    display: flex;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+    translate: -2px 0;
+
+    li {
+      display: flex;
+      gap: 5px;
+      border: 2px solid $bg1;
+      border-bottom: none;
+      opacity: 0.5;
+      background: $bg2;
+      padding: 5px;
+      text-transform: capitalize;
+      align-items: center;
+
+      &.active {
+        border: 2px solid $shadow;
+        border-bottom: none;
+        opacity: 1;
+      }
+
+      button {
+        border: none;
+        border-radius: 50%;
+        background: none;
+        opacity: 1;
+        padding: 3px;
+
+        &:hover {
+          background: $bg3;
+        }
+      }
+    }
+  }
+}

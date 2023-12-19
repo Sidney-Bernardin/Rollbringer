@@ -3,12 +3,12 @@ package api
 import (
 	"context"
 	"net/http"
-	"rollbringer/pkg/database"
+	database "rollbringer/pkg/repositories/database"
 
 	"github.com/pkg/errors"
 )
 
-func (a *api) authenticate(next http.Handler) http.Handler {
+func (api *API) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		stCookie, err := r.Cookie("Session_Token")
@@ -20,11 +20,11 @@ func (a *api) authenticate(next http.Handler) http.Handler {
 			}
 
 			err = errors.Wrap(err, "cannot get CSRF_Token cookie")
-			a.executeTemplate(w, "page.html", http.StatusInternalServerError, newErrorPageTmpl(err))
+			// server error
 			return
 		}
 
-		session, err := a.db.GetSession(r.Context(), stCookie.Value)
+		session, err := api.DB.GetSession(r.Context(), stCookie.Value)
 		if err != nil {
 
 			if err == database.ErrSessionNotFound {
@@ -33,7 +33,7 @@ func (a *api) authenticate(next http.Handler) http.Handler {
 			}
 
 			err = errors.Wrap(err, "cannot get session from db")
-			a.executeTemplate(w, "page.html", http.StatusInternalServerError, newErrorPageTmpl(err))
+			// server error
 			return
 		}
 

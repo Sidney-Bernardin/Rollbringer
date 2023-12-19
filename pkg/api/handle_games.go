@@ -1,42 +1,34 @@
 package api
 
 import (
-	"bytes"
+	"fmt"
 
+	"github.com/a-h/templ"
+	"github.com/go-chi/chi/v5"
 	"golang.org/x/net/websocket"
+
+	"rollbringer/pkg/views/components"
 )
 
-func (a *api) handleWS() websocket.Handler {
+func (a *API) HandleJoinGame(conn *websocket.Conn) {
+	req := conn.Request()
+	chiCtx := chi.RouteContext(req.Context())
 
-	type updatedPDFField struct {
-		TextArea bool
-		Type     string
-		Name     string
-		Value    string
+	_ = chiCtx.URLParam("id")
+
+	res := components.AddTabs(
+		components.TabContainerSelectorPlayMaterial,
+		map[string]templ.Component{
+			"Hoid": components.CharacterSheet(),
+			"Lee":  components.CharacterSheet(),
+		},
+	)
+
+	if err := res.Render(req.Context(), conn); err != nil {
+		fmt.Println(err)
+		return
 	}
 
-	return func(conn *websocket.Conn) {
-		for {
-			var msg string
-			if err := websocket.Message.Receive(conn, &msg); err != nil {
-				a.logger.Error().Stack().Err(err).Msg("Cannot recive ws msg")
-				return
-			}
-
-			x := updatedPDFField{
-				TextArea: false,
-				Type:     "text",
-				Name:     "testfield",
-				Value:    "new value",
-			}
-
-			bbuf := bytes.Buffer{}
-			if err := a.tmpl.ExecuteTemplate(&bbuf, "updated_pdf_fields", x); err != nil {
-				a.logger.Error().Stack().Err(err).Msg("Cannot send ws template")
-				return
-			}
-
-			conn.Write(bbuf.Bytes())
-		}
+	for {
 	}
 }

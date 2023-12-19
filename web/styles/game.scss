@@ -1,0 +1,53 @@
+@use "./global.scss" as *;
+@use "./components/index.scss" as *;
+
+.layout {
+  display: grid;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  grid-template-rows: 2fr 10px 1fr;
+  grid-template-columns: 3fr 10px 2fr 10px 1fr;
+  grid-template-areas:
+    "l gl t  gr r"
+    "l gl gm gr r"
+    "l gl b  gr r";
+  padding: 10px;
+
+  &__left {
+    grid-area: l;
+  }
+
+  &__right {
+    grid-area: r;
+  }
+
+  &__top {
+    grid-area: t;
+  }
+
+  &__bottom {
+    grid-area: b;
+  }
+
+  &__left-gutter:hover,
+  &__right-gutter:hover {
+    cursor: col-resize;
+  }
+
+  &__middle-gutter:hover {
+    cursor: row-resize;
+  }
+
+  &__left-gutter {
+    grid-area: gl;
+  }
+
+  &__right-gutter {
+    grid-area: gr;
+  }
+
+  &__middle-gutter {
+    grid-area: gm;
+  }
+}

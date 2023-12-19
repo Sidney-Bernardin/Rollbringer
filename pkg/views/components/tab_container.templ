@@ -1,0 +1,67 @@
+package components
+
+import "rollbringer/pkg/views/utils"
+
+templ TabContainer(class string, initialTabs map[string]templ.Component) {
+	<div
+ 		class={ "tab-container", class }
+ 		x-data="{ currentTab: '' }"
+	>
+		<ul class="tab-container__list">
+			if initialTabs != nil {
+				for name := range initialTabs {
+					@tabButton(name)
+				}
+			}
+		</ul>
+		<div class="tab-container__wrapper">
+			if initialTabs != nil {
+				for name, content := range initialTabs {
+					@tabItem(name, content)
+				}
+			}
+		</div>
+	</div>
+}
+
+templ tabButton(name string) {
+	<li
+ 		class="tab-button"
+ 		x-data={ utils.AplineData{
+            "name": name,
+        }.Str() }
+ 		x-on:click="currentTab = name"
+	>
+		{ name }
+		<button>X</button>
+	</li>
+}
+
+templ tabItem(name string, content templ.Component) {
+	<div
+ 		x-data={ utils.AplineData{
+            "name": name,
+        }.Str() }
+ 		x-show="currentTab == name"
+	>
+		@content
+	</div>
+}
+
+// === HTMX Responses === //
+
+const (
+	TabContainerSelectorPlayMaterial = ".tab-container.layout__left"
+	TabContainerSelectorScene        = ".tab-container.layout__top"
+)
+
+templ AddTabs(selector string, newTabs map[string]templ.Component) {
+	for name, content := range newTabs {
+		<div hx-swap-oob={ "beforeend:" + selector + " .tab-container__list" }>
+			@tabButton(name)
+		</div>
+		<div hx-swap-oob={ "beforeend:" + selector + " .tab-container__wrapper" }>
+			@tabItem(name, content)
+		</div>
+	}
+}

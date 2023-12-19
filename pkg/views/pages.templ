@@ -1,0 +1,46 @@
+package views
+
+import "errors"
+import "rollbringer/pkg/views/components"
+
+templ Page(title, script string) {
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>{ title }</title>
+			<script src={ "/static/" + script } defer></script>
+		</head>
+		{ children... }
+	</html>
+}
+
+templ Home() {
+	@Page("Home", "home.js") {
+		<body></body>
+	}
+}
+
+templ DND() {
+	@Page("Game", "game.js") {
+		<body hx-ws="connect:/games/123/join">
+			<div class="layout">
+				@components.TabContainer("layout__top", nil)
+				@components.TabContainer("layout__left", nil)
+				@components.TabContainer("layout__bottom", map[string]templ.Component{
+                    "Library": components.Library(),
+                })
+				@components.TabContainer("layout__right",  map[string]templ.Component{
+                    "Chat": Error(errors.New("NOT IMPLEMENTED")),
+                })
+				<span class="layout__left-gutter"></span>
+				<span class="layout__middle-gutter"></span>
+				<span class="layout__right-gutter"></span>
+			</div>
+		</body>
+	}
+}
+
+templ Error(err error) {
+	<h1>Error: { err.Error() }</h1>
+}
