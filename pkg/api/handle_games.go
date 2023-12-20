@@ -16,7 +16,7 @@ func (a *API) HandleJoinGame(conn *websocket.Conn) {
 
 	_ = chiCtx.URLParam("id")
 
-	res := components.AddTabs(
+	res := components.HTMxAddTabs(
 		components.TabContainerSelectorPlayMaterial,
 		map[string]templ.Component{
 			"Hoid": components.CharacterSheet(),

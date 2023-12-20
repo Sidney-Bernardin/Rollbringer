@@ -21,6 +21,7 @@
     translate: -2px 0;
 
     li {
+      cursor: pointer;
       display: flex;
       gap: 5px;
       border: 2px solid $bg1;

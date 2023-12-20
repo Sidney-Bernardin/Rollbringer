@@ -1,11 +1,9 @@
 package components
 
-import "rollbringer/pkg/views/utils"
-
 templ TabContainer(class string, initialTabs map[string]templ.Component) {
 	<div
  		class={ "tab-container", class }
- 		x-data="{ currentTab: '' }"
+ 		x-data="tabContainer"
 	>
 		<ul class="tab-container__list">
 			if initialTabs != nil {
@@ -27,35 +25,33 @@ templ TabContainer(class string, initialTabs map[string]templ.Component) {
 templ tabButton(name string) {
 	<li
  		class="tab-button"
- 		x-data={ utils.AplineData{
-            "name": name,
-        }.Str() }
- 		x-on:click="currentTab = name"
+ 		data-tab-name={ name }
+ 		x-ref="tabButton"
+ 		x-bind:class="(currentTab == $el.dataset.tabName) && 'active'"
+ 		x-on:click="currentTab = $el.dataset.tabName"
 	>
 		{ name }
-		<button>X</button>
+		<button x-on:click="closeTab($refs.tabButton.dataset.tabName)">
+			<iconify-icon icon="material-symbols:close"></iconify-icon>
+		</button>
 	</li>
 }
 
 templ tabItem(name string, content templ.Component) {
 	<div
- 		x-data={ utils.AplineData{
-            "name": name,
-        }.Str() }
- 		x-show="currentTab == name"
+ 		data-tab-name={ name }
+ 		x-show="currentTab == $el.dataset.tabName"
 	>
 		@content
 	</div>
 }
-
-// === HTMX Responses === //
 
 const (
 	TabContainerSelectorPlayMaterial = ".tab-container.layout__left"
 	TabContainerSelectorScene        = ".tab-container.layout__top"
 )
 
-templ AddTabs(selector string, newTabs map[string]templ.Component) {
+templ HTMxAddTabs(selector string, newTabs map[string]templ.Component) {
 	for name, content := range newTabs {
 		<div hx-swap-oob={ "beforeend:" + selector + " .tab-container__list" }>
 			@tabButton(name)
