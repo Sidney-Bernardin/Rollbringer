@@ -1,9 +1,11 @@
 package components
 
+import . "rollbringer/pkg/views/utils"
+
 templ TabContainer(class string, initialTabs map[string]templ.Component) {
 	<div
  		class={ "tab-container", class }
- 		x-data="tabContainer"
+ 		x-data="{ currentTab: '' }"
 	>
 		<ul class="tab-container__list">
 			if initialTabs != nil {
@@ -25,13 +27,13 @@ templ TabContainer(class string, initialTabs map[string]templ.Component) {
 templ tabButton(name string) {
 	<li
  		class="tab-button"
- 		data-tab-name={ name }
- 		x-ref="tabButton"
- 		x-bind:class="(currentTab == $el.dataset.tabName) && 'active'"
- 		x-on:click="currentTab = $el.dataset.tabName"
+ 		x-data={ F(`{ tabName: '%s' }`, name) }
+ 		x-bind:class="(currentTab == tabName) && 'active'"
+ 		x-on:click="currentTab = tabName"
+        x-on:close-tab="$el.remove()"
 	>
 		{ name }
-		<button x-on:click="closeTab($refs.tabButton.dataset.tabName)">
+		<button x-on:click="$dispatch('close-tab', { tabName })">
 			<iconify-icon icon="material-symbols:close"></iconify-icon>
 		</button>
 	</li>
@@ -39,8 +41,10 @@ templ tabButton(name string) {
 
 templ tabItem(name string, content templ.Component) {
 	<div
- 		data-tab-name={ name }
- 		x-show="currentTab == $el.dataset.tabName"
+        class="tab-item"
+ 		x-data={ F(`{ tabName: '%s' }`, name) }
+ 		x-show="currentTab == tabName"
+        x-on:close-tab.window="($event.detail.tabName == tabName) && $el.remove()"
 	>
 		@content
 	</div>
