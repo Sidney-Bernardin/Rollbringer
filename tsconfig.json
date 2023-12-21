@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "commonjs",
+    "types": ["webpack-env"]
   },
   "include": ["web/**/*"]
 }

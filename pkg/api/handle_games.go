@@ -19,8 +19,8 @@ func (a *API) HandleJoinGame(conn *websocket.Conn) {
 	res := components.HTMxAddTabs(
 		components.TabContainerSelectorPlayMaterial,
 		map[string]templ.Component{
-			"Hoid": components.CharacterSheet(),
-			"Lee":  components.CharacterSheet(),
+			"Hoid": components.DNDCharacterSheet(),
+			"Lee":  components.DNDCharacterSheet(),
 		},
 	)
 

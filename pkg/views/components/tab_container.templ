@@ -30,7 +30,7 @@ templ tabButton(name string) {
  		x-data={ F(`{ tabName: '%s' }`, name) }
  		x-bind:class="(currentTab == tabName) && 'active'"
  		x-on:click="currentTab = tabName"
-        x-on:close-tab="$el.remove()"
+ 		x-on:close-tab="$el.remove()"
 	>
 		{ name }
 		<button x-on:click="$dispatch('close-tab', { tabName })">
@@ -41,10 +41,10 @@ templ tabButton(name string) {
 
 templ tabItem(name string, content templ.Component) {
 	<div
-        class="tab-item"
+ 		class="tab-item"
  		x-data={ F(`{ tabName: '%s' }`, name) }
  		x-show="currentTab == tabName"
-        x-on:close-tab.window="($event.detail.tabName == tabName) && $el.remove()"
+ 		x-on:close-tab.window="($event.detail.tabName == tabName) && $el.remove()"
 	>
 		@content
 	</div>

@@ -1,9 +1,13 @@
 import Split from "split-grid";
+import { GlobalWorkerOptions } from "pdfjs-dist";
+
+import "./styles/game.scss";
+require.context("./assets", false, /\.(png|jpg|gif|pdf)$/);
 
 import "./alpine";
-import "./styles/game.scss";
 
 (window as any).htmx = require("htmx.org");
+GlobalWorkerOptions.workerSrc = "static/pdf.worker.js";
 
 Split({
   columnGutters: [

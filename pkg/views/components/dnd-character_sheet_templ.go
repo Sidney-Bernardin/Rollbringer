@@ -10,7 +10,9 @@ import "context"
 import "io"
 import "bytes"
 
-func CharacterSheet() templ.Component {
+const pdfURL = "/static/character_sheet.pdf"
+
+func DNDCharacterSheet() templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -23,7 +25,7 @@ func CharacterSheet() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"character-sheet\"><ul class=\"character-sheet__list\"><li>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"dnd-character-sheet\"><ul class=\"dnd-character-sheet__list\"><li>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -54,7 +56,7 @@ func CharacterSheet() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = PDFViewer("character-sheet__pdf-viewer").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = PDFViewer("dnd-character-sheet__pdf-viewer", pdfURL).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
