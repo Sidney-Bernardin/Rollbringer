@@ -28,8 +28,7 @@ templ tabButton(name string) {
 	<li
  		class="tab-button"
  		x-data={ F(`{ tabName: '%s' }`, name) }
- 		x-bind:class="(currentTab == tabName) && 'active'"
- 		x-on:click="currentTab = tabName"
+ 		x-bind={ F(`tabButton('%s')`, name)}
  		x-on:close-tab="$el.remove()"
 	>
 		{ name }

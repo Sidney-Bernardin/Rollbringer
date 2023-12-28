@@ -46,7 +46,7 @@ func PDFViewer(class, pdfURL string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><div class=\"pdf-viewer__container\" x-ref=\"viewerContainerElem\"><div class=\"viewer\"></div></div></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><div class=\"pdf-viewer__container\"><div class=\"viewer\"></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -1,6 +1,6 @@
-import Alpine from "alpinejs";
-(window as any).Alpine = Alpine;
+import Alpine from "alpinejs"
 
-import "./components"
+import "./components";
+import "./binds";
 
 Alpine.start();

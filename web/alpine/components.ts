@@ -1,34 +1,14 @@
-import * as Panzoom from "panzoom";
-import { PDFDocumentProxy, getDocument } from "pdfjs-dist";
-import { EventBus, PDFPageView } from "pdfjs-dist/web/pdf_viewer";
+import Alpine from "alpinejs";
+import PDFContainer from "../utils/pdf-viewer";
 
-(window as any).Alpine.data("pdfViewer", (pdfURL: string) => ({
-  pdfDoc: null,
-  pageView: null,
+Alpine.data("pdfViewer", (pdfURL: string) => ({
+  pdfViewer: null,
 
-  currentPage: 0,
+  init() {
+    const container = this.$root.querySelector(".pdf-viewer__container")
 
-  async init() {
-    const pdfDoc = await getDocument(pdfURL).promise;
-    const firstPage = await pdfDoc.getPage(1);
+    this.pdfViewer = new PDFContainer(pdfURL, container as HTMLDivElement)
 
-    const pageView = new PDFPageView({
-      id: 1,
-      container: this.$refs.viewerContainerElem,
-      eventBus: new EventBus(),
-      defaultViewport: firstPage.getViewport({ scale: 1.0 }),
-      scale: 1,
-    });
-
-    Panzoom(this.$refs.viewerContainerElem, {
-      bounds: true,
-      minZoom: 0.25,
-      maxZoom: 2,
-      smoothScroll: false,
-      filterKey: () => true,
-    });
-
-    pageView.setPdfPage(firstPage);
-    pageView.draw();
+    this.$watch("currentTab", async (newVal: string) => await this.pdfViewer.renderPage(newVal));
   },
 }));

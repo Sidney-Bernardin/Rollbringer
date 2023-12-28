@@ -3,11 +3,11 @@ package components
 const pdfURL = "/static/character_sheet.pdf"
 
 templ DNDCharacterSheet() {
-	<div class="dnd-character-sheet">
+	<div class="dnd-character-sheet" x-data="{ currentTab: '' }">
 		<ul class="dnd-character-sheet__list">
-			<li>main</li>
-			<li>info</li>
-			<li>spells</li>
+			<li x-bind="tabButton(1)">main</li>
+			<li x-bind="tabButton(2)">info</li>
+			<li x-bind="tabButton(3)">spells</li>
 		</ul>
 		@PDFViewer("dnd-character-sheet__pdf-viewer", pdfURL)
 	</div>

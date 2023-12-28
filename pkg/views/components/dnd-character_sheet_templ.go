@@ -25,7 +25,7 @@ func DNDCharacterSheet() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"dnd-character-sheet\"><ul class=\"dnd-character-sheet__list\"><li>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"dnd-character-sheet\" x-data=\"{ currentTab: &#39;&#39; }\"><ul class=\"dnd-character-sheet__list\"><li x-bind=\"tabButton(1)\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -34,7 +34,7 @@ func DNDCharacterSheet() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</li><li>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</li><li x-bind=\"tabButton(2)\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -43,7 +43,7 @@ func DNDCharacterSheet() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</li><li>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</li><li x-bind=\"tabButton(3)\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
