@@ -5,12 +5,12 @@ import {
   getDocument,
 } from "pdfjs-dist";
 import { EventBus, PDFPageView } from "pdfjs-dist/web/pdf_viewer";
-import * as Panzoom from "panzoom";
+import panzoom from "panzoom";
 
 GlobalWorkerOptions.workerSrc = "static/pdf.worker.js";
 
 export default function(pdfURL: string, viewerContainer: HTMLDivElement) {
-  Panzoom(viewerContainer, {
+  panzoom(viewerContainer, {
     bounds: true,
     minZoom: 0.25,
     maxZoom: 2,
