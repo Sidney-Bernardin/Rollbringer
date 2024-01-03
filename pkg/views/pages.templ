@@ -2,6 +2,8 @@ package views
 
 import "errors"
 import "rollbringer/pkg/views/components"
+import . "rollbringer/pkg/views/utils"
+import "rollbringer/pkg/models"
 
 templ Page(title, script string) {
 	<html lang="en">
@@ -17,17 +19,26 @@ templ Page(title, script string) {
 	</html>
 }
 
-templ Home() {
+templ Home(session *models.Session) {
 	@Page("Home", "home.js") {
-		<body>
+		<body
+			if session != nil {
+				hx-headers={ F(`{"CSRF-Token": "%s"}`) }
+			}
+		>
 			<a href="/users/oauth-login">login with google</a>
 		</body>
 	}
 }
 
-templ DND() {
+templ DND(session *models.Session) {
 	@Page("Game", "game.js") {
-		<body hx-ws="connect:/games/123/join">
+		<body
+			hx-ws="connect:/games/123/join"
+			if session != nil {
+				hx-headers={ F(`{"CSRF-Token": "%s"}`) }
+			}
+		>
 			<div class="layout">
 				@components.TabContainer("layout__top", nil)
 				@components.TabContainer("layout__left", nil)

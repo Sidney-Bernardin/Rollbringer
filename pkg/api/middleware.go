@@ -3,15 +3,53 @@ package api
 import (
 	"context"
 	"net/http"
-	database "rollbringer/pkg/repositories/database"
 
 	"github.com/pkg/errors"
+
+	database "rollbringer/pkg/repositories/database"
 )
 
-func (api *API) Authenticate(next http.Handler) http.Handler {
+func (api *API) Auth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		stCookie, err := r.Cookie("Session_Token")
+		stCookie, err := r.Cookie("SESSION_ID")
+		if err != nil {
+
+			if err == http.ErrNoCookie {
+				api.renderError(w, r, errUnauthorized, http.StatusUnauthorized)
+				return
+			}
+
+			err = errors.Wrap(err, "cannot get CSRF_Token cookie")
+			api.renderError(w, r, err, http.StatusInternalServerError)
+			return
+		}
+
+		session, err := api.DB.GetSession(r.Context(), stCookie.Value)
+		if err != nil {
+
+			if err == database.ErrSessionNotFound {
+				api.renderError(w, r, errUnauthorized, http.StatusUnauthorized)
+				return
+			}
+
+			err = errors.Wrap(err, "cannot get session from db")
+			api.renderError(w, r, err, http.StatusInternalServerError)
+			return
+		}
+
+		if session.CSRFToken.String() == r.Header.Get("CSRF-Token") {
+			r = r.WithContext(context.WithValue(r.Context(), "session", session))
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (api *API) LightAuth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		stCookie, err := r.Cookie("SESSION_ID")
 		if err != nil {
 
 			if err == http.ErrNoCookie {
@@ -37,10 +75,7 @@ func (api *API) Authenticate(next http.Handler) http.Handler {
 			return
 		}
 
-		if session.CSRFToken.String() == r.Header.Get("CSRF-Token") {
-			r = r.WithContext(context.WithValue(r.Context(), "session", session))
-		}
-
+		r = r.WithContext(context.WithValue(r.Context(), "session", session))
 		next.ServeHTTP(w, r)
 	})
 }

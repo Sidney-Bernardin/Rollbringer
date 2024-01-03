@@ -11,6 +11,10 @@ import (
 	"golang.org/x/oauth2"
 )
 
+var (
+	errUnauthorized = errors.New("Unauthorized")
+)
+
 type API struct {
 	DB     *database.Database
 	Logger *zerolog.Logger

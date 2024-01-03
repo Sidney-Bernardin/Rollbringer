@@ -20,7 +20,7 @@ func createRouter(a *api.API) chi.Router {
 	)
 
 	router.Route("/", func(r chi.Router) {
-		r.Use(a.Authenticate)
+		r.Use(a.LightAuth)
 
 		r.Get("/", a.HandleHomePage)
 		r.Get("/game", a.HandleGamePage)
@@ -32,7 +32,7 @@ func createRouter(a *api.API) chi.Router {
 	})
 
 	router.Route("/games", func(r chi.Router) {
-		r.Use(a.Authenticate)
+		r.Use(a.Auth)
 
 		r.Method("GET", "/{id}/join", websocket.Handler(a.HandleJoinGame))
 	})

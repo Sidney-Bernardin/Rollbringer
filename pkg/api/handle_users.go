@@ -32,18 +32,18 @@ func (api *API) HandleOAuthConsentCallback(w http.ResponseWriter, r *http.Reques
 
 	cookie, err := r.Cookie("state_and_verifier")
 	if err != nil {
-		api.renderError(w, r, errors.New("unauthorized"), http.StatusUnauthorized)
+		api.renderError(w, r, errUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	state_and_verifier := strings.Split(cookie.Value, ",")
 	if len(state_and_verifier) != 2 {
-		api.renderError(w, r, errors.New("unauthorized"), http.StatusUnauthorized)
+		api.renderError(w, r, errUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
 	if r.FormValue("state") != state_and_verifier[0] {
-		api.renderError(w, r, errors.New("unauthorized"), http.StatusUnauthorized)
+		api.renderError(w, r, errUnauthorized, http.StatusUnauthorized)
 		return
 	}
 

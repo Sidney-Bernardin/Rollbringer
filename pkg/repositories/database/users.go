@@ -53,10 +53,13 @@ func (database *Database) Login(ctx context.Context, googleID string) (*models.S
 }
 
 func (database *Database) GetSession(ctx context.Context, id string) (*models.Session, error) {
-	row := database.db.QueryRow(`SELECT * FROM users WHERE id=$1`, id)
+	row := database.db.QueryRow(`SELECT * FROM sessions WHERE id=$1`, id)
 
-	var session *models.Session
-	err := row.Scan(session)
+	var session models.Session
+	err := row.Scan(&session.ID, &session.CSRFToken, &session.UserID)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, errors.Wrap(err, "cannot get session")
+	}
 
-	return session, errors.Wrap(err, "cannot get session")
+	return &session, nil
 }
