@@ -1,11 +1,14 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 var (
@@ -13,10 +16,11 @@ var (
 )
 
 type Database struct {
-	db *sql.DB
+	db     *sql.DB
+	logger *zerolog.Logger
 }
 
-func New(addr string) (*Database, error) {
+func New(addr string, loggerCtx context.Context) (*Database, error) {
 
 	db, err := sql.Open("postgres", addr)
 	if err != nil {
@@ -27,5 +31,14 @@ func New(addr string) (*Database, error) {
 		return nil, errors.Wrap(err, "ping failed")
 	}
 
-	return &Database{db}, nil
+	return &Database{
+		db:     db,
+		logger: log.Ctx(loggerCtx),
+	}, nil
+}
+
+func (database *Database) Rollback(tx *sql.Tx) {
+	if err := tx.Rollback(); err != nil && err != sql.ErrTxDone {
+		database.logger.Error().Stack().Err(err).Msg("Cannot rollback transaction")
+	}
 }

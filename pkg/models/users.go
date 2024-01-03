@@ -10,5 +10,6 @@ type User struct {
 
 type Session struct {
 	ID        uuid.UUID
-	CSRFToken string
+	CSRFToken uuid.UUID
+	UserID    uuid.UUID
 }

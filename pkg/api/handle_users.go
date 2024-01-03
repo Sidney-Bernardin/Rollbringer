@@ -32,18 +32,18 @@ func (api *API) HandleOAuthConsentCallback(w http.ResponseWriter, r *http.Reques
 
 	cookie, err := r.Cookie("state_and_verifier")
 	if err != nil {
-		// errUnauthorized
+		api.renderError(w, r, errors.New("unauthorized"), http.StatusUnauthorized)
 		return
 	}
 
 	state_and_verifier := strings.Split(cookie.Value, ",")
 	if len(state_and_verifier) != 2 {
-		// errUnauthorized
+		api.renderError(w, r, errors.New("unauthorized"), http.StatusUnauthorized)
 		return
 	}
 
 	if r.FormValue("state") != state_and_verifier[0] {
-		// errUnauthorized
+		api.renderError(w, r, errors.New("unauthorized"), http.StatusUnauthorized)
 		return
 	}
 
@@ -54,26 +54,37 @@ func (api *API) HandleOAuthConsentCallback(w http.ResponseWriter, r *http.Reques
 
 	if err != nil {
 		err = errors.Wrap(err, "cannot exchange code for token")
-		// server error
+		api.renderError(w, r, err, http.StatusUnauthorized)
 		return
 	}
 
 	idTokenStr, ok := token.Extra("id_token").(string)
 	if !ok {
 		err = errors.New("id_token should be string, but is not")
-		// server error
+		api.renderError(w, r, err, http.StatusInternalServerError)
 		return
 	}
 
-	_, _, err = jwt.NewParser().ParseUnverified(idTokenStr, &openIDConnectClaims{})
+	idToken, _, err := jwt.NewParser().ParseUnverified(idTokenStr, &openIDConnectClaims{})
 	if err != nil {
 		err = errors.Wrap(err, "cannot parse ID token")
-		// server error
+		api.renderError(w, r, err, http.StatusInternalServerError)
 		return
 	}
 
-	// login
-	// set session token cookie
+	session, err := api.DB.Login(r.Context(), idToken.Claims.(*openIDConnectClaims).Subject)
+	if err != nil {
+		api.renderError(w, r, err, http.StatusInternalServerError)
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "SESSION_ID",
+		Value:    session.ID.String(),
+		Path:     "/",
+		Expires:  time.Now().Add(15 * time.Minute),
+		HttpOnly: true,
+	})
 
 	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 }

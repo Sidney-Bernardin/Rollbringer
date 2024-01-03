@@ -1,11 +1,14 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"rollbringer/pkg/views"
 )
 
 func (api *API) HandleHomePage(w http.ResponseWriter, r *http.Request) {
+	session := r.Context().Value("session")
+	fmt.Println(session)
 	views.Home().Render(r.Context(), w)
 }
 

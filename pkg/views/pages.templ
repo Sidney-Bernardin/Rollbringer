@@ -19,7 +19,9 @@ templ Page(title, script string) {
 
 templ Home() {
 	@Page("Home", "home.js") {
-		<body></body>
+		<body>
+			<a href="/users/oauth-login">login with google</a>
+		</body>
 	}
 }
 
@@ -44,5 +46,5 @@ templ DND() {
 }
 
 templ Error(err error) {
-	<h1>Error: { err.Error() }</h1>
+	<p class="error">{ err.Error() }</p>
 }

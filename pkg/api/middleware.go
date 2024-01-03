@@ -20,7 +20,7 @@ func (api *API) Authenticate(next http.Handler) http.Handler {
 			}
 
 			err = errors.Wrap(err, "cannot get CSRF_Token cookie")
-			// server error
+			api.renderError(w, r, err, http.StatusInternalServerError)
 			return
 		}
 
@@ -33,11 +33,11 @@ func (api *API) Authenticate(next http.Handler) http.Handler {
 			}
 
 			err = errors.Wrap(err, "cannot get session from db")
-			// server error
+			api.renderError(w, r, err, http.StatusInternalServerError)
 			return
 		}
 
-		if session.CSRFToken == r.Header.Get("CSRF-Token") {
+		if session.CSRFToken.String() == r.Header.Get("CSRF-Token") {
 			r = r.WithContext(context.WithValue(r.Context(), "session", session))
 		}
 

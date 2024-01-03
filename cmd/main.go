@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"os"
 	"rollbringer/pkg/api"
@@ -40,8 +41,13 @@ func main() {
 		logger.Fatal().Stack().Err(err).Msg("Cannot generate configuration")
 	}
 
+	// Create a sub-logger for the database.
+	dbLoggerCtx := logger.With().
+		Str("component", "database").
+		Logger().WithContext(context.Background())
+
 	// Create a database.
-	db, err := database.New(cfg.DBAddress)
+	db, err := database.New(cfg.DBAddress, dbLoggerCtx)
 	if err != nil {
 		logger.Fatal().Stack().Err(err).Msg("Cannot create database")
 	}
@@ -57,9 +63,9 @@ func main() {
 
 	// Create and setup router with various services.
 	router := createRouter(&api.API{
-		DB:     db,
-		Logger: &logger,
-		GoogleOAuthConfig:	googleOAuthConfig,
+		DB:                db,
+		Logger:            &logger,
+		GoogleOAuthConfig: googleOAuthConfig,
 	})
 
 	logger.Info().Str("address", cfg.Address).Msg("Serving")
