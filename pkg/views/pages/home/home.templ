@@ -1,0 +1,20 @@
+package home
+
+import "rollbringer/pkg/models"
+
+import . "rollbringer/pkg/views"
+import "rollbringer/pkg/views/pages"
+
+templ Home(session *models.Session) {
+	@pages.Page("Home", "home.js") {
+		<body
+			if session != nil {
+				hx-headers={ F(`{"CSRF-Token": "%s"}`, session.CSRFToken.String()) }
+			}
+		>
+			<div class="layout">
+                
+            </div>
+		</body>
+	}
+}

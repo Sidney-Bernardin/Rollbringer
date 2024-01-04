@@ -1,4 +1,4 @@
-package components
+package game
 
 templ Library() {
 	<div class="library">
@@ -13,9 +13,9 @@ templ Library() {
 templ FileButton(id, name string) {
 	<li>
 		<button
- 			hx-ws="send"
- 			name="id"
- 			value={ id }
+			hx-ws="send"
+			name="id"
+			value={ id }
 		>
 			{ name }
 		</button>

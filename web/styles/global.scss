@@ -1,7 +1,8 @@
 $shadow: #1d2021;
 $blue: #83a598;
 $red: #cc241d;
-$green: #b8bb26;
+$lightgreen: #b8bb26;
+$darkgreen: #98971a;
 $purple: #d3869b;
 
 $bg1: #282828;
@@ -30,8 +31,6 @@ body {
 
   button {
     cursor: pointer;
-    color: $txt1;
-    background: $bg2;
   }
 
   .error {
@@ -39,4 +38,16 @@ body {
     background: red;
     font-weight: bold;
   }
+}
+
+@mixin panel {
+  border: 5px solid $bg2;
+  outline: 2px solid $shadow;
+}
+
+@mixin main_button($bg, $fg, $border-color) {
+  border: 3px solid $border-color;
+  color: $fg;
+  background: $bg;
+  font-weight: bolder;
 }

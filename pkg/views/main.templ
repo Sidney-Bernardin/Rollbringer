@@ -1,0 +1,9 @@
+package views
+
+import "fmt"
+
+var F = fmt.Sprintf
+
+templ Error(err error) {
+	<p class="error">{ err.Error() }</p>
+}

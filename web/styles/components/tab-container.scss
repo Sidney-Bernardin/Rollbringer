@@ -6,8 +6,8 @@
   height: 100%;
 
   &__wrapper {
-    border: 5px solid $bg2;
-    outline: 2px solid $shadow;
+    @include panel;
+
     flex: 5;
   }
 
@@ -41,6 +41,7 @@
       button {
         border: none;
         border-radius: 50%;
+        color: $txt1;
         background: none;
         opacity: 1;
         padding: 3px;

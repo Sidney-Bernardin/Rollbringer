@@ -1,11 +1,11 @@
 package components
 
-import . "rollbringer/pkg/views/utils"
+import . "rollbringer/pkg/views"
 
 templ TabContainer(class string, initialTabs map[string]templ.Component) {
 	<div
- 		class={ "tab-container", class }
- 		x-data="{ currentTab: '' }"
+		class={ "tab-container", class }
+		x-data="{ currentTab: '' }"
 	>
 		<ul class="tab-container__list">
 			if initialTabs != nil {
@@ -26,10 +26,10 @@ templ TabContainer(class string, initialTabs map[string]templ.Component) {
 
 templ tabButton(name string) {
 	<li
- 		class="tab-button"
- 		x-data={ F(`{ tabName: '%s' }`, name) }
- 		x-bind={ F(`tabButton('%s')`, name)}
- 		x-on:close-tab="$el.remove()"
+		class="tab-button"
+		x-data={ F(`{ tabName: '%s' }`, name) }
+		x-bind={ F(`tabButton('%s')`, name) }
+		x-on:close-tab="$el.remove()"
 	>
 		{ name }
 		<button x-on:click="$dispatch('close-tab', { tabName })">
@@ -40,10 +40,10 @@ templ tabButton(name string) {
 
 templ tabItem(name string, content templ.Component) {
 	<div
- 		class="tab-item"
- 		x-data={ F(`{ tabName: '%s' }`, name) }
- 		x-show="currentTab == tabName"
- 		x-on:close-tab.window="($event.detail.tabName == tabName) && $el.remove()"
+		class="tab-item"
+		x-data={ F(`{ tabName: '%s' }`, name) }
+		x-show="currentTab == tabName"
+		x-on:close-tab.window="($event.detail.tabName == tabName) && $el.remove()"
 	>
 		@content
 	</div>

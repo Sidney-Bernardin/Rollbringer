@@ -1,1 +1,46 @@
-@use "./global.scss";
+@use "./global.scss" as *;
+
+.library {
+  position: absolute;
+  display: flex;
+  left: 0;
+  bottom: 0;
+  gap: 5px;
+  width: 45%;
+  height: 75vh;
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+  }
+
+  .tab-buttons {
+    position: relative;
+    background: blue;
+    overflow-x: hidden;
+    flex: 1;
+
+    ul {
+      position: absolute;
+      display: flex;
+      bottom: 0;
+      width: 100%;
+      gap: 5px;
+      rotate: -90deg;
+
+      button {
+        @include main_button($lightgreen, $bg3, $darkgreen);
+
+        height: 100%;
+        font-size: 1.2rem;
+        text-transform: uppercase;
+      }
+    }
+  }
+
+  .the-rest {
+    flex: 4;
+    background: red;
+  }
+}
