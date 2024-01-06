@@ -12,6 +12,7 @@ import (
 )
 
 var (
+	ErrUserNotFound    = errors.New("user was not found")
 	ErrSessionNotFound = errors.New("session was not found")
 )
 
@@ -37,7 +38,7 @@ func New(addr string, loggerCtx context.Context) (*Database, error) {
 	}, nil
 }
 
-func (database *Database) Rollback(tx *sql.Tx) {
+func (database *Database) rollback(tx *sql.Tx) {
 	if err := tx.Rollback(); err != nil && err != sql.ErrTxDone {
 		database.logger.Error().Stack().Err(err).Msg("Cannot rollback transaction")
 	}

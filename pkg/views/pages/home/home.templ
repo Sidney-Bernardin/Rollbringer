@@ -1,20 +1,29 @@
 package home
 
-import "rollbringer/pkg/models"
-
 import . "rollbringer/pkg/views"
 import "rollbringer/pkg/views/pages"
+import "rollbringer/pkg/views/components"
 
-templ Home(session *models.Session) {
+templ Home() {
 	@pages.Page("Home", "home.js") {
-		<body
-			if session != nil {
-				hx-headers={ F(`{"CSRF-Token": "%s"}`, session.CSRFToken.String()) }
-			}
-		>
-			<div class="layout">
-                
-            </div>
-		</body>
+		if GetSession(ctx) == nil {
+			<a class="login-button" href="/users/login">
+				<iconify-icon icon="devicon:google"></iconify-icon>
+				Login with Google
+			</a>
+		} else {
+			<body hx-headers={ F(`{"CSRF-Token": "%s"}`, GetSession(ctx).CSRFToken.String()) }>
+				<div class="layout">
+					<div class="layout__top">
+						<h1>{ GetUser(ctx).Username }</h1>
+					</div>
+					<div class="layout__bottom"></div>
+					<div class="layout__right">
+						@components.DNDCharacterSheet()
+					</div>
+					<span class="layout__gutter"></span>
+				</div>
+			</body>
+		}
 	}
 }

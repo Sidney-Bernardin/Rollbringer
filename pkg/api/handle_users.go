@@ -10,7 +10,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func (api *API) HandleOAuthLogin(w http.ResponseWriter, r *http.Request) {
+func (api *API) HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 	var (
 		state        = mustGetRandHexStr()
@@ -28,7 +28,7 @@ func (api *API) HandleOAuthLogin(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, consentURL, http.StatusTemporaryRedirect)
 }
 
-func (api *API) HandleOAuthConsentCallback(w http.ResponseWriter, r *http.Request) {
+func (api *API) HandleConsentCallback(w http.ResponseWriter, r *http.Request) {
 
 	cookie, err := r.Cookie("state_and_verifier")
 	if err != nil {

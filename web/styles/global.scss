@@ -32,12 +32,6 @@ body {
   button {
     cursor: pointer;
   }
-
-  .error {
-    color: $txt1;
-    background: red;
-    font-weight: bold;
-  }
 }
 
 @mixin panel {
@@ -50,4 +44,5 @@ body {
   color: $fg;
   background: $bg;
   font-weight: bolder;
+  text-decoration: none;
 }

@@ -1,0 +1,20 @@
+package views
+
+import "fmt"
+import "rollbringer/pkg/models"
+
+var F = fmt.Sprintf
+
+func GetSession(ctx context.Context) *models.Session {
+	session, _ := ctx.Value("session").(*models.Session)
+	return session
+}
+
+func GetUser(ctx context.Context) *models.User {
+	user, _ := ctx.Value("user").(*models.User)
+	return user
+}
+
+templ Error(err error) {
+	<p class="error">{ err.Error() }</p>
+}

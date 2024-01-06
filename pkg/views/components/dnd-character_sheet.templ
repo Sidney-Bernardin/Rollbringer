@@ -1,6 +1,6 @@
 package components
 
-const pdfURL = "/static/character_sheet.pdf"
+const CharacterSheetPDFurl = "/static/character_sheet.pdf"
 
 templ DNDCharacterSheet() {
 	<div class="dnd-character-sheet" x-data="{ currentTab: '' }">
@@ -9,6 +9,6 @@ templ DNDCharacterSheet() {
 			<li x-bind="tabButton(2)">info</li>
 			<li x-bind="tabButton(3)">spells</li>
 		</ul>
-		@PDFViewer("dnd-character-sheet__pdf-viewer", pdfURL)
+		@PDFViewer("dnd-character-sheet__pdf-viewer", CharacterSheetPDFurl)
 	</div>
 }

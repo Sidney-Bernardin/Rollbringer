@@ -52,13 +52,33 @@ func (database *Database) Login(ctx context.Context, googleID string) (*models.S
 	return session, nil
 }
 
-func (database *Database) GetSession(ctx context.Context, id string) (*models.Session, error) {
-	row := database.db.QueryRow(`SELECT * FROM sessions WHERE id=$1`, id)
+func (database *Database) GetUser(ctx context.Context, userID uuid.UUID) (*models.User, error) {
+	var user models.User
 
+	q := `SELECT id, username FROM users WHERE id=$1`
+	err := database.db.QueryRowContext(ctx, q, userID).Scan(&user.ID, &user.Username)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrUserNotFound
+		}
+
+		return nil, errors.Wrap(err, "cannot select user")
+	}
+
+	return &user, nil
+}
+
+func (database *Database) GetSession(ctx context.Context, id string) (*models.Session, error) {
 	var session models.Session
-	err := row.Scan(&session.ID, &session.CSRFToken, &session.UserID)
+
+	q := `SELECT id, csrf_token, user_id FROM sessions WHERE id=$1`
+	err := database.db.QueryRow(q, id).Scan(&session.ID, &session.CSRFToken, &session.UserID)
 	if err != nil && err != sql.ErrNoRows {
-		return nil, errors.Wrap(err, "cannot get session")
+		if err == sql.ErrNoRows {
+			return nil, ErrSessionNotFound
+		}
+
+		return nil, errors.Wrap(err, "cannot select session")
 	}
 
 	return &session, nil

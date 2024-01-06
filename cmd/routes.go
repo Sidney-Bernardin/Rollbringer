@@ -27,8 +27,8 @@ func createRouter(a *api.API) chi.Router {
 	})
 
 	router.Route("/users", func(r chi.Router) {
-		r.Get("/oauth-login", a.HandleOAuthLogin)
-		r.Get("/oauth-consent-callback", a.HandleOAuthConsentCallback)
+		r.Get("/login", a.HandleLogin)
+		r.Get("/consent-callback", a.HandleConsentCallback)
 	})
 
 	router.Route("/games", func(r chi.Router) {

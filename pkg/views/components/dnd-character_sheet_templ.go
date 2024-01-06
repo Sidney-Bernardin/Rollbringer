@@ -10,7 +10,7 @@ import "context"
 import "io"
 import "bytes"
 
-const pdfURL = "/static/character_sheet.pdf"
+const CharacterSheetPDFurl = "/static/character_sheet.pdf"
 
 func DNDCharacterSheet() templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
@@ -56,7 +56,7 @@ func DNDCharacterSheet() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = PDFViewer("dnd-character-sheet__pdf-viewer", pdfURL).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = PDFViewer("dnd-character-sheet__pdf-viewer", CharacterSheetPDFurl).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
