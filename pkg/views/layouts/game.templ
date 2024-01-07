@@ -1,0 +1,25 @@
+package layouts
+
+import . "rollbringer/pkg/views"
+import "rollbringer/pkg/views/components"
+
+templ Game() {
+	@Page("Game", "game.js") {
+		<body
+			hx-ws="connect:/games/123/join"
+			if session := GetSession(ctx); session != nil {
+				hx-headers={ F(`{"CSRF-Token": "%s"}`, session.CSRFToken.String()) }
+			}
+		>
+			<div class="layout">
+				@components.TabPanel("layout__top", nil)
+				@components.TabPanel("layout__left", nil)
+				@components.Library("layout__bottom")
+				@components.Social("layout__right")
+				<span class="layout__left-gutter"></span>
+				<span class="layout__middle-gutter"></span>
+				<span class="layout__right-gutter"></span>
+			</div>
+		</body>
+	}
+}

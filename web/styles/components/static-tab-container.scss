@@ -1,8 +1,11 @@
 @use "../global.scss" as *;
 
-.dnd-character-sheet {
-  &__pdf-viewer {
-    border: 2px solid $shadow;
+.static-tab-container {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+
+  &__wrapper {
     flex: 5;
   }
 
@@ -14,7 +17,7 @@
     margin: 0;
     padding: 0 0 5px 0;
     list-style-type: none;
-    justify-content: space-around;
+    justify-content: start;
     align-self: center;
 
     li {
@@ -36,5 +39,10 @@
         font-size: 1.5rem;
       }
     }
+  }
+
+  &__pdf-viewer {
+    border: 2px solid $shadow;
+    flex: 5;
   }
 }

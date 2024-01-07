@@ -5,10 +5,13 @@ Alpine.data("pdfViewer", (pdfURL: string) => ({
   pdfViewer: null,
 
   init() {
-    const container = this.$root.querySelector(".pdf-viewer__container")
+    const container = this.$root.querySelector(".pdf-viewer__container");
 
-    this.pdfViewer = new PDFContainer(pdfURL, container as HTMLDivElement)
+    this.pdfViewer = new PDFContainer(pdfURL, container as HTMLDivElement);
 
-    this.$watch("currentTab", async (newVal: string) => await this.pdfViewer.renderPage(newVal));
+    this.$watch(
+      "currentPage",
+      async (newVal: string) => await this.pdfViewer.renderPage(newVal),
+    );
   },
 }));

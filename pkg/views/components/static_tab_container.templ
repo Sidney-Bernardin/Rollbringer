@@ -1,0 +1,29 @@
+package components
+
+import . "rollbringer/pkg/views"
+
+templ StaticTabContainer(class string, tabs map[string]templ.Component) {
+	<div class={ "static-tab-container", class } x-data="{ currentStaticTab: '' }">
+		<ul class="static-tab-container__list">
+			for name := range tabs {
+				<li
+					x-data={ F(`{ staticTabName: '%s' }`, name) }
+					x-bind:class="currentStaticTab == staticTabName && 'active'"
+					x-on:click="currentStaticTab = staticTabName"
+				>
+					{ name }
+				</li>
+			}
+		</ul>
+		<div class="static-tab-container__wrapper">
+			for name, content := range tabs {
+				<div
+					class="tab-item"
+					x-show={ F("currentStaticTab == '%s'", name) }
+				>
+					@content
+				</div>
+			}
+		</div>
+	</div>
+}

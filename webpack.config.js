@@ -2,7 +2,6 @@ const path = require("path");
 
 module.exports = {
   entry: {
-    home: path.resolve(__dirname, "web/home.ts"),
     game: path.resolve(__dirname, "web/game.ts"),
 
     "pdf.worker": path.resolve(

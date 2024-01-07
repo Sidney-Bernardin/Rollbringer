@@ -4,7 +4,7 @@ import Split from "split-grid";
 import "./alpine";
 import "./htmx/htmx";
 
-import "./styles/game.scss";
+import "./styles/layouts/game.scss";
 require.context("./assets", false, /\.(png|jpg|gif|pdf)$/);
 
 Split({

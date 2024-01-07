@@ -12,7 +12,7 @@ import "bytes"
 
 import . "rollbringer/pkg/views"
 
-func TabContainer(class string, initialTabs map[string]templ.Component) templ.Component {
+func TabPanel(class string, initialTabs map[string]templ.Component) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -25,7 +25,7 @@ func TabContainer(class string, initialTabs map[string]templ.Component) templ.Co
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		var templ_7745c5c3_Var2 = []any{"tab-container", class}
+		var templ_7745c5c3_Var2 = []any{"tab-panel", class}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var2...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -38,7 +38,7 @@ func TabContainer(class string, initialTabs map[string]templ.Component) templ.Co
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" x-data=\"{ currentTab: &#39;&#39; }\"><ul class=\"tab-container__list\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" x-data=\"{ currentTab: &#39;&#39; }\"><ul class=\"tab-panel__list\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -50,7 +50,7 @@ func TabContainer(class string, initialTabs map[string]templ.Component) templ.Co
 				}
 			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</ul><div class=\"tab-container__wrapper\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</ul><div class=\"tab-panel__wrapper\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -94,22 +94,14 @@ func tabButton(name string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" x-bind=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(F(`tabButton('%s')`, name)))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" x-on:close-tab=\"$el.remove()\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" x-bind:class=\"currentTab == tabName &amp;&amp; &#39;active&#39;\" x-on:click=\"currentTab = tabName\" x-on:close-tab=\"$el.remove()\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/components/tab_container.templ`, Line: 33, Col: 8}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/components/tab_panel.templ`, Line: 34, Col: 8}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -167,8 +159,8 @@ func tabItem(name string, content templ.Component) templ.Component {
 }
 
 const (
-	TabContainerSelectorPlayMaterial = ".tab-container.layout__left"
-	TabContainerSelectorScene        = ".tab-container.layout__top"
+	TabPanelSelectorPlayMaterial = ".tab-panel.layout__left"
+	TabPanelSelectorScene        = ".tab-panel.layout__top"
 )
 
 func HTMxAddTabs(selector string, newTabs map[string]templ.Component) templ.Component {
@@ -189,7 +181,7 @@ func HTMxAddTabs(selector string, newTabs map[string]templ.Component) templ.Comp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString("beforeend:" + selector + " .tab-container__list"))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString("beforeend:" + selector + " .tab-panel__list"))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -205,7 +197,7 @@ func HTMxAddTabs(selector string, newTabs map[string]templ.Component) templ.Comp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString("beforeend:" + selector + " .tab-container__wrapper"))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString("beforeend:" + selector + " .tab-panel__wrapper"))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

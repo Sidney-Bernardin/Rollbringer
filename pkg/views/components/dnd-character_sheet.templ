@@ -1,14 +1,24 @@
 package components
 
-const CharacterSheetPDFurl = "/static/character_sheet.pdf"
+import . "rollbringer/pkg/views"
+
+const characterSheetPDFurl = "/static/character_sheet.pdf"
+
+var dndCharacterSheetPages = []string{"main", "info", "spells"}
 
 templ DNDCharacterSheet() {
-	<div class="dnd-character-sheet" x-data="{ currentTab: '' }">
+	<div class="dnd-character-sheet" x-data="{ currentPage: '' }">
 		<ul class="dnd-character-sheet__list">
-			<li x-bind="tabButton(1)">main</li>
-			<li x-bind="tabButton(2)">info</li>
-			<li x-bind="tabButton(3)">spells</li>
+			for i, name := range dndCharacterSheetPages {
+				<li
+		            x-data={ F(`{ pageNum: %v }`, i+1) }
+					x-on:click="currentPage = pageNum"
+					x-bind:class="currentPage == pageNum && 'active'"
+				>
+					{ name }
+				</li>
+			}
 		</ul>
-		@PDFViewer("dnd-character-sheet__pdf-viewer", CharacterSheetPDFurl)
+		@PDFViewer("dnd-character-sheet__pdf-viewer", characterSheetPDFurl)
 	</div>
 }
