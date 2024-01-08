@@ -7,7 +7,7 @@ const characterSheetPDFurl = "/static/character_sheet.pdf"
 var dndCharacterSheetPages = []string{"main", "info", "spells"}
 
 templ DNDCharacterSheet() {
-	<div class="dnd-character-sheet" x-data="{ currentPage: '' }">
+	<div class="dnd-character-sheet" x-data="{ currentPage: 1 }">
 		<ul class="dnd-character-sheet__list">
 			for i, name := range dndCharacterSheetPages {
 				<li

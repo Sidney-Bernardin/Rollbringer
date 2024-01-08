@@ -1,11 +1,16 @@
 import Alpine from "alpinejs";
 import Split from "split-grid";
 
-import "./alpine";
-import "./htmx/htmx";
-
-import "./styles/layouts/game.scss";
 require.context("./assets", false, /\.(png|jpg|gif|pdf)$/);
+import "./styles/layouts/game.scss";
+
+window.alpine = Alpine
+window.htmx = require("htmx.org");
+
+import "./window";
+import "./components/pdf-viewer";
+
+Alpine.start();
 
 Split({
   columnGutters: [

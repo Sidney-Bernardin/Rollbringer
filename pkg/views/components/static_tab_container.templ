@@ -1,9 +1,14 @@
 package components
 
+import "golang.org/x/exp/maps"
+
 import . "rollbringer/pkg/views"
 
 templ StaticTabContainer(class string, tabs map[string]templ.Component) {
-	<div class={ "static-tab-container", class } x-data="{ currentStaticTab: '' }">
+	<div
+		class={ "static-tab-container", class }
+		x-data={ F("{ currentStaticTab: '%s' }", maps.Keys(tabs)[0]) }
+	>
 		<ul class="static-tab-container__list">
 			for name := range tabs {
 				<li
@@ -15,15 +20,13 @@ templ StaticTabContainer(class string, tabs map[string]templ.Component) {
 				</li>
 			}
 		</ul>
-		<div class="static-tab-container__wrapper">
-			for name, content := range tabs {
-				<div
-					class="tab-item"
-					x-show={ F("currentStaticTab == '%s'", name) }
-				>
-					@content
-				</div>
-			}
-		</div>
+		for name, content := range tabs {
+			<div
+				class="static-tab-container__tab-item"
+				x-show={ F("currentStaticTab == '%s'", name) }
+			>
+				@content
+			</div>
+		}
 	</div>
 }

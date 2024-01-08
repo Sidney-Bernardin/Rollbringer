@@ -1,6 +1,10 @@
 @use "../global.scss" as *;
 
 .dnd-character-sheet {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+
   &__pdf-viewer {
     border: 2px solid $shadow;
     flex: 5;

@@ -2,26 +2,23 @@ package components
 
 templ Library(class string) {
 	<div class={ "library", class }>
-		@StaticTabContainer("social__static-tab-container", map[string]templ.Component{
-      "your stuff": yourStuff(),
-    })
+		@StaticTabContainer("library__static-tab-container", map[string]templ.Component{
+            "your docs": yourStuff(),
+            "your assets": yourStuff(),
+        })
 	</div>
 }
 
 templ yourStuff() {
-	<div class="your-stuff">
-		<h1>foo</h1>
-	</div>
-}
-
-templ fileButton(id, name string) {
-	<li>
-		<button
-			hx-ws="send"
-			name="id"
-			value={ id }
-		>
-			{ name }
-		</button>
-	</li>
+	<table class="your-stuff">
+		<tbody>
+			for _, name := range []string{"Hoid", "Lee", "Yama"} {
+				<tr>
+					<td><button>{ name }</button></td>
+					<td>foo</td>
+					<td>bar</td>
+				</tr>
+			}
+		</tbody>
+	</table>
 }

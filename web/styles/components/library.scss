@@ -2,4 +2,28 @@
 
 .library {
   @include panel;
+
+  &__static-tab-container {
+    .your-stuff {
+      width: 100%;
+      border: 5px solid transparent;
+      border-collapse: collapse;
+      padding: 5px;
+
+      tr {
+        &:hover {
+          background: $bg2;
+        }
+
+        td {
+          button {
+            @include underline_btn($txt1);
+          }
+
+          border: 5px solid transparent;
+          padding: 0;
+        }
+      }
+    }
+  }
 }

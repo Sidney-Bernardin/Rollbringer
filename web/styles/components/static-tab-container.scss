@@ -5,13 +5,15 @@
   height: 100%;
   flex-direction: column;
 
-  &__wrapper {
+  &__tab-item {
+    height: 100%;
+    border: 2px solid $shadow;
     flex: 5;
   }
 
   &__list {
     display: flex;
-    gap: 10px;
+    gap: 15px;
     width: 100%;
     background: $bg2;
     margin: 0;
@@ -39,10 +41,5 @@
         font-size: 1.5rem;
       }
     }
-  }
-
-  &__pdf-viewer {
-    border: 2px solid $shadow;
-    flex: 5;
   }
 }

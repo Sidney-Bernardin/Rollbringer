@@ -1,7 +1,6 @@
-import Alpine from "alpinejs";
 import PDFContainer from "../utils/pdf-viewer";
 
-Alpine.data("pdfViewer", (pdfURL: string) => ({
+window.alpine.data("pdfViewer", (pdfURL: string) => ({
   pdfViewer: null,
 
   init() {

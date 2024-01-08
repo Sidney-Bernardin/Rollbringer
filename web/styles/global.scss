@@ -39,10 +39,32 @@ body {
   outline: 2px solid $shadow;
 }
 
-@mixin main_button($bg, $fg, $border-color) {
+@mixin btn($bg, $fg, $border-color) {
   border: 3px solid $border-color;
   color: $fg;
   background: $bg;
   font-weight: bolder;
+  padding: 5px;
   text-decoration: none;
+}
+
+@mixin icon_btn($bg, $fg) {
+  border: none;
+  border-radius: 50%;
+  color: $fg;
+  background: transparent;
+  padding: 3px;
+
+  &:hover {
+    background: $bg;
+  }
+}
+
+@mixin underline_btn($fg) {
+  border: none;
+  color: $fg;
+  background: transparent;
+  font-weight: bolder;
+  padding: 0;
+  text-decoration: underline;
 }

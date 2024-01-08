@@ -22,6 +22,9 @@ func createRouter(a *api.API) chi.Router {
 	router.Route("/", func(r chi.Router) {
 		r.Use(a.LightAuth)
 
+		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, "/game", http.StatusTemporaryRedirect)
+		})
 		r.Get("/game", a.HandleGamePage)
 	})
 
