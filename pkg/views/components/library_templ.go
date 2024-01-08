@@ -41,8 +41,8 @@ func Library(class string) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Err = StaticTabContainer("library__static-tab-container", map[string]templ.Component{
-			"your docs":   yourStuff(),
-			"your assets": yourStuff(),
+			"your docs": yourStuff(),
+			"combat":    templ.NopComponent,
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

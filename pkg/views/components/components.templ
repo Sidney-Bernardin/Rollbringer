@@ -4,8 +4,13 @@ import . "rollbringer/pkg/views"
 
 templ PDFViewer(class, pdfURL string) {
 	<div class={ "pdf-viewer", class } x-data={ F("pdfViewer('%s')", pdfURL) }>
-		<div class="pdf-viewer__container">
+		<form
+			class="pdf-viewer__container"
+			x-on:change="$dispatch('submit')"
+			x-on:submit.prevent="console.log('hoo')"
+            hx-ws="send:submit"
+		>
 			<div class="viewer"></div>
-		</div>
+		</form>
 	</div>
 }

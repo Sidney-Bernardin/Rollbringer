@@ -32,7 +32,7 @@ export default function(pdfURL: string, viewerContainer: HTMLDivElement) {
   });
 
   this.renderPage = async (num: number) => {
-    this.pageView.setPdfPage(await this.doc.getPage(num));
-    this.pageView.draw();
+    await this.pageView.setPdfPage(await this.doc.getPage(num));
+    await this.pageView.draw();
   };
 }
