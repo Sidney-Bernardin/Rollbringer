@@ -1,0 +1,56 @@
+@use "../global.scss" as *;
+
+.nav {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+
+  &__games {
+    display: flex;
+    gap: 5px;
+
+    &:hover {
+      .main-btn iconify-icon {
+        &.menu {
+          display: none;
+        }
+
+        &.create {
+          display: block;
+        }
+      }
+
+      .list {
+        width: 100%;
+      }
+    }
+
+    .main-btn {
+      @include icon_btn($bg2, $txt1);
+
+      font-size: 1.5rem;
+      padding: 5px;
+
+      iconify-icon.create {
+        display: none;
+      }
+    }
+
+    .list {
+      display: flex;
+      gap: 5px;
+      width: 0;
+      margin: 0;
+      padding: 0;
+      list-style-type: none;
+      overflow: hidden;
+      transition: width 0.2s;
+
+      button {
+        @include btn($txt1, $bg3, $txt4);
+
+        height: 100%;
+      }
+    }
+  }
+}

@@ -1,0 +1,19 @@
+package components
+
+templ Nav(class string) {
+	<div class={ "nav", class } x-data="{ open: true }">
+		<div class="nav__games">
+			<button class="main-btn" x-on:click="open = !open">
+				<iconify-icon class="menu" icon="ion:grid"></iconify-icon>
+				<iconify-icon class="create" icon="material-symbols:add"></iconify-icon>
+			</button>
+			<ul class="list">
+				for _, name := range []string{"foo", "bar", "baz"} {
+					<li>
+						<button>{ name }</button>
+					</li>
+				}
+			</ul>
+		</div>
+	</div>
+}

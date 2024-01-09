@@ -12,13 +12,15 @@ templ Game() {
 			}
 		>
 			<div class="layout">
+				@components.Nav("layout__nav")
 				@components.TabPanel("layout__top", nil)
 				@components.TabPanel("layout__left", nil)
 				@components.Library("layout__bottom")
 				@components.Social("layout__right")
-				<span class="layout__left-gutter"></span>
-				<span class="layout__middle-gutter"></span>
-				<span class="layout__right-gutter"></span>
+				<span class="layout__gutter-1"></span>
+				<span class="layout__gutter-2"></span>
+				<span class="layout__gutter-3"></span>
+				<span class="layout__gutter-4"></span>
 			</div>
 		</body>
 	}

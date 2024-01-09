@@ -6,48 +6,58 @@
   box-sizing: border-box;
   width: 100%;
   height: 100%;
-  grid-template-rows: 2fr 10px 1fr;
+  grid-template-rows: auto 5px 2fr 10px 1fr;
   grid-template-columns: 3fr 10px 2fr 10px 1fr;
   grid-template-areas:
-    "l gl t  gr r"
-    "l gl gm gr r"
-    "l gl b  gr r";
-  padding: 10px;
+    "nav  nav nav nav nav"
+    "g1   g1  g1  g1  g1"
+    "left g2  top g3  right"
+    "left g2  g4  g3  right"
+    "left g2  bot g3  right";
+  padding: 5px 10px 10px 10px;
+
+  &__nav {
+    grid-area: nav;
+  }
 
   &__left {
-    grid-area: l;
+    grid-area: left;
   }
 
   &__right {
-    grid-area: r;
+    grid-area: right;
   }
 
   &__top {
-    grid-area: t;
+    grid-area: top;
   }
 
   &__bottom {
-    grid-area: b;
+    grid-area: bot;
   }
 
-  &__left-gutter:hover,
-  &__right-gutter:hover {
+  &__gutter-2:hover,
+  &__gutter-3:hover {
     cursor: col-resize;
   }
 
-  &__middle-gutter:hover {
+  &__gutter-4:hover {
     cursor: row-resize;
   }
 
-  &__left-gutter {
-    grid-area: gl;
+  &__gutter-1 {
+    grid-area: g1;
   }
 
-  &__right-gutter {
-    grid-area: gr;
+  &__gutter-2 {
+    grid-area: g2;
   }
 
-  &__middle-gutter {
-    grid-area: gm;
+  &__gutter-3 {
+    grid-area: g3;
+  }
+
+  &__gutter-4 {
+    grid-area: g4;
   }
 }

@@ -16,17 +16,17 @@ Split({
   columnGutters: [
     {
       track: 1,
-      element: document.querySelector(".layout__left-gutter"),
+      element: document.querySelector(".layout__gutter-2"),
     },
     {
       track: 3,
-      element: document.querySelector(".layout__right-gutter"),
+      element: document.querySelector(".layout__gutter-3"),
     },
   ],
   rowGutters: [
     {
-      track: 1,
-      element: document.querySelector(".layout__middle-gutter"),
+      track: 3,
+      element: document.querySelector(".layout__gutter-4"),
     },
   ],
 });

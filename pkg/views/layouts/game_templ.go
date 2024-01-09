@@ -54,6 +54,10 @@ func Game() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
+			templ_7745c5c3_Err = components.Nav("layout__nav").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 			templ_7745c5c3_Err = components.TabPanel("layout__top", nil).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -70,7 +74,7 @@ func Game() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<span class=\"layout__left-gutter\"></span> <span class=\"layout__middle-gutter\"></span> <span class=\"layout__right-gutter\"></span></div></body>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<span class=\"layout__gutter-1\"></span> <span class=\"layout__gutter-2\"></span> <span class=\"layout__gutter-3\"></span> <span class=\"layout__gutter-4\"></span></div></body>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
