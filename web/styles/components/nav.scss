@@ -44,12 +44,20 @@
       padding: 0;
       list-style-type: none;
       overflow: hidden;
+      align-self: center;
       transition: width 0.2s;
 
       button {
+        @include btn($lightgreen, $bg3, $darkgreen);
+
+        padding: 5px 10px;
+      }
+
+      .login-btn {
         @include btn($txt1, $bg3, $txt4);
 
-        height: 100%;
+        padding: 5px 10px;
+        text-wrap: nowrap;
       }
     }
   }

@@ -1,19 +1,47 @@
 package components
 
+import . "rollbringer/pkg/views"
+
 templ Nav(class string) {
-	<div class={ "nav", class } x-data="{ open: true }">
+	<div class={ "nav", class }>
 		<div class="nav__games">
-			<button class="main-btn" x-on:click="open = !open">
-				<iconify-icon class="menu" icon="ion:grid"></iconify-icon>
-				<iconify-icon class="create" icon="material-symbols:add"></iconify-icon>
-			</button>
+			@menuButton()
 			<ul class="list">
-				for _, name := range []string{"foo", "bar", "baz"} {
+				if GetSession(ctx) == nil {
 					<li>
-						<button>{ name }</button>
+						<a href="/users/login">
+							<button class="login-btn" href="/users/login">
+								<iconify-icon icon="devicon:google"></iconify-icon>
+								Login with Google
+							</button>
+						</a>
 					</li>
+				} else {
+					for _, name := range []string{"foo", "bar", "baz"} {
+						@GameButton(name)
+					}
 				}
 			</ul>
 		</div>
 	</div>
+}
+
+templ menuButton() {
+	<button
+		class="main-btn"
+		if GetSession(ctx) != nil {
+			hx-post="/games"
+			hx-target="next .list"
+			hx-swap="beforeend"
+		}
+	>
+		<iconify-icon class="menu" icon="ion:grid"></iconify-icon>
+		<iconify-icon class="create" icon="material-symbols:add"></iconify-icon>
+	</button>
+}
+
+templ GameButton(name string) {
+	<li>
+		<button>{ name }</button>
+	</li>
 }

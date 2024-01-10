@@ -14,7 +14,9 @@ import (
 var (
 	ErrUserNotFound    = errors.New("user was not found")
 	ErrSessionNotFound = errors.New("session was not found")
-	ErrGameNotFound    = errors.New("game was not found")
+
+	ErrMaxGames     = errors.New("max games reached")
+	ErrGameNotFound = errors.New("game was not found")
 )
 
 type Database struct {

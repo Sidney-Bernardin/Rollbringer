@@ -9,6 +9,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+func (database *Database) CreateGame(ctx context.Context, session *models.Session) (string, error) {
+	return "", nil
+}
+
 func (database *Database) GetGame(ctx context.Context, gameID uuid.UUID) (*models.Game, error) {
 	var game models.Game
 
