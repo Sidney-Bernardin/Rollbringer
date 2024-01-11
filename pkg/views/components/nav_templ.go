@@ -10,6 +10,7 @@ import "context"
 import "io"
 import "bytes"
 
+import "github.com/google/uuid"
 import . "rollbringer/pkg/views"
 
 func Nav(class string) templ.Component {
@@ -65,8 +66,8 @@ func Nav(class string) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			for _, name := range []string{"foo", "bar", "baz"} {
-				templ_7745c5c3_Err = GameButton(name).Render(ctx, templ_7745c5c3_Buffer)
+			for _, game := range GetGames(ctx) {
+				templ_7745c5c3_Err = GameButton(game.ID, game.Title).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -96,19 +97,16 @@ func menuButton() templ.Component {
 			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<button class=\"main-btn\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
 		if GetSession(ctx) != nil {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" hx-post=\"/games\" hx-target=\"next .list\" hx-swap=\"beforeend\"")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<button class=\"main-btn\" hx-post=\"/games\" hx-target=\"next .list\" hx-swap=\"beforeend\"><iconify-icon class=\"menu\" icon=\"ic:baseline-meeting-room\"></iconify-icon> <iconify-icon class=\"create\" icon=\"material-symbols:add\"></iconify-icon></button>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("><iconify-icon class=\"menu\" icon=\"ion:grid\"></iconify-icon> <iconify-icon class=\"create\" icon=\"material-symbols:add\"></iconify-icon></button>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
+		} else {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<button class=\"main-btn\"><iconify-icon class=\"menu\" icon=\"ic:baseline-meeting-room\"></iconify-icon> <iconify-icon class=\"create\" icon=\"ic:baseline-meeting-room\"></iconify-icon></button>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 		}
 		if !templ_7745c5c3_IsBuffer {
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteTo(templ_7745c5c3_W)
@@ -117,7 +115,7 @@ func menuButton() templ.Component {
 	})
 }
 
-func GameButton(name string) templ.Component {
+func GameButton(id uuid.UUID, title string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -130,20 +128,28 @@ func GameButton(name string) templ.Component {
 			templ_7745c5c3_Var5 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<li><button>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<li><button><span><iconify-icon icon=\"material-symbols:edit\"></iconify-icon></span> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var6 string
-		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(name)
+		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/components/nav.templ`, Line: 44, Col: 16}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/components/nav.templ`, Line: 54, Col: 10}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</button></li>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" <span hx-delete=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(F("/games/%s", id)))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" hx-target=\"closest li\" hx-swap=\"outerHTML\"><iconify-icon icon=\"material-symbols:delete\"></iconify-icon></span></button></li>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -16,12 +16,12 @@ func (api *API) Auth(next http.Handler) http.Handler {
 		if err != nil {
 
 			if err == http.ErrNoCookie {
-				api.renderError(w, r, errUnauthorized, http.StatusUnauthorized)
+				api.err(w, r, errUnauthorized, http.StatusUnauthorized)
 				return
 			}
 
 			err = errors.Wrap(err, "cannot get CSRF_Token cookie")
-			api.renderError(w, r, err, http.StatusInternalServerError)
+			api.err(w, r, err, http.StatusInternalServerError)
 			return
 		}
 
@@ -29,12 +29,12 @@ func (api *API) Auth(next http.Handler) http.Handler {
 		if err != nil {
 
 			if err == database.ErrSessionNotFound {
-				api.renderError(w, r, errUnauthorized, http.StatusUnauthorized)
+				api.err(w, r, errUnauthorized, http.StatusUnauthorized)
 				return
 			}
 
 			err = errors.Wrap(err, "cannot get session from db")
-			api.renderError(w, r, err, http.StatusInternalServerError)
+			api.err(w, r, err, http.StatusInternalServerError)
 			return
 		}
 
@@ -58,7 +58,7 @@ func (api *API) LightAuth(next http.Handler) http.Handler {
 			}
 
 			err = errors.Wrap(err, "cannot get CSRF_Token cookie")
-			api.renderError(w, r, err, http.StatusInternalServerError)
+			api.err(w, r, err, http.StatusInternalServerError)
 			return
 		}
 
@@ -71,7 +71,7 @@ func (api *API) LightAuth(next http.Handler) http.Handler {
 			}
 
 			err = errors.Wrap(err, "cannot get session from db")
-			api.renderError(w, r, err, http.StatusInternalServerError)
+			api.err(w, r, err, http.StatusInternalServerError)
 			return
 		}
 

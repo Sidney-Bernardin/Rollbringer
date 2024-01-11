@@ -20,6 +20,7 @@ func (database *Database) Login(ctx context.Context, googleID string) (*models.S
 	}
 
 	if err == sql.ErrNoRows {
+
 		user = models.User{
 			ID:       uuid.New(),
 			GoogleID: googleID,
@@ -58,6 +59,7 @@ func (database *Database) GetUser(ctx context.Context, userID uuid.UUID) (*model
 	q := `SELECT id, username FROM users WHERE id=$1`
 	err := database.db.QueryRowContext(ctx, q, userID).Scan(&user.ID, &user.Username)
 	if err != nil {
+
 		if err == sql.ErrNoRows {
 			return nil, ErrUserNotFound
 		}
@@ -74,6 +76,7 @@ func (database *Database) GetSession(ctx context.Context, id string) (*models.Se
 	q := `SELECT id, csrf_token, user_id FROM sessions WHERE id=$1`
 	err := database.db.QueryRow(q, id).Scan(&session.ID, &session.CSRFToken, &session.UserID)
 	if err != nil && err != sql.ErrNoRows {
+
 		if err == sql.ErrNoRows {
 			return nil, ErrSessionNotFound
 		}

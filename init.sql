@@ -19,7 +19,6 @@ CREATE TABLE games (
     id UUID NOT NULL,
     host_id text,
     title VARCHAR(50),
-    player_ids UUID[],
 
     UNIQUE(id)
 );

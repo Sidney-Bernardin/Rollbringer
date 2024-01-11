@@ -1,5 +1,6 @@
 package components
 
+import "github.com/google/uuid"
 import . "rollbringer/pkg/views"
 
 templ Nav(class string) {
@@ -17,8 +18,8 @@ templ Nav(class string) {
 						</a>
 					</li>
 				} else {
-					for _, name := range []string{"foo", "bar", "baz"} {
-						@GameButton(name)
+					for _, game := range GetGames(ctx) {
+						@GameButton(game.ID, game.Title)
 					}
 				}
 			</ul>
@@ -27,21 +28,34 @@ templ Nav(class string) {
 }
 
 templ menuButton() {
-	<button
-		class="main-btn"
-		if GetSession(ctx) != nil {
+	if GetSession(ctx) != nil {
+		<button
+			class="main-btn"
 			hx-post="/games"
 			hx-target="next .list"
 			hx-swap="beforeend"
-		}
-	>
-		<iconify-icon class="menu" icon="ion:grid"></iconify-icon>
-		<iconify-icon class="create" icon="material-symbols:add"></iconify-icon>
-	</button>
+		>
+			<iconify-icon class="menu" icon="ic:baseline-meeting-room"></iconify-icon>
+			<iconify-icon class="create" icon="material-symbols:add"></iconify-icon>
+		</button>
+	} else {
+		<button class="main-btn">
+			<iconify-icon class="menu" icon="ic:baseline-meeting-room"></iconify-icon>
+			<iconify-icon class="create" icon="ic:baseline-meeting-room"></iconify-icon>
+		</button>
+	}
 }
 
-templ GameButton(name string) {
+templ GameButton(id uuid.UUID, title string) {
 	<li>
-		<button>{ name }</button>
+		<button>
+			<span>
+				<iconify-icon icon="material-symbols:edit"></iconify-icon>
+			</span>
+			{ title }
+			<span hx-delete={ F("/games/%s", id) } hx-target="closest li" hx-swap="outerHTML">
+				<iconify-icon icon="material-symbols:delete"></iconify-icon>
+			</span>
+		</button>
 	</li>
 }

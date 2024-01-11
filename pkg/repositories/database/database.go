@@ -12,6 +12,8 @@ import (
 )
 
 var (
+	ErrUnauthorized = errors.New("unauthorized")
+
 	ErrUserNotFound    = errors.New("user was not found")
 	ErrSessionNotFound = errors.New("session was not found")
 

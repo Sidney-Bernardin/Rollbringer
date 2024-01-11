@@ -4,11 +4,16 @@ import Split from "split-grid";
 require.context("./assets", false, /\.(png|jpg|gif|pdf)$/);
 import "./styles/layouts/game.scss";
 
-window.alpine = Alpine
+window.alpine = Alpine;
 window.htmx = require("htmx.org");
 
 import "./window";
 import "./components/pdf-viewer";
+
+document.body.addEventListener(
+  "htmx:responseError",
+  (e: CustomEvent) => alert(e.detail.xhr.response),
+);
 
 Alpine.start();
 
