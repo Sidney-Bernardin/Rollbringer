@@ -53,11 +53,11 @@ func (a *API) HandleDeleteGame(w http.ResponseWriter, r *http.Request) {
 		case database.ErrGameNotFound:
 			a.err(w, r, err, http.StatusNotFound)
 			return
+		default:
+			err = errors.Wrap(err, "cannot delete game")
+			a.err(w, r, err, http.StatusInternalServerError)
+			return
 		}
-
-		err = errors.Wrap(err, "cannot delete game")
-		a.err(w, r, err, http.StatusInternalServerError)
-		return
 	}
 }
 

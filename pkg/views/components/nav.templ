@@ -9,14 +9,12 @@ templ Nav(class string) {
 			@menuButton()
 			<ul class="list">
 				if GetSession(ctx) == nil {
-					<li>
-						<a href="/users/login">
-							<button class="login-btn" href="/users/login">
-								<iconify-icon icon="devicon:google"></iconify-icon>
-								Login with Google
-							</button>
-						</a>
-					</li>
+                    <a href="/users/login">
+                        <button class="login-btn" href="/users/login">
+                            <iconify-icon icon="devicon:google"></iconify-icon>
+                            Login with Google
+                        </button>
+                    </a>
 				} else {
 					for _, game := range GetGames(ctx) {
 						@GameButton(game.ID, game.Title)
@@ -48,14 +46,12 @@ templ menuButton() {
 
 templ GameButton(id uuid.UUID, title string) {
 	<li>
-		<button>
-			<span>
-				<iconify-icon icon="material-symbols:edit"></iconify-icon>
-			</span>
-			{ title }
-			<span hx-delete={ F("/games/%s", id) } hx-target="closest li" hx-swap="outerHTML">
-				<iconify-icon icon="material-symbols:delete"></iconify-icon>
-			</span>
-		</button>
+        <button>
+            <iconify-icon icon="material-symbols:edit"></iconify-icon>
+        </button>
+        <a href={ templ.URL(F("/game?g=%s", id)) }>{ title }</a>
+        <button hx-delete={ F("/games/%s", id) } hx-target="closest li" hx-swap="outerHTML">
+            <iconify-icon icon="material-symbols:delete"></iconify-icon>
+        </button>
 	</li>
 }

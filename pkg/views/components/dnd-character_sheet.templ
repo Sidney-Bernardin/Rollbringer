@@ -11,7 +11,7 @@ templ DNDCharacterSheet() {
 		<ul class="dnd-character-sheet__list">
 			for i, name := range dndCharacterSheetPages {
 				<li
-		            x-data={ F(`{ pageNum: %v }`, i+1) }
+					x-data={ F(`{ pageNum: %v }`, i+1) }
 					x-on:click="currentPage = pageNum"
 					x-bind:class="currentPage == pageNum && 'active'"
 				>

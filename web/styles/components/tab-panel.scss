@@ -39,16 +39,10 @@
       }
 
       button {
-        border: none;
-        border-radius: 50%;
-        color: $txt1;
-        background: none;
-        opacity: 1;
-        padding: 3px;
+        @include icon_btn($bg3, $txt1);
 
-        &:hover {
-          background: $bg3;
-        }
+        padding: 3;
+        opacity: 1;
       }
     }
   }

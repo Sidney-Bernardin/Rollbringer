@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 
 	"rollbringer/pkg/models"
+	database "rollbringer/pkg/repositories/database"
 	"rollbringer/pkg/views/layouts"
 )
 
@@ -17,13 +18,15 @@ func (api *API) HandleGamePage(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 
 		game, err := api.DB.GetGame(r.Context(), gameID)
-		if err != nil {
+		if err != nil && err != database.ErrGameNotFound {
 			err = errors.Wrap(err, "cannot get game")
 			api.err(w, r, err, http.StatusInternalServerError)
 			return
-		}
+		} 
 
-		r = r.WithContext(context.WithValue(r.Context(), "game", game))
+		if err == nil {
+			r = r.WithContext(context.WithValue(r.Context(), "game", game))
+		}
 	}
 
 	session, _ := r.Context().Value("session").(*models.Session)

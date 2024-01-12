@@ -7,8 +7,8 @@ templ PDFViewer(class, pdfURL string) {
 		<form
 			class="pdf-viewer__container"
 			x-on:change="$dispatch('submit')"
-			x-on:submit.prevent="console.log('hoo')"
-            hx-ws="send:submit"
+			x-on:submit.prevent
+			hx-ws="send:submit"
 		>
 			<div class="viewer"></div>
 		</form>
