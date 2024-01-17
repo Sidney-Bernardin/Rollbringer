@@ -11,8 +11,8 @@ import (
 
 func (database *Database) Login(ctx context.Context, googleID string) (*models.Session, error) {
 
+	// Get the user with the google-ID from the database.
 	var user models.User
-
 	q := `SELECT id, google_id FROM users WHERE google_id=$1`
 	err := database.db.QueryRowContext(ctx, q, googleID).Scan(&user.ID, &user.GoogleID)
 	if err != nil && err != sql.ErrNoRows {
@@ -21,14 +21,10 @@ func (database *Database) Login(ctx context.Context, googleID string) (*models.S
 
 	if err == sql.ErrNoRows {
 
-		user = models.User{
-			ID:       uuid.New(),
-			GoogleID: googleID,
-			Username: "abc123",
-		}
-
+		// Insert a new user with the google-ID into the database.
+		user.ID = uuid.New()
 		q = `INSERT INTO users (id, google_id, username) VALUES ($1, $2, $3)`
-		_, err := database.db.ExecContext(ctx, q, user.ID, user.GoogleID, user.Username)
+		_, err := database.db.ExecContext(ctx, q, user.ID, googleID, "abc123")
 		if err != nil {
 			return nil, errors.Wrap(err, "cannot insert user")
 		}
@@ -46,6 +42,7 @@ func (database *Database) Login(ctx context.Context, googleID string) (*models.S
 		UserID:    user.ID,
 	}
 
+	// Insert a new session for the user into the database.
 	if _, err := database.db.ExecContext(ctx, q, session.ID, session.CSRFToken, user.ID); err != nil {
 		return nil, errors.Wrap(err, "cannot insert session")
 	}
@@ -54,10 +51,11 @@ func (database *Database) Login(ctx context.Context, googleID string) (*models.S
 }
 
 func (database *Database) GetUser(ctx context.Context, userID uuid.UUID) (*models.User, error) {
-	var user models.User
 
+	var user models.User
 	q := `SELECT id, username FROM users WHERE id=$1`
 	err := database.db.QueryRowContext(ctx, q, userID).Scan(&user.ID, &user.Username)
+
 	if err != nil {
 
 		if err == sql.ErrNoRows {
@@ -70,15 +68,16 @@ func (database *Database) GetUser(ctx context.Context, userID uuid.UUID) (*model
 	return &user, nil
 }
 
-func (database *Database) GetSession(ctx context.Context, id string) (*models.Session, error) {
-	var session models.Session
+func (database *Database) GetSession(ctx context.Context, sessionID string) (*models.Session, error) {
 
+	var session models.Session
 	q := `SELECT id, csrf_token, user_id FROM sessions WHERE id=$1`
-	err := database.db.QueryRow(q, id).Scan(&session.ID, &session.CSRFToken, &session.UserID)
+	err := database.db.QueryRow(q, sessionID).Scan(&session.ID, &session.CSRFToken, &session.UserID)
+
 	if err != nil && err != sql.ErrNoRows {
 
 		if err == sql.ErrNoRows {
-			return nil, ErrSessionNotFound
+			return nil, ErrUnauthorized
 		}
 
 		return nil, errors.Wrap(err, "cannot select session")

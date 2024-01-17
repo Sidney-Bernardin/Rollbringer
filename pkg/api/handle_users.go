@@ -17,67 +17,76 @@ func (api *API) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		codeVerifier = oauth2.GenerateVerifier()
 	)
 
+	// Store the state and code-verifier in a cookie.
 	http.SetCookie(w, &http.Cookie{
-		Name:     "state_and_verifier",
+		Name:     "STATE_AND_VERIFIER",
 		Value:    state + "," + codeVerifier,
 		Expires:  time.Now().Add(15 * time.Minute),
 		HttpOnly: true,
 	})
 
+	// Generate and redirect to the consent URL.
 	consentURL := api.GoogleOAuthConfig.AuthCodeURL(state, oauth2.S256ChallengeOption(codeVerifier))
 	http.Redirect(w, r, consentURL, http.StatusTemporaryRedirect)
 }
 
 func (api *API) HandleConsentCallback(w http.ResponseWriter, r *http.Request) {
 
-	cookie, err := r.Cookie("state_and_verifier")
+	// Get the state/code-verifier cookie.
+	cookie, err := r.Cookie("STATE_AND_VERIFIER")
 	if err != nil {
-		api.err(w, r, errUnauthorized, http.StatusUnauthorized)
+		api.err(w, errUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
+	// Get the state and code-verifier from the cookie.
 	state_and_verifier := strings.Split(cookie.Value, ",")
 	if len(state_and_verifier) != 2 {
-		api.err(w, r, errUnauthorized, http.StatusUnauthorized)
+		api.err(w, errUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
+	// Verify the state.
 	if r.FormValue("state") != state_and_verifier[0] {
-		api.err(w, r, errUnauthorized, http.StatusUnauthorized)
+		api.err(w, errUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
+	// Exchange the code for an oauth token.
 	token, err := api.GoogleOAuthConfig.Exchange(
 		r.Context(),
 		r.FormValue("code"),
 		oauth2.VerifierOption(state_and_verifier[1]))
 
 	if err != nil {
-		err = errors.Wrap(err, "cannot exchange code for token")
-		api.err(w, r, err, http.StatusUnauthorized)
+		api.err(w, errUnauthorized, http.StatusUnauthorized)
 		return
 	}
 
+	// Get the ID-token from the oauth token.
 	idTokenStr, ok := token.Extra("id_token").(string)
 	if !ok {
 		err = errors.New("id_token should be string, but is not")
-		api.err(w, r, err, http.StatusInternalServerError)
+		api.err(w, err, http.StatusInternalServerError)
 		return
 	}
 
+	// Parse the ID-token.
 	idToken, _, err := jwt.NewParser().ParseUnverified(idTokenStr, &openIDConnectClaims{})
 	if err != nil {
 		err = errors.Wrap(err, "cannot parse ID token")
-		api.err(w, r, err, http.StatusInternalServerError)
+		api.err(w, err, http.StatusInternalServerError)
 		return
 	}
 
+	// Login the user in the database.
 	session, err := api.DB.Login(r.Context(), idToken.Claims.(*openIDConnectClaims).Subject)
 	if err != nil {
-		api.err(w, r, err, http.StatusInternalServerError)
+		api.dbErr(w, err)
 		return
 	}
 
+	// Store the session-ID in a cookie.
 	http.SetCookie(w, &http.Cookie{
 		Name:     "SESSION_ID",
 		Value:    session.ID.String(),

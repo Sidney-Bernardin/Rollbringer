@@ -12,6 +12,7 @@ import (
 func createRouter(a *api.API) chi.Router {
 
 	router := chi.NewRouter()
+	router.Use(a.Log)
 
 	// Serve static files.
 	router.Handle(
@@ -19,6 +20,7 @@ func createRouter(a *api.API) chi.Router {
 		http.StripPrefix("/static/", http.FileServer(http.FS(os.DirFS("static")))),
 	)
 
+	// Pages
 	router.Route("/", func(r chi.Router) {
 		r.Use(a.LightAuth)
 
@@ -28,11 +30,13 @@ func createRouter(a *api.API) chi.Router {
 		r.Get("/game", a.HandleGamePage)
 	})
 
+	// Users
 	router.Route("/users", func(r chi.Router) {
 		r.Get("/login", a.HandleLogin)
 		r.Get("/consent-callback", a.HandleConsentCallback)
 	})
 
+	// Games
 	router.Route("/games", func(r chi.Router) {
 		r.With(a.Auth).Post("/", a.HandleCreateGame)
 		r.With(a.Auth).Delete("/{game_id}", a.HandleDeleteGame)

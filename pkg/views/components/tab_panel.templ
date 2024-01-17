@@ -55,7 +55,7 @@ const (
 	TabPanelSelectorScene        = ".tab-panel.layout__top"
 )
 
-templ HTMxAddTabs(selector string, newTabs map[string]templ.Component) {
+templ HTMXAddTabs(selector string, newTabs map[string]templ.Component) {
 	for name, content := range newTabs {
 		<div hx-swap-oob={ "beforeend:" + selector + " .tab-panel__list" }>
 			@tabButton(name)

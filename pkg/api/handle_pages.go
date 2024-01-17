@@ -1,7 +1,6 @@
 package api
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -14,42 +13,42 @@ import (
 
 func (api *API) HandleGamePage(w http.ResponseWriter, r *http.Request) {
 
+	// Get the game-ID from the URL.
 	gameID, err := uuid.Parse(r.URL.Query().Get("g"))
 	if err == nil {
 
+		// Get the game from the database.
 		game, err := api.DB.GetGame(r.Context(), gameID)
 		if err != nil && err != database.ErrGameNotFound {
-			err = errors.Wrap(err, "cannot get game")
-			api.err(w, r, err, http.StatusInternalServerError)
+			api.dbErr(w, errors.Wrap(err, "cannot get game"))
 			return
-		} 
-
-		if err == nil {
-			r = r.WithContext(context.WithValue(r.Context(), "game", game))
 		}
+		giveToRequest(r, "game", game)
 	}
 
+	// Check if the user is logged in by getting the session. If the user is 
+	// logged out, render the page early.
 	session, _ := r.Context().Value("session").(*models.Session)
 	if session == nil {
-		api.render(w, r, layouts.Game(), http.StatusOK)
+		api.renderHTTP(w, r, layouts.Game(), http.StatusOK)
 		return
 	}
 
+	// Get the user from the database.
 	user, err := api.DB.GetUser(r.Context(), session.UserID)
 	if err != nil {
-		err = errors.Wrap(err, "cannot get user")
-		api.err(w, r, err, http.StatusInternalServerError)
+		api.dbErr(w, errors.Wrap(err, "cannot get user"))
 		return
 	}
-	r = r.WithContext(context.WithValue(r.Context(), "user", user))
+	giveToRequest(r, "user", user)
 
+	// Get user's games from the database.
 	games, err := api.DB.GetGames(r.Context(), session.UserID)
 	if err != nil {
-		err = errors.Wrap(err, "cannot get games")
-		api.err(w, r, err, http.StatusInternalServerError)
+		api.dbErr(w, errors.Wrap(err, "cannot get games"))
 		return
 	}
-	r = r.WithContext(context.WithValue(r.Context(), "games", games))
+	giveToRequest(r, "games", games)
 
-	api.render(w, r, layouts.Game(), http.StatusOK)
+	api.renderHTTP(w, r, layouts.Game(), http.StatusOK)
 }

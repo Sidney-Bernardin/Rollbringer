@@ -14,8 +14,7 @@ import (
 var (
 	ErrUnauthorized = errors.New("unauthorized")
 
-	ErrUserNotFound    = errors.New("user was not found")
-	ErrSessionNotFound = errors.New("session was not found")
+	ErrUserNotFound = errors.New("user was not found")
 
 	ErrMaxGames     = errors.New("max games reached")
 	ErrGameNotFound = errors.New("game was not found")
@@ -26,13 +25,16 @@ type Database struct {
 	logger *zerolog.Logger
 }
 
+// New returns a new Database that connects to the given Postgres server.
 func New(addr string, loggerCtx context.Context) (*Database, error) {
 
+	// Connect to the Postgres server.
 	db, err := sql.Open("postgres", addr)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot open database")
 	}
 
+	// Ping the Postgres server.
 	if err := db.Ping(); err != nil {
 		return nil, errors.Wrap(err, "ping failed")
 	}
@@ -43,6 +45,7 @@ func New(addr string, loggerCtx context.Context) (*Database, error) {
 	}, nil
 }
 
+// rollback rolls back the given transaction.
 func (database *Database) rollback(tx *sql.Tx) {
 	if err := tx.Rollback(); err != nil && err != sql.ErrTxDone {
 		database.logger.Error().Stack().Err(err).Msg("Cannot rollback transaction")

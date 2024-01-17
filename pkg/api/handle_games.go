@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/a-h/templ"
@@ -15,56 +14,42 @@ import (
 	"rollbringer/pkg/views/components"
 )
 
-func (a *API) HandleCreateGame(w http.ResponseWriter, r *http.Request) {
+func (api *API) HandleCreateGame(w http.ResponseWriter, r *http.Request) {
 
+	// Get the session from the request's context.
 	session, _ := r.Context().Value("session").(*models.Session)
 
-	gameID, title, err := a.DB.CreateGame(r.Context(), session.UserID)
+	// Create the game.
+	gameID, title, err := api.DB.CreateGame(r.Context(), session.UserID)
 	if err != nil {
-
-		if err == database.ErrMaxGames {
-			a.err(w, r, err, http.StatusForbidden)
-			return
-		}
-
-		err = errors.Wrap(err, "cannot create game")
-		a.err(w, r, err, http.StatusInternalServerError)
+		api.dbErr(w, errors.Wrap(err, "cannot create game"))
 		return
 	}
 
-	a.render(w, r, components.GameButton(gameID, title), http.StatusOK)
+	// Respond with a button for the new game
+	api.renderHTTP(w, r, components.GameButton(gameID, title), http.StatusOK)
 }
 
-func (a *API) HandleDeleteGame(w http.ResponseWriter, r *http.Request) {
+func (api *API) HandleDeleteGame(w http.ResponseWriter, r *http.Request) {
 
+	// Get the session and game-ID.
 	session, _ := r.Context().Value("session").(*models.Session)
 	gameID, err := uuid.Parse(chi.URLParam(r, "game_id"))
 	if err != nil {
-		a.err(w, r, database.ErrGameNotFound, http.StatusNotFound)
+		api.dbErr(w, database.ErrGameNotFound)
 		return
 	}
 
-	if err := a.DB.DeleteGame(r.Context(), session.UserID, gameID); err != nil {
-
-		switch err {
-		case database.ErrUnauthorized:
-			a.err(w, r, err, http.StatusUnauthorized)
-			return
-		case database.ErrGameNotFound:
-			a.err(w, r, err, http.StatusNotFound)
-			return
-		default:
-			err = errors.Wrap(err, "cannot delete game")
-			a.err(w, r, err, http.StatusInternalServerError)
-			return
-		}
+	// Delete the game.
+	if err := api.DB.DeleteGame(r.Context(), session.UserID, gameID); err != nil {
+		api.dbErr(w, errors.Wrap(err, "cannot delete game"))
 	}
 }
 
-func (a *API) HandleJoinGame(conn *websocket.Conn) {
+func (api *API) HandleJoinGame(conn *websocket.Conn) {
 	req := conn.Request()
 
-	res := components.HTMxAddTabs(
+	res := components.HTMXAddTabs(
 		components.TabPanelSelectorPlayMaterial,
 		map[string]templ.Component{
 			"Hoid": components.DNDCharacterSheet(),
@@ -72,10 +57,7 @@ func (a *API) HandleJoinGame(conn *websocket.Conn) {
 		},
 	)
 
-	if err := res.Render(req.Context(), conn); err != nil {
-		fmt.Println(err)
-		return
-	}
+	api.renderWS(req.Context(), conn, res)
 
 	for {
 	}

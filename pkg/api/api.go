@@ -1,17 +1,15 @@
 package api
 
 import (
-	"errors"
+	"context"
 	"net/http"
 	database "rollbringer/pkg/repositories/database"
 
 	"github.com/a-h/templ"
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
+	"golang.org/x/net/websocket"
 	"golang.org/x/oauth2"
-)
-
-var (
-	errUnauthorized = errors.New("Unauthorized")
 )
 
 type API struct {
@@ -21,20 +19,19 @@ type API struct {
 	GoogleOAuthConfig *oauth2.Config
 }
 
-func (api *API) render(w http.ResponseWriter, r *http.Request, component templ.Component, statusCode int) {
+// renderHTTP writes the component and status-code to the response-writer.
+func (api *API) renderHTTP(w http.ResponseWriter, r *http.Request, component templ.Component, statusCode int) {
 	w.WriteHeader(statusCode)
 	if err := component.Render(r.Context(), w); err != nil {
-		api.Logger.Error().Stack().Err(err).Msg("Server error")
+		err = errors.Wrap(err, "cannot render component to HTTP response")
+		api.err(w, err, statusCode)
 	}
 }
 
-func (api *API) err(w http.ResponseWriter, r *http.Request, e error, statusCode int) {
-
-	w.WriteHeader(statusCode)
-	if statusCode >= 500 {
-		api.Logger.Error().Stack().Err(e).Msg("Server error")
-		e = errors.New("Internal Server Error")
+// renderWS writes the component to the WebSocket connection.
+func (api *API) renderWS(ctx context.Context, conn *websocket.Conn, component templ.Component) {
+	if err := component.Render(ctx, conn); err != nil {
+		err = errors.Wrap(err, "cannot render component to HTTP response")
+		api.Logger.Error().Stack().Err(err).Msg("Internal server error")
 	}
-
-	http.Error(w, e.Error(), statusCode)
 }

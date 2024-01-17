@@ -1,7 +1,6 @@
 package api
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/pkg/errors"
@@ -9,39 +8,46 @@ import (
 	database "rollbringer/pkg/repositories/database"
 )
 
+func (api *API) Log(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		api.Logger.Info().Str("url", r.URL.String()).Msg("New request")
+		next.ServeHTTP(w, r)
+	})
+
+}
+
 func (api *API) Auth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
+		// Get the session-ID cookie.
 		stCookie, err := r.Cookie("SESSION_ID")
 		if err != nil {
 
+			// Check if the cookie was not found.
 			if err == http.ErrNoCookie {
-				api.err(w, r, errUnauthorized, http.StatusUnauthorized)
+				api.err(w, errUnauthorized, http.StatusUnauthorized)
 				return
 			}
 
 			err = errors.Wrap(err, "cannot get CSRF_Token cookie")
-			api.err(w, r, err, http.StatusInternalServerError)
+			api.err(w, err, http.StatusInternalServerError)
 			return
 		}
 
+		// Get the session from the database.
 		session, err := api.DB.GetSession(r.Context(), stCookie.Value)
 		if err != nil {
-
-			if err == database.ErrSessionNotFound {
-				api.err(w, r, errUnauthorized, http.StatusUnauthorized)
-				return
-			}
-
-			err = errors.Wrap(err, "cannot get session from db")
-			api.err(w, r, err, http.StatusInternalServerError)
+			api.dbErr(w, errors.Wrap(err, "cannot get session from db"))
 			return
 		}
 
-		if session.CSRFToken.String() == r.Header.Get("CSRF-Token") {
-			r = r.WithContext(context.WithValue(r.Context(), "session", session))
+		// Verify the CSRF-Token.
+		if session.CSRFToken.String() != r.Header.Get("CSRF-Token") {
+			api.err(w, errUnauthorized, http.StatusUnauthorized)
+			return
 		}
 
+		giveToRequest(r, "session", session)
 		next.ServeHTTP(w, r)
 	})
 }
@@ -49,33 +55,30 @@ func (api *API) Auth(next http.Handler) http.Handler {
 func (api *API) LightAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
+		// Get the session-ID cookie.
 		stCookie, err := r.Cookie("SESSION_ID")
 		if err != nil {
 
+			// Check if the cookie was not found.
 			if err == http.ErrNoCookie {
 				next.ServeHTTP(w, r)
 				return
 			}
 
 			err = errors.Wrap(err, "cannot get CSRF_Token cookie")
-			api.err(w, r, err, http.StatusInternalServerError)
+			api.err(w, err, http.StatusInternalServerError)
 			return
 		}
 
+		// Get the session from the database.
 		session, err := api.DB.GetSession(r.Context(), stCookie.Value)
-		if err != nil {
-
-			if err == database.ErrSessionNotFound {
-				next.ServeHTTP(w, r)
-				return
-			}
-
+		if err != nil && err != database.ErrUnauthorized {
 			err = errors.Wrap(err, "cannot get session from db")
-			api.err(w, r, err, http.StatusInternalServerError)
+			api.err(w, err, http.StatusInternalServerError)
 			return
 		}
 
-		r = r.WithContext(context.WithValue(r.Context(), "session", session))
+		giveToRequest(r, "session", session)
 		next.ServeHTTP(w, r)
 	})
 }

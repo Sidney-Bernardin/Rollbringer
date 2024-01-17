@@ -72,5 +72,5 @@ func main() {
 
 	// Start server.
 	err = http.ListenAndServe(cfg.Address, router)
-	logger.Fatal().Stack().Err(err).Msg("Cannot generate configuration")
+	logger.Fatal().Stack().Err(err).Msg("Server stopped")
 }
