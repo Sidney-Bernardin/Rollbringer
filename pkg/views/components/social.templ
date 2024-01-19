@@ -4,6 +4,7 @@ templ Social(class string) {
 	<div class={ "social", class }>
 		@StaticTabContainer("social__static-tab-container", map[string]templ.Component{
       "chat": chat(),
+      "profile": templ.NopComponent,
     })
 	</div>
 }

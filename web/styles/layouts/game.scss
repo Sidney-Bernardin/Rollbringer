@@ -20,6 +20,13 @@
     grid-area: nav;
   }
 
+  &__left,
+  &__right,
+  &__top,
+  &__bottom {
+    overflow: auto;
+  }
+
   &__left {
     grid-area: left;
   }
@@ -36,15 +43,6 @@
     grid-area: bot;
   }
 
-  &__gutter-2:hover,
-  &__gutter-3:hover {
-    cursor: col-resize;
-  }
-
-  &__gutter-4:hover {
-    cursor: row-resize;
-  }
-
   &__gutter-1 {
     grid-area: g1;
   }
@@ -59,5 +57,14 @@
 
   &__gutter-4 {
     grid-area: g4;
+  }
+
+  &__gutter-2:hover,
+  &__gutter-3:hover {
+    cursor: col-resize;
+  }
+
+  &__gutter-4:hover {
+    cursor: row-resize;
   }
 }

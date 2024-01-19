@@ -26,7 +26,7 @@
     }
 
     .main-btn {
-      @include icon_btn($bg2, $txt1);
+      @include icon_btn($txt4, $txt1);
 
       font-size: 1.5rem;
       padding: 5px;
@@ -67,7 +67,7 @@
         }
 
         button {
-          @include icon_btn($bg2, $txt1);
+          @include icon_btn($txt4, $txt1);
 
           opacity: 0;
         }

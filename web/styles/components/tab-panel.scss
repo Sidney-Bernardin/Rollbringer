@@ -33,13 +33,13 @@
       align-items: center;
 
       &.active {
-        border: 2px solid $shadow;
+        border: 2px solid $bg0;
         border-bottom: none;
         opacity: 1;
       }
 
       button {
-        @include icon_btn($bg3, $txt1);
+        @include icon_btn($txt4, $txt1);
 
         padding: 3;
         opacity: 1;

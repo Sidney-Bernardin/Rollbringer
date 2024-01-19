@@ -3,22 +3,49 @@ package components
 templ Library(class string) {
 	<div class={ "library", class }>
 		@StaticTabContainer("library__static-tab-container", map[string]templ.Component{
-            "your docs": yourStuff(),
+            "docs": yourStuff(),
+            "scenes": templ.NopComponent,
+            "assets": templ.NopComponent,
             "combat": templ.NopComponent,
         })
 	</div>
 }
 
 templ yourStuff() {
-	<table class="your-stuff">
-		<tbody>
-			for _, name := range []string{"Hoid", "Lee", "Yama"} {
-				<tr>
-					<td><button>{ name }</button></td>
-					<td>foo</td>
-					<td>bar</td>
-				</tr>
-			}
-		</tbody>
-	</table>
+	<div class="your-stuff">
+		<div class="header">
+			<p>Character Sheets</p>
+			<button>
+				<iconify-icon icon="material-symbols:add"></iconify-icon>
+			</button>
+		</div>
+		<table>
+			<tbody>
+				for _, name := range []string{"Hoid", "Lee", "Yama"} {
+					<tr>
+						<td class="name"><button>{ name }</button></td>
+						<td class="info">foo</td>
+						<td class="controls">bar</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+		<div class="header">
+			<p>Class Guides</p>
+			<button>
+				<iconify-icon icon="material-symbols:add"></iconify-icon>
+			</button>
+		</div>
+		<table>
+			<tbody>
+				for _, name := range []string{"Hoid", "Lee", "Yama"} {
+					<tr>
+						<td class="name"><button>{ name }</button></td>
+						<td class="info">foo</td>
+						<td class="controls">bar</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
 }

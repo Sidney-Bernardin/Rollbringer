@@ -1,13 +1,17 @@
-$shadow: #1d2021;
 $blue: #83a598;
 $red: #cc241d;
-$lightgreen: #b8bb26;
-$darkgreen: #98971a;
 $purple: #d3869b;
+$gray: #928374;
+$yellow: #fabd2f;
 
+$green1: #b8bb26;
+$green2: #98971a;
+
+$bg0: #1d2021;
 $bg1: #282828;
 $bg2: #3c3836;
 $bg3: #504945;
+$bg4: #7c6f64;
 
 $txt1: #ebdbb2;
 $txt4: #a89984;
@@ -36,7 +40,7 @@ body {
 
 @mixin panel {
   border: 5px solid $bg2;
-  outline: 2px solid $shadow;
+  outline: 2px solid $bg0;
 }
 
 @mixin btn($bg, $fg, $border-color) {
@@ -56,15 +60,14 @@ body {
   }
 }
 
-@mixin icon_btn($bg, $fg) {
+@mixin icon_btn($fg, $fg_hover) {
   border: none;
-  border-radius: 50%;
   color: $fg;
   background: transparent;
-  padding: 5px;
+  padding: 0;
 
   &:hover {
-    background: $bg;
+    color: $fg_hover;
   }
 }
 

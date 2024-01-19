@@ -7,8 +7,8 @@
 
   &__tab-item {
     height: 100%;
-    border: 2px solid $shadow;
-    flex: 5;
+    border: 2px solid $bg0;
+    overflow: auto;
   }
 
   &__list {
@@ -34,7 +34,7 @@
       align-items: center;
 
       &.active {
-        color: $lightgreen;
+        color: $yellow;
       }
 
       iconify-icon {

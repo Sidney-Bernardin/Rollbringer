@@ -3,25 +3,56 @@
 .library {
   @include panel;
 
-  &__static-tab-container {
-    .your-stuff {
+  .your-stuff {
+    .header {
+      display: flex;
+      border-top: 1px solid $bg4;
+      color: $bg4;
+      font-size: 1.5rem;
+      padding: 5px 0;
+      margin: 30px 5px 0 5px;
+      justify-content: space-between;
+      align-items: center;
+
+      &:first-child {
+        border-top: none;
+        margin-top: 0;
+      }
+
+      p {
+        margin: 0;
+        font-weight: bolder;
+      }
+
+      button {
+        @include icon_btn($txt4, $txt1);
+
+        font-size: 1.5rem;
+      }
+    }
+
+    table {
       width: 100%;
-      border: 5px solid transparent;
       border-collapse: collapse;
-      padding: 5px;
 
       tr {
-        &:hover {
-          background: $bg2;
-        }
-
         td {
-          button {
-            @include underline_btn($txt1);
-          }
-
           border: 5px solid transparent;
           padding: 0;
+
+          &.name {
+            button {
+              @include underline_btn($txt1);
+            }
+          }
+
+          &.info {
+            color: $bg4;
+          }
+
+          &.controls {
+            display: flex;
+          }
         }
       }
     }
