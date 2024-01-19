@@ -1,7 +1,10 @@
+@forward "nav.scss";
+
 @forward "tab-panel.scss";
 @forward "static-tab-container.scss";
-@forward "dnd-character-sheet.scss";
+
 @forward "pdf-viewer.scss";
+@forward "dnd-character-sheet.scss";
+
 @forward "library.scss";
 @forward "social.scss";
-@forward "nav.scss";

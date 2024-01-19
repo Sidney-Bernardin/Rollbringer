@@ -1,10 +1,12 @@
 package components
 
+import . "rollbringer/pkg/views"
+
 templ Social(class string) {
 	<div class={ "social", class }>
 		@StaticTabContainer("social__static-tab-container", map[string]templ.Component{
       "chat": chat(),
-      "profile": templ.NopComponent,
+      "profile": profile(),
     })
 	</div>
 }
@@ -12,5 +14,18 @@ templ Social(class string) {
 templ chat() {
 	<div class="chat">
 		<h1>Chat</h1>
+	</div>
+}
+
+templ profile() {
+	<div class="profile">
+		if GetSession(ctx) == nil {
+			<a href="/users/login">
+				<button class="login-btn">
+					<iconify-icon icon="devicon:google"></iconify-icon>
+					Login with Google
+				</button>
+			</a>
+		}
 	</div>
 }

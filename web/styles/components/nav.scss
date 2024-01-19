@@ -47,8 +47,6 @@
       transition: width 0.2s;
 
       .login-btn {
-        @include btn($txt1, $bg3, $txt4);
-
         text-wrap: nowrap;
       }
 
