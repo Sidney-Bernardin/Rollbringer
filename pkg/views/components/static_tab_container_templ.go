@@ -10,9 +10,10 @@ import "context"
 import "io"
 import "bytes"
 
-import "golang.org/x/exp/maps"
-
-import . "rollbringer/pkg/views"
+import (
+	"golang.org/x/exp/maps"
+	. "rollbringer/pkg/views"
+)
 
 func StaticTabContainer(class string, tabs map[string]templ.Component) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
@@ -68,7 +69,7 @@ func StaticTabContainer(class string, tabs map[string]templ.Component) templ.Com
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/components/static_tab_container.templ`, Line: 18, Col: 11}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/components/static_tab_container.templ`, Line: 19, Col: 11}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {

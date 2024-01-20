@@ -46,7 +46,7 @@ func (api *API) HandleConsentCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Verify the state.
+	// Verify both state.
 	if r.FormValue("state") != state_and_verifier[0] {
 		api.err(w, errUnauthorized, http.StatusUnauthorized)
 		return
@@ -79,8 +79,8 @@ func (api *API) HandleConsentCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Login the user in the database.
-	session, err := api.DB.Login(r.Context(), idToken.Claims.(*openIDConnectClaims).Subject)
+	// Login the user.
+	sessionID, err := api.DB.Login(r.Context(), idToken.Claims.(*openIDConnectClaims).Subject)
 	if err != nil {
 		api.dbErr(w, err)
 		return
@@ -89,7 +89,7 @@ func (api *API) HandleConsentCallback(w http.ResponseWriter, r *http.Request) {
 	// Store the session-ID in a cookie.
 	http.SetCookie(w, &http.Cookie{
 		Name:     "SESSION_ID",
-		Value:    session.ID.String(),
+		Value:    sessionID.String(),
 		Path:     "/",
 		Expires:  time.Now().Add(15 * time.Minute),
 		HttpOnly: true,

@@ -22,8 +22,6 @@ func (api *API) Auth(next http.Handler) http.Handler {
 		// Get the session-ID cookie.
 		stCookie, err := r.Cookie("SESSION_ID")
 		if err != nil {
-
-			// Check if the cookie was not found.
 			if err == http.ErrNoCookie {
 				api.err(w, errUnauthorized, http.StatusUnauthorized)
 				return
@@ -34,7 +32,7 @@ func (api *API) Auth(next http.Handler) http.Handler {
 			return
 		}
 
-		// Get the session from the database.
+		// Get the session.
 		session, err := api.DB.GetSession(r.Context(), stCookie.Value)
 		if err != nil {
 			api.dbErr(w, errors.Wrap(err, "cannot get session from db"))
@@ -58,8 +56,6 @@ func (api *API) LightAuth(next http.Handler) http.Handler {
 		// Get the session-ID cookie.
 		stCookie, err := r.Cookie("SESSION_ID")
 		if err != nil {
-
-			// Check if the cookie was not found.
 			if err == http.ErrNoCookie {
 				next.ServeHTTP(w, r)
 				return
@@ -70,7 +66,7 @@ func (api *API) LightAuth(next http.Handler) http.Handler {
 			return
 		}
 
-		// Get the session from the database.
+		// Get the session.
 		session, err := api.DB.GetSession(r.Context(), stCookie.Value)
 		if err != nil && err != database.ErrUnauthorized {
 			err = errors.Wrap(err, "cannot get session from db")

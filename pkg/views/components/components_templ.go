@@ -10,7 +10,9 @@ import "context"
 import "io"
 import "bytes"
 
-import . "rollbringer/pkg/views"
+import (
+	. "rollbringer/pkg/views"
+)
 
 func PDFViewer(class, pdfURL string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {

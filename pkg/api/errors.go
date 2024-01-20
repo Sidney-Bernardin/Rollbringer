@@ -22,10 +22,10 @@ func (e *apiError) Error() string {
 	return e.msg
 }
 
-// err writes the given error and status-code to the response-writer.
 func (api *API) err(w http.ResponseWriter, e error, statusCode int) {
 	if statusCode >= 500 {
 		api.Logger.Error().Stack().Err(e).Msg("Internal server error")
+		e = errors.New("internal server error")
 	}
 
 	http.Error(w, e.Error(), statusCode)
@@ -34,7 +34,7 @@ func (api *API) err(w http.ResponseWriter, e error, statusCode int) {
 func (api *API) dbErr(w http.ResponseWriter, err error) {
 
 	cause := errors.Cause(err)
-	res := &apiError{ msg: cause.Error() }
+	res := &apiError{msg: cause.Error()}
 
 	switch cause {
 	case database.ErrUnauthorized:
@@ -50,7 +50,7 @@ func (api *API) dbErr(w http.ResponseWriter, err error) {
 
 	default:
 		res.statusCode = http.StatusInternalServerError
-		res.msg = "internal server error"
+		res.msg = err.Error()
 	}
 
 	api.err(w, res, res.statusCode)

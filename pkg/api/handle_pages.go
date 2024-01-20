@@ -13,11 +13,11 @@ import (
 
 func (api *API) HandleGamePage(w http.ResponseWriter, r *http.Request) {
 
-	// Get the game-ID from the URL.
+	// Get and parse the game-ID from the URL.
 	gameID, err := uuid.Parse(r.URL.Query().Get("g"))
 	if err == nil {
 
-		// Get the game from the database.
+		// Get the game.
 		game, err := api.DB.GetGame(r.Context(), gameID)
 		if err != nil && err != database.ErrGameNotFound {
 			api.dbErr(w, errors.Wrap(err, "cannot get game"))
@@ -26,7 +26,7 @@ func (api *API) HandleGamePage(w http.ResponseWriter, r *http.Request) {
 		giveToRequest(r, "game", game)
 	}
 
-	// Check if the user is logged in by getting the session. If the user is 
+	// Check if the user is logged in by getting the session. If the user is
 	// logged out, render the page early.
 	session, _ := r.Context().Value("session").(*models.Session)
 	if session == nil {
@@ -34,7 +34,7 @@ func (api *API) HandleGamePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get the user from the database.
+	// Get the user.
 	user, err := api.DB.GetUser(r.Context(), session.UserID)
 	if err != nil {
 		api.dbErr(w, errors.Wrap(err, "cannot get user"))
@@ -42,7 +42,7 @@ func (api *API) HandleGamePage(w http.ResponseWriter, r *http.Request) {
 	}
 	giveToRequest(r, "user", user)
 
-	// Get user's games from the database.
+	// Get user's games.
 	games, err := api.DB.GetGames(r.Context(), session.UserID)
 	if err != nil {
 		api.dbErr(w, errors.Wrap(err, "cannot get games"))

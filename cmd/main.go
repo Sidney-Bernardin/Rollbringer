@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"net/http"
 	"os"
 	"rollbringer/pkg/api"
@@ -41,31 +40,23 @@ func main() {
 		logger.Fatal().Stack().Err(err).Msg("Cannot generate configuration")
 	}
 
-	// Create a sub-logger for the database.
-	dbLoggerCtx := logger.With().
-		Str("component", "database").
-		Logger().WithContext(context.Background())
-
 	// Create a database.
-	db, err := database.New(cfg.DBAddress, dbLoggerCtx)
+	db, err := database.New(cfg.DBAddress)
 	if err != nil {
 		logger.Fatal().Stack().Err(err).Msg("Cannot create database")
 	}
 
-	// Create an oauth2 configuration.
-	googleOAuthConfig := &oauth2.Config{
-		Endpoint:     google.Endpoint,
-		ClientID:     cfg.GoogleClientID,
-		ClientSecret: cfg.GoogleClientSecret,
-		RedirectURL:  cfg.RedirectURL,
-		Scopes:       []string{"openid", "email"},
-	}
-
 	// Create and setup router with various services.
 	router := createRouter(&api.API{
-		DB:                db,
-		Logger:            &logger,
-		GoogleOAuthConfig: googleOAuthConfig,
+		DB:     db,
+		Logger: &logger,
+		GoogleOAuthConfig: &oauth2.Config{
+			Endpoint:     google.Endpoint,
+			ClientID:     cfg.GoogleClientID,
+			ClientSecret: cfg.GoogleClientSecret,
+			RedirectURL:  cfg.RedirectURL,
+			Scopes:       []string{"openid", "email"},
+		},
 	})
 
 	logger.Info().Str("address", cfg.Address).Msg("Serving")

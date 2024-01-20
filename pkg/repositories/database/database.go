@@ -2,13 +2,9 @@ package database
 
 import (
 	"context"
-	"database/sql"
 
-	_ "github.com/golang-migrate/migrate/v4/source/file"
-	_ "github.com/lib/pq"
+	"github.com/jackc/pgx/v5"
 	"github.com/pkg/errors"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
 var (
@@ -21,33 +17,22 @@ var (
 )
 
 type Database struct {
-	db     *sql.DB
-	logger *zerolog.Logger
+	conn   *pgx.Conn
 }
 
-// New returns a new Database that connects to the given Postgres server.
-func New(addr string, loggerCtx context.Context) (*Database, error) {
+// New returns a new Database that connects to a Postgres server.
+func New(addr string) (*Database, error) {
 
 	// Connect to the Postgres server.
-	db, err := sql.Open("postgres", addr)
+	conn, err := pgx.Connect(context.Background(), addr)
 	if err != nil {
-		return nil, errors.Wrap(err, "cannot open database")
+		return nil, errors.Wrap(err, "cannot connect to database")
 	}
 
 	// Ping the Postgres server.
-	if err := db.Ping(); err != nil {
-		return nil, errors.Wrap(err, "ping failed")
+	if err := conn.Ping(context.Background()); err != nil {
+		return nil, errors.Wrap(err, "cannot ping database")
 	}
 
-	return &Database{
-		db:     db,
-		logger: log.Ctx(loggerCtx),
-	}, nil
-}
-
-// rollback rolls back the given transaction.
-func (database *Database) rollback(tx *sql.Tx) {
-	if err := tx.Rollback(); err != nil && err != sql.ErrTxDone {
-		database.logger.Error().Stack().Err(err).Msg("Cannot rollback transaction")
-	}
+	return &Database{conn}, nil
 }

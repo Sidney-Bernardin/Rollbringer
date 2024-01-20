@@ -1,8 +1,9 @@
 package components
 
-import "golang.org/x/exp/maps"
-
-import . "rollbringer/pkg/views"
+import (
+	"golang.org/x/exp/maps"
+	. "rollbringer/pkg/views"
+)
 
 templ StaticTabContainer(class string, tabs map[string]templ.Component) {
 	<div

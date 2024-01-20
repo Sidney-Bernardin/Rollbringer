@@ -2,95 +2,106 @@ package database
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
-	"rollbringer/pkg/models"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/pkg/errors"
+
+	"rollbringer/pkg/models"
 )
 
-func (database *Database) CreateGame(ctx context.Context, userID uuid.UUID) (uuid.UUID, string, error) {
+// InsertGame inserts a new game for the host. If the host has more than 5
+// games, returns ErrMaxGames
+func (db *Database) InsertGame(ctx context.Context, hostID uuid.UUID) (uuid.UUID, string, error) {
 
-	// Get the count of the user's games.
+	// Get the number of games with the host-ID.
 	var count int
-	q := `SELECT COUNT(*) FROM games WHERE host_id=$1`
-	if err := database.db.QueryRowContext(ctx, q, userID).Scan(&count); err != nil {
-		return uuid.Nil, "", errors.Wrap(err, "cannot select games")
+	err := db.conn.
+		QueryRow(ctx, `SELECT COUNT(*) FROM games WHERE host_id = $1`, hostID).
+		Scan(&count)
+
+	if err != nil {
+		return uuid.Nil, "", errors.Wrap(err, "cannot count games")
 	}
 
-	// Verify the amount of games the user has.
 	if count >= 5 {
 		return uuid.Nil, "", ErrMaxGames
 	}
 
-	// Insert the a new game into the database.
 	gameID := uuid.New()
-	title := fmt.Sprintf("Untitled %d", count+1)
-	q = `INSERT INTO games (id, host_id, title) VALUES ($1, $2, $3)`
-	if _, err := database.db.ExecContext(ctx, q, gameID, userID, title); err != nil {
+	title := fmt.Sprintf("Game %d", count+1)
+
+	// Insert a new game for the host.
+	_, err = db.conn.Exec(ctx,
+		`INSERT INTO games (id, host_id, title) VALUES ($1, $2, $3)`,
+		gameID, hostID, title)
+
+	if err != nil {
 		return uuid.Nil, "", errors.Wrap(err, "cannot insert game")
 	}
 
 	return gameID, title, nil
 }
 
-func (database *Database) GetGame(ctx context.Context, gameID uuid.UUID) (*models.Game, error) {
+// GetGame returns the game with the game-ID from the database. If the game
+// doesn't exist, returns ErrGameNotFound.
+func (db *Database) GetGame(ctx context.Context, gameID uuid.UUID) (*models.Game, error) {
 
-	var game models.Game
-	q := `SELECT id, host_id, title FROM games WHERE id=$1`
-	err := database.db.QueryRowContext(ctx, q, gameID).Scan(&game.ID, &game.HostID, &game.Title)
-
+	// Get the game with the game-ID.
+	rows, err := db.conn.Query(ctx, `SELECT * FROM games WHERE id = $1`, gameID)
 	if err != nil {
+		return nil, errors.Wrap(err, "cannot select game")
+	}
+	defer rows.Close()
 
-		if err == sql.ErrNoRows {
+	// Scan into a game model.
+	game, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[models.Game])
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrGameNotFound
 		}
 
-		return nil, errors.Wrap(err, "cannot select user")
+		return nil, errors.Wrap(err, "cannot scan game")
 	}
 
-	return &game, nil
+	return game, nil
 }
 
-func (database *Database) GetGames(ctx context.Context, hostID uuid.UUID) ([]*models.Game, error) {
-	games := []*models.Game{}
+// GetGames return the games with the host-ID from the database.
+func (db *Database) GetGames(ctx context.Context, hostID uuid.UUID) ([]*models.Game, error) {
 
-	// Get the host's games from the database.
-	q := `SELECT id, host_id, title FROM games WHERE host_id=$1`
-	rows, err := database.db.QueryContext(ctx, q, hostID)
+	// Get the games with the host-ID.
+	rows, err := db.conn.Query(ctx, `SELECT * FROM games WHERE host_id = $1`, hostID)
 	if err != nil {
-
-		if err == sql.ErrNoRows {
-			return games, nil
-		}
-
-		return nil, errors.Wrap(err, "cannot select games")
+		return []*models.Game{}, errors.Wrap(err, "cannot select games")
 	}
+	defer rows.Close()
 
-	for rows.Next() {
-
-		// Scan the current row and append it to the games slice.
-		var game models.Game
-		if err := rows.Scan(&game.ID, &game.HostID, &game.Title); err != nil {
-			return nil, errors.Wrap(err, "cannot scan game")
-		}
-		games = append(games, &game)
+	// Scan into a slice of game models.
+	games, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByNameLax[models.Game])
+	if err != nil {
+		return []*models.Game{}, errors.Wrap(err, "cannot scan games")
 	}
 
 	return games, nil
 }
 
-func (database *Database) DeleteGame(ctx context.Context, userID uuid.UUID, gameID uuid.UUID) error {
+// DeleteGame deletes the game with the game-ID and host-ID from the database.
+// If the game doesn't exist, returns ErrGameNotFound.
+func (db *Database) DeleteGame(ctx context.Context, gameID uuid.UUID, hostID uuid.UUID) error {
 
-	q := `DELETE FROM games WHERE id=$1`
-	if _, err := database.db.ExecContext(ctx, q, gameID); err != nil {
+	// Delete the game with the game-ID and host-ID.
+	cmdTag, err := db.conn.Exec(ctx,
+		`DELETE FROM games WHERE id = $1 AND host_id = $2`,
+		gameID, hostID)
 
-		if err == sql.ErrNoRows {
-			return ErrUnauthorized
-		}
-
+	if err != nil {
 		return errors.Wrap(err, "cannot delete game")
+	}
+
+	if cmdTag.RowsAffected() == 0 {
+		return ErrGameNotFound
 	}
 
 	return nil

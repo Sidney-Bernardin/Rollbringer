@@ -2,86 +2,106 @@ package database
 
 import (
 	"context"
-	"database/sql"
 	"rollbringer/pkg/models"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/pkg/errors"
 )
 
-func (database *Database) Login(ctx context.Context, googleID string) (*models.Session, error) {
+// Login inserts a new session for the user with the google-ID. If the user
+// doesn't exist, a new one will be inserted.
+func (db *Database) Login(ctx context.Context, googleID string) (uuid.UUID, error) {
 
-	// Get the user with the google-ID from the database.
-	var user models.User
-	q := `SELECT id, google_id FROM users WHERE google_id=$1`
-	err := database.db.QueryRowContext(ctx, q, googleID).Scan(&user.ID, &user.GoogleID)
-	if err != nil && err != sql.ErrNoRows {
-		return nil, errors.Wrap(err, "cannot select user")
+	// Get a user with the google-ID.
+	rows, err := db.conn.Query(ctx, `SELECT id FROM users WHERE google_id = $1`, googleID)
+	if err != nil {
+		return uuid.Nil, errors.Wrap(err, "cannot select user")
+	}
+	defer rows.Close()
+
+	// Scan first row into a user model.
+	user, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[models.User])
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return uuid.Nil, errors.Wrap(err, "cannot scan user")
 	}
 
-	if err == sql.ErrNoRows {
+	if user == nil {
+		user = &models.User{ID: uuid.New()}
 
-		// Insert a new user with the google-ID into the database.
-		user.ID = uuid.New()
-		q = `INSERT INTO users (id, google_id, username) VALUES ($1, $2, $3)`
-		_, err := database.db.ExecContext(ctx, q, user.ID, googleID, "abc123")
+		// Insert a new user.
+		_, err = db.conn.Exec(ctx,
+			`INSERT INTO users (id, username, google_id) VALUES ($1, $2, $3)`,
+			user.ID, "abc123", googleID)
+
 		if err != nil {
-			return nil, errors.Wrap(err, "cannot insert user")
+			return uuid.Nil, errors.Wrap(err, "cannot insert user")
 		}
 	}
 
-	q = `
-		INSERT INTO sessions (id, csrf_token, user_id)
-		VALUES ($1, $2, $3)
-		ON CONFLICT (user_id) DO 
-			UPDATE SET id=EXCLUDED.id, csrf_token=EXCLUDED.csrf_token, user_id=EXCLUDED.user_id`
+	sessionID := uuid.New()
 
-	session := &models.Session{
-		ID:        uuid.New(),
-		CSRFToken: uuid.New(),
-		UserID:    user.ID,
-	}
-
-	// Insert a new session for the user into the database.
-	if _, err := database.db.ExecContext(ctx, q, session.ID, session.CSRFToken, user.ID); err != nil {
-		return nil, errors.Wrap(err, "cannot insert session")
-	}
-
-	return session, nil
-}
-
-func (database *Database) GetUser(ctx context.Context, userID uuid.UUID) (*models.User, error) {
-
-	var user models.User
-	q := `SELECT id, username FROM users WHERE id=$1`
-	err := database.db.QueryRowContext(ctx, q, userID).Scan(&user.ID, &user.Username)
+	// Insert a new session for the user.
+	_, err = db.conn.Exec(ctx,
+		`
+			INSERT INTO sessions (id, csrf_token, user_id) 
+				VALUES ($1, $2, $3)
+			ON CONFLICT (user_id) DO 
+				UPDATE SET id=EXCLUDED.id, csrf_token=EXCLUDED.csrf_token, user_id=EXCLUDED.user_id
+		`,
+		sessionID, uuid.New(), user.ID)
 
 	if err != nil {
+		return uuid.Nil, errors.Wrap(err, "cannot insert session")
+	}
 
-		if err == sql.ErrNoRows {
+	return sessionID, nil
+}
+
+// GetUser returns the user with the user-ID from the database. If the user
+// doesn't exist, returns ErrUserNotFound.
+func (db *Database) GetUser(ctx context.Context, userID uuid.UUID) (*models.User, error) {
+
+	// Get the user with the user-ID.
+	rows, err := db.conn.Query(ctx, `SELECT * FROM users WHERE id = $1`, userID)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot select user")
+	}
+	defer rows.Close()
+
+	// Scan into a user model.
+	user, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[models.User])
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrUserNotFound
 		}
 
-		return nil, errors.Wrap(err, "cannot select user")
+		return nil, errors.Wrap(err, "cannot scan user")
 	}
 
-	return &user, nil
+	return user, nil
 }
 
-func (database *Database) GetSession(ctx context.Context, sessionID string) (*models.Session, error) {
+// GetSession returns the session with the session-ID from the database. If the
+// session doesn't exist, returns ErrUnauthorized.
+func (db *Database) GetSession(ctx context.Context, sessionID string) (*models.Session, error) {
 
-	var session models.Session
-	q := `SELECT id, csrf_token, user_id FROM sessions WHERE id=$1`
-	err := database.db.QueryRow(q, sessionID).Scan(&session.ID, &session.CSRFToken, &session.UserID)
+	// Get the session with the session-ID.
+	rows, err := db.conn.Query(ctx, `SELECT * FROM sessions WHERE id = $1`, sessionID)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot select session")
+	}
+	defer rows.Close()
 
-	if err != nil && err != sql.ErrNoRows {
-
-		if err == sql.ErrNoRows {
+	// Scan into a session model.
+	session, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[models.Session])
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrUnauthorized
 		}
 
-		return nil, errors.Wrap(err, "cannot select session")
+		return nil, errors.Wrap(err, "cannot scan session")
 	}
 
-	return &session, nil
+	return session, nil
 }

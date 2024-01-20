@@ -10,8 +10,10 @@ import "context"
 import "io"
 import "bytes"
 
-import "fmt"
-import "rollbringer/pkg/models"
+import (
+	"fmt"
+	"rollbringer/pkg/models"
+)
 
 var F = fmt.Sprintf
 
@@ -50,7 +52,7 @@ func Page(title, script string) templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/utils.templ`, Line: 27, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/utils.templ`, Line: 29, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -130,7 +132,7 @@ func Error(err error) templ.Component {
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(err.Error())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/utils.templ`, Line: 37, Col: 31}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/utils.templ`, Line: 39, Col: 31}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {

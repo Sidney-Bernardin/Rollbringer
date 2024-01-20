@@ -1,6 +1,8 @@
 package components
 
-import . "rollbringer/pkg/views"
+import (
+	. "rollbringer/pkg/views"
+)
 
 templ PDFViewer(class, pdfURL string) {
 	<div class={ "pdf-viewer", class } x-data={ F("pdfViewer('%s')", pdfURL) }>

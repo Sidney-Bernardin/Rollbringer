@@ -16,11 +16,10 @@ import (
 
 func (api *API) HandleCreateGame(w http.ResponseWriter, r *http.Request) {
 
-	// Get the session from the request's context.
 	session, _ := r.Context().Value("session").(*models.Session)
 
-	// Create the game.
-	gameID, title, err := api.DB.CreateGame(r.Context(), session.UserID)
+	// Insert a new game.
+	gameID, title, err := api.DB.InsertGame(r.Context(), session.UserID)
 	if err != nil {
 		api.dbErr(w, errors.Wrap(err, "cannot create game"))
 		return
@@ -32,8 +31,9 @@ func (api *API) HandleCreateGame(w http.ResponseWriter, r *http.Request) {
 
 func (api *API) HandleDeleteGame(w http.ResponseWriter, r *http.Request) {
 
-	// Get the session and game-ID.
 	session, _ := r.Context().Value("session").(*models.Session)
+
+	// Get and parse the game-ID from the URL.
 	gameID, err := uuid.Parse(chi.URLParam(r, "game_id"))
 	if err != nil {
 		api.dbErr(w, database.ErrGameNotFound)
@@ -41,7 +41,7 @@ func (api *API) HandleDeleteGame(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Delete the game.
-	if err := api.DB.DeleteGame(r.Context(), session.UserID, gameID); err != nil {
+	if err := api.DB.DeleteGame(r.Context(), gameID, session.UserID); err != nil {
 		api.dbErr(w, errors.Wrap(err, "cannot delete game"))
 	}
 }

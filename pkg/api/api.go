@@ -19,7 +19,6 @@ type API struct {
 	GoogleOAuthConfig *oauth2.Config
 }
 
-// renderHTTP writes the component and status-code to the response-writer.
 func (api *API) renderHTTP(w http.ResponseWriter, r *http.Request, component templ.Component, statusCode int) {
 	w.WriteHeader(statusCode)
 	if err := component.Render(r.Context(), w); err != nil {
@@ -28,7 +27,6 @@ func (api *API) renderHTTP(w http.ResponseWriter, r *http.Request, component tem
 	}
 }
 
-// renderWS writes the component to the WebSocket connection.
 func (api *API) renderWS(ctx context.Context, conn *websocket.Conn, component templ.Component) {
 	if err := component.Render(ctx, conn); err != nil {
 		err = errors.Wrap(err, "cannot render component to HTTP response")
