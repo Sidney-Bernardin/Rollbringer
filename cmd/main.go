@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"os"
 	"rollbringer/pkg/api"
 	"rollbringer/pkg/repositories/database"
+	"rollbringer/pkg/repositories/pubsub"
 	"time"
 
 	"github.com/kelseyhightower/envconfig"
@@ -17,7 +19,11 @@ import (
 
 type config struct {
 	Address   string `required:"true" split_words:"true"`
-	DBAddress string `required:"true" split_words:"true"`
+
+	PostgresAddress string `required:"true" split_words:"true"`
+
+	RedisAddress string `required:"true" split_words:"true"`
+	RedisPassword string `required:"true" split_words:"true"`
 
 	UserSessionTimeout time.Duration `required:"true" split_words:"true"`
 
@@ -40,15 +46,27 @@ func main() {
 		logger.Fatal().Stack().Err(err).Msg("Cannot generate configuration")
 	}
 
-	// Create a database.
-	db, err := database.New(cfg.DBAddress)
+	// Create a database repository.
+	db, err := database.New(cfg.PostgresAddress)
 	if err != nil {
-		logger.Fatal().Stack().Err(err).Msg("Cannot create database")
+		logger.Fatal().Stack().Err(err).Msg("Cannot create database repository")
+	}
+
+	// Create a sub-logger for the pub-sub repository.
+	psLoggerCtx := logger.With().
+		Str("component", "database").
+		Logger().WithContext(context.Background())
+
+	// Create a pub-sub repository.
+	ps, err := pubsub.New(psLoggerCtx, cfg.RedisAddress, cfg.RedisPassword)
+	if err != nil {
+		logger.Fatal().Stack().Err(err).Msg("Cannot create pub-sub repository")
 	}
 
 	// Create and setup router with various services.
 	router := createRouter(&api.API{
 		DB:     db,
+		PubSub: ps,
 		Logger: &logger,
 		GoogleOAuthConfig: &oauth2.Config{
 			Endpoint:     google.Endpoint,

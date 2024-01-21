@@ -35,20 +35,20 @@ func (api *API) HandleConsentCallback(w http.ResponseWriter, r *http.Request) {
 	// Get the state/code-verifier cookie.
 	cookie, err := r.Cookie("STATE_AND_VERIFIER")
 	if err != nil {
-		api.err(w, errUnauthorized, http.StatusUnauthorized)
+		api.err(w, errUnauthorized, http.StatusUnauthorized, 0)
 		return
 	}
 
 	// Get the state and code-verifier from the cookie.
 	state_and_verifier := strings.Split(cookie.Value, ",")
 	if len(state_and_verifier) != 2 {
-		api.err(w, errUnauthorized, http.StatusUnauthorized)
+		api.err(w, errUnauthorized, http.StatusUnauthorized, 0)
 		return
 	}
 
 	// Verify both state.
 	if r.FormValue("state") != state_and_verifier[0] {
-		api.err(w, errUnauthorized, http.StatusUnauthorized)
+		api.err(w, errUnauthorized, http.StatusUnauthorized, 0)
 		return
 	}
 
@@ -59,7 +59,7 @@ func (api *API) HandleConsentCallback(w http.ResponseWriter, r *http.Request) {
 		oauth2.VerifierOption(state_and_verifier[1]))
 
 	if err != nil {
-		api.err(w, errUnauthorized, http.StatusUnauthorized)
+		api.err(w, errUnauthorized, http.StatusUnauthorized, 0)
 		return
 	}
 
@@ -67,7 +67,7 @@ func (api *API) HandleConsentCallback(w http.ResponseWriter, r *http.Request) {
 	idTokenStr, ok := token.Extra("id_token").(string)
 	if !ok {
 		err = errors.New("id_token should be string, but is not")
-		api.err(w, err, http.StatusInternalServerError)
+		api.err(w, err, http.StatusInternalServerError, 0)
 		return
 	}
 
@@ -75,7 +75,7 @@ func (api *API) HandleConsentCallback(w http.ResponseWriter, r *http.Request) {
 	idToken, _, err := jwt.NewParser().ParseUnverified(idTokenStr, &openIDConnectClaims{})
 	if err != nil {
 		err = errors.Wrap(err, "cannot parse ID token")
-		api.err(w, err, http.StatusInternalServerError)
+		api.err(w, err, http.StatusInternalServerError, 0)
 		return
 	}
 

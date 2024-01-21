@@ -1,9 +1,9 @@
 package api
 
 import (
+	"encoding/json"
 	"net/http"
 
-	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -26,7 +26,7 @@ func (api *API) HandleCreateGame(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Respond with a button for the new game
-	api.renderHTTP(w, r, components.GameButton(gameID, title), http.StatusOK)
+	api.render(w, r, components.GameButton(gameID, title), http.StatusOK)
 }
 
 func (api *API) HandleDeleteGame(w http.ResponseWriter, r *http.Request) {
@@ -47,18 +47,34 @@ func (api *API) HandleDeleteGame(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *API) HandleJoinGame(conn *websocket.Conn) {
+
 	req := conn.Request()
 
-	res := components.HTMXAddTabs(
-		components.TabPanelSelectorPlayMaterial,
-		map[string]templ.Component{
-			"Hoid": components.DNDCharacterSheet(),
-			"Lee":  components.DNDCharacterSheet(),
-		},
-	)
+	gameID, err := uuid.Parse(chi.URLParam(req, "game_id"))
+	if err != nil {
+		api.dbErr(conn, database.ErrGameNotFound)
+		return
+	}
 
-	api.renderWS(req.Context(), conn, res)
+	_, err = api.DB.GetGame(req.Context(), gameID)
+	if err != nil {
+		api.dbErr(conn, errors.Wrap(err, "cannot get game"))
+		return
+	}
 
 	for {
+
+		var msg models.GameEvent
+		if err := websocket.JSON.Receive(conn, &msg); err != nil {
+
+			switch err.(type) {
+			case *json.SyntaxError, *json.UnmarshalTypeError, *json.InvalidUnmarshalError:
+				api.err(conn, err, 0, wsStatusUnsupportedData)
+			default:
+				api.err(conn, err, 0, wsStatusInternalError)
+			}
+
+			return
+		}
 	}
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/pkg/errors"
 
 	"rollbringer/pkg/models"
-	database "rollbringer/pkg/repositories/database"
+	"rollbringer/pkg/repositories/database"
 	"rollbringer/pkg/views/layouts"
 )
 
@@ -30,7 +30,7 @@ func (api *API) HandleGamePage(w http.ResponseWriter, r *http.Request) {
 	// logged out, render the page early.
 	session, _ := r.Context().Value("session").(*models.Session)
 	if session == nil {
-		api.renderHTTP(w, r, layouts.Game(), http.StatusOK)
+		api.render(w, r, layouts.Game(), http.StatusOK)
 		return
 	}
 
@@ -50,5 +50,5 @@ func (api *API) HandleGamePage(w http.ResponseWriter, r *http.Request) {
 	}
 	giveToRequest(r, "games", games)
 
-	api.renderHTTP(w, r, layouts.Game(), http.StatusOK)
+	api.render(w, r, layouts.Game(), http.StatusOK)
 }

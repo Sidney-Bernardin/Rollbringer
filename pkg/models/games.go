@@ -7,3 +7,7 @@ type Game struct {
 	HostID uuid.UUID
 	Title  string
 }
+
+type GameEvent struct {
+	Type string `json:"type"`
+}

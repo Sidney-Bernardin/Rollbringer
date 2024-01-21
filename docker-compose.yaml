@@ -1,0 +1,16 @@
+version: "3.7"
+
+services:
+  database:
+    container_name: database
+    build:
+      context: .
+      dockerfile: postgres.dockerfile
+    ports:
+      - 5432:5432
+
+  pubsub:
+    container_name: pubsub
+    image: redis:latest
+    ports:
+      - 6379:6379

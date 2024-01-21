@@ -1,9 +1,11 @@
 package api
 
 import (
+	"io"
 	"net/http"
 
 	"github.com/pkg/errors"
+	"golang.org/x/net/websocket"
 
 	"rollbringer/pkg/repositories/database"
 )
@@ -12,46 +14,59 @@ var (
 	errUnauthorized = errors.New("unauthorized")
 )
 
-type apiError struct {
-	statusCode int
+func (api *API) err(writer io.Writer, e error, httpStatus, wsStatus int) {
+	switch w := writer.(type) {
+	case http.ResponseWriter:
 
-	msg string
-}
+		if httpStatus >= 500 {
+			api.Logger.Error().Stack().Err(e).Msg("Internal server error")
+			e = errors.New("internal server error")
+		}
 
-func (e *apiError) Error() string {
-	return e.msg
-}
+		http.Error(w, e.Error(), httpStatus)
 
-func (api *API) err(w http.ResponseWriter, e error, statusCode int) {
-	if statusCode >= 500 {
-		api.Logger.Error().Stack().Err(e).Msg("Internal server error")
-		e = errors.New("internal server error")
+	case *websocket.Conn:
+		if wsStatus == 1011 {
+			api.Logger.Error().Stack().Err(e).Msg("Internal server error")
+			e = errors.New("internal server error")
+		}
+
+		if err := w.WriteClose(wsStatus); err != nil {
+			api.Logger.Error().Stack().Err(err).Msg("Cannot write close status")
+		}
 	}
-
-	http.Error(w, e.Error(), statusCode)
 }
 
-func (api *API) dbErr(w http.ResponseWriter, err error) {
+func (api *API) dbErr(writer io.Writer, err error) {
 
-	cause := errors.Cause(err)
-	res := &apiError{msg: cause.Error()}
+	var (
+		res = errors.Cause(err)
 
-	switch cause {
+		httpStatus int
+		wsStatus   int
+	)
+
+	switch res {
 	case database.ErrUnauthorized:
-		res.statusCode = http.StatusUnauthorized
+		httpStatus = http.StatusUnauthorized
+		wsStatus = wsStatusPolicyViolation
 
 	case database.ErrUserNotFound:
-		res.statusCode = http.StatusNotFound
+		httpStatus = http.StatusNotFound
+		wsStatus = wsStatusNormalClosure
 
 	case database.ErrGameNotFound:
-		res.statusCode = http.StatusNotFound
+		httpStatus = http.StatusNotFound
+		wsStatus = wsStatusNormalClosure
 	case database.ErrMaxGames:
-		res.statusCode = http.StatusForbidden
+		httpStatus = http.StatusForbidden
+		wsStatus = wsStatusPolicyViolation
 
 	default:
-		res.statusCode = http.StatusInternalServerError
-		res.msg = err.Error()
+		httpStatus = http.StatusInternalServerError
+		wsStatus = wsStatusInternalError
+		res = err
 	}
 
-	api.err(w, res, res.statusCode)
+	api.err(writer, res, httpStatus, wsStatus)
 }
