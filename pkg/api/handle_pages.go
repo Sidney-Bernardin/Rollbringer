@@ -3,52 +3,51 @@ package api
 import (
 	"net/http"
 
-	"github.com/google/uuid"
+	"github.com/go-chi/chi/v5"
 	"github.com/pkg/errors"
+	"golang.org/x/net/websocket"
 
-	"rollbringer/pkg/models"
-	"rollbringer/pkg/repositories/database"
+	"rollbringer/pkg/domain"
 	"rollbringer/pkg/views/layouts"
 )
 
-func (api *API) HandleGamePage(w http.ResponseWriter, r *http.Request) {
+func (api *API) HandlePlayPage(w http.ResponseWriter, r *http.Request) {
 
-	// Get and parse the game-ID from the URL.
-	gameID, err := uuid.Parse(r.URL.Query().Get("g"))
-	if err == nil {
-
-		// Get the game.
-		game, err := api.DB.GetGame(r.Context(), gameID)
-		if err != nil && err != database.ErrGameNotFound {
-			api.dbErr(w, errors.Wrap(err, "cannot get game"))
-			return
-		}
-		giveToRequest(r, "game", game)
+	// Get the game.
+	game, err := api.Service.GetGame(r.Context(), chi.URLParam(r, "game_id"))
+	if err != nil && err != domain.ErrGameNotFound {
+		api.domainErr(w, errors.Wrap(err, "cannot get game"))
+		return
 	}
+	giveToRequest(r, "game", game)
 
 	// Check if the user is logged in by getting the session. If the user is
 	// logged out, render the page early.
-	session, _ := r.Context().Value("session").(*models.Session)
+	session, _ := r.Context().Value("session").(*domain.Session)
 	if session == nil {
-		api.render(w, r, layouts.Game(), http.StatusOK)
+		api.render(w, r, layouts.Play(), http.StatusOK)
 		return
 	}
 
 	// Get the user.
-	user, err := api.DB.GetUser(r.Context(), session.UserID)
+	user, err := api.Service.GetUser(r.Context(), session.UserID.String())
 	if err != nil {
-		api.dbErr(w, errors.Wrap(err, "cannot get user"))
+		api.domainErr(w, errors.Wrap(err, "cannot get user"))
 		return
 	}
 	giveToRequest(r, "user", user)
 
-	// Get user's games.
-	games, err := api.DB.GetGames(r.Context(), session.UserID)
+	// Get the user's games.
+	games, err := api.Service.GetGamesFromUser(r.Context(), session.UserID.String())
 	if err != nil {
-		api.dbErr(w, errors.Wrap(err, "cannot get games"))
+		api.domainErr(w, errors.Wrap(err, "cannot get user's games"))
 		return
 	}
 	giveToRequest(r, "games", games)
 
-	api.render(w, r, layouts.Game(), http.StatusOK)
+	api.render(w, r, layouts.Play(), http.StatusOK)
+}
+
+func (api *API) HandlePlayWS(conn *websocket.Conn) {
+
 }

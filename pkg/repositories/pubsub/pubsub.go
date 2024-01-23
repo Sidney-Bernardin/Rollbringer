@@ -3,13 +3,14 @@ package pubsub
 import (
 	"context"
 	"encoding/json"
-	"rollbringer/pkg/models"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+
+	"rollbringer/pkg/domain"
 )
 
 type PubSub struct {
@@ -37,7 +38,7 @@ func New(loggerCtx context.Context, addr, passw string) (*PubSub, error) {
 	}, nil
 }
 
-func (ps *PubSub) SubToGame(ctx context.Context, gameID uuid.UUID, msgChan chan *models.GameEvent) {
+func (ps *PubSub) SubToGame(ctx context.Context, gameID uuid.UUID, eventChan chan *domain.GameEvent) {
 
 	sub := ps.client.Subscribe(ctx, gameID.String())
 	defer sub.Close()
@@ -50,17 +51,17 @@ func (ps *PubSub) SubToGame(ctx context.Context, gameID uuid.UUID, msgChan chan 
 			return
 		}
 
-		var payload models.GameEvent
+		var payload domain.GameEvent
 		if err := json.Unmarshal([]byte(msg.Payload), &payload); err != nil {
 			ps.logger.Error().Stack().Err(err).Msg("Cannot decoded game event")
 			return
 		}
 
-		msgChan <- &payload
+		eventChan <- &payload
 	}
 }
 
-func (ps *PubSub) PubToGame(ctx context.Context, gameID uuid.UUID, msg *models.GameEvent) error {
+func (ps *PubSub) PubToGame(ctx context.Context, gameID uuid.UUID, msg *domain.GameEvent) error {
 
 	bytes, err := json.Marshal(msg)
 	if err != nil {
@@ -69,4 +70,4 @@ func (ps *PubSub) PubToGame(ctx context.Context, gameID uuid.UUID, msg *models.G
 
 	err = ps.client.Publish(ctx, gameID.String(), bytes).Err()
 	return errors.Wrap(err, "cannot publish game event")
-} 
+}

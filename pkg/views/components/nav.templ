@@ -1,7 +1,6 @@
 package components
 
 import (
-	"github.com/google/uuid"
 	. "rollbringer/pkg/views"
 )
 
@@ -19,7 +18,7 @@ templ Nav(class string) {
 					</a>
 				} else {
 					for _, game := range GetGames(ctx) {
-						@GameButton(game.ID, game.Title)
+						@GameButton(game.ID.String(), game.Title)
 					}
 				}
 			</ul>
@@ -46,7 +45,7 @@ templ menuButton() {
 	}
 }
 
-templ GameButton(id uuid.UUID, title string) {
+templ GameButton(id string, title string) {
 	<li>
 		<button>
 			<iconify-icon icon="material-symbols:edit"></iconify-icon>

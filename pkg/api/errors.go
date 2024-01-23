@@ -3,15 +3,10 @@ package api
 import (
 	"io"
 	"net/http"
+	"rollbringer/pkg/domain"
 
 	"github.com/pkg/errors"
 	"golang.org/x/net/websocket"
-
-	"rollbringer/pkg/repositories/database"
-)
-
-var (
-	errUnauthorized = errors.New("unauthorized")
 )
 
 func (api *API) err(writer io.Writer, e error, httpStatus, wsStatus int) {
@@ -37,7 +32,7 @@ func (api *API) err(writer io.Writer, e error, httpStatus, wsStatus int) {
 	}
 }
 
-func (api *API) dbErr(writer io.Writer, err error) {
+func (api *API) domainErr(writer io.Writer, err error) {
 
 	var (
 		res = errors.Cause(err)
@@ -47,18 +42,18 @@ func (api *API) dbErr(writer io.Writer, err error) {
 	)
 
 	switch res {
-	case database.ErrUnauthorized:
+	case domain.ErrUnauthorized:
 		httpStatus = http.StatusUnauthorized
 		wsStatus = wsStatusPolicyViolation
 
-	case database.ErrUserNotFound:
+	case domain.ErrUserNotFound:
 		httpStatus = http.StatusNotFound
 		wsStatus = wsStatusNormalClosure
 
-	case database.ErrGameNotFound:
+	case domain.ErrGameNotFound:
 		httpStatus = http.StatusNotFound
 		wsStatus = wsStatusNormalClosure
-	case database.ErrMaxGames:
+	case domain.ErrMaxGames:
 		httpStatus = http.StatusForbidden
 		wsStatus = wsStatusPolicyViolation
 

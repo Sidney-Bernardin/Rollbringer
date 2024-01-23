@@ -3,13 +3,14 @@ package api
 import (
 	"io"
 	"net/http"
-	"rollbringer/pkg/repositories/database"
-	"rollbringer/pkg/repositories/pubsub"
 
 	"github.com/a-h/templ"
+	"github.com/go-chi/chi/v5"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
 	"golang.org/x/oauth2"
+
+	"rollbringer/pkg/domain/service"
 )
 
 const (
@@ -20,11 +21,16 @@ const (
 )
 
 type API struct {
-	DB     *database.Database
-	PubSub *pubsub.PubSub
+	router *chi.Mux
 	Logger *zerolog.Logger
-
 	GoogleOAuthConfig *oauth2.Config
+
+	Service *service.Service
+}
+
+func (api *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	api.setRoutes()
+	api.router.ServeHTTP(w, r)
 }
 
 func (api *API) render(w io.Writer, r *http.Request, component templ.Component, status int) {

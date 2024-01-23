@@ -8,6 +8,8 @@ import (
 	jwt "github.com/golang-jwt/jwt/v5"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
+
+	"rollbringer/pkg/domain"
 )
 
 func (api *API) HandleLogin(w http.ResponseWriter, r *http.Request) {
@@ -35,20 +37,20 @@ func (api *API) HandleConsentCallback(w http.ResponseWriter, r *http.Request) {
 	// Get the state/code-verifier cookie.
 	cookie, err := r.Cookie("STATE_AND_VERIFIER")
 	if err != nil {
-		api.err(w, errUnauthorized, http.StatusUnauthorized, 0)
+		api.err(w, domain.ErrUnauthorized, http.StatusUnauthorized, 0)
 		return
 	}
 
 	// Get the state and code-verifier from the cookie.
 	state_and_verifier := strings.Split(cookie.Value, ",")
 	if len(state_and_verifier) != 2 {
-		api.err(w, errUnauthorized, http.StatusUnauthorized, 0)
+		api.err(w, domain.ErrUnauthorized, http.StatusUnauthorized, 0)
 		return
 	}
 
 	// Verify both state.
 	if r.FormValue("state") != state_and_verifier[0] {
-		api.err(w, errUnauthorized, http.StatusUnauthorized, 0)
+		api.err(w, domain.ErrUnauthorized, http.StatusUnauthorized, 0)
 		return
 	}
 
@@ -59,7 +61,7 @@ func (api *API) HandleConsentCallback(w http.ResponseWriter, r *http.Request) {
 		oauth2.VerifierOption(state_and_verifier[1]))
 
 	if err != nil {
-		api.err(w, errUnauthorized, http.StatusUnauthorized, 0)
+		api.err(w, domain.ErrUnauthorized, http.StatusUnauthorized, 0)
 		return
 	}
 
@@ -80,16 +82,16 @@ func (api *API) HandleConsentCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Login the user.
-	sessionID, err := api.DB.Login(r.Context(), idToken.Claims.(*openIDConnectClaims).Subject)
+	sessionID, err := api.Service.LoginUser(r.Context(), idToken.Claims.(*openIDConnectClaims).Subject)
 	if err != nil {
-		api.dbErr(w, err)
+		api.domainErr(w, errors.Wrap(err, "cannot login user"))
 		return
 	}
 
 	// Store the session-ID in a cookie.
 	http.SetCookie(w, &http.Cookie{
 		Name:     "SESSION_ID",
-		Value:    sessionID.String(),
+		Value:    sessionID,
 		Path:     "/",
 		Expires:  time.Now().Add(15 * time.Minute),
 		HttpOnly: true,

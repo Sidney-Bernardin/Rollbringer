@@ -8,11 +8,11 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/pkg/errors"
 
-	"rollbringer/pkg/models"
+	"rollbringer/pkg/domain"
 )
 
 // InsertGame inserts a new game for the host. If the host has more than 5
-// games, returns ErrMaxGames
+// games, returns domain.ErrMaxGames
 func (db *Database) InsertGame(ctx context.Context, hostID uuid.UUID) (uuid.UUID, string, error) {
 
 	// Get the number of games with the host-ID.
@@ -26,7 +26,7 @@ func (db *Database) InsertGame(ctx context.Context, hostID uuid.UUID) (uuid.UUID
 	}
 
 	if count >= 5 {
-		return uuid.Nil, "", ErrMaxGames
+		return uuid.Nil, "", domain.ErrMaxGames
 	}
 
 	gameID := uuid.New()
@@ -45,8 +45,8 @@ func (db *Database) InsertGame(ctx context.Context, hostID uuid.UUID) (uuid.UUID
 }
 
 // GetGame returns the game with the game-ID from the database. If the game
-// doesn't exist, returns ErrGameNotFound.
-func (db *Database) GetGame(ctx context.Context, gameID uuid.UUID) (*models.Game, error) {
+// doesn't exist, returns domain.ErrGameNotFound.
+func (db *Database) GetGame(ctx context.Context, gameID uuid.UUID) (*domain.Game, error) {
 
 	// Get the game with the game-ID.
 	rows, err := db.conn.Query(ctx, `SELECT * FROM games WHERE id = $1`, gameID)
@@ -56,10 +56,10 @@ func (db *Database) GetGame(ctx context.Context, gameID uuid.UUID) (*models.Game
 	defer rows.Close()
 
 	// Scan into a game model.
-	game, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[models.Game])
+	game, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[domain.Game])
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, ErrGameNotFound
+			return nil, domain.ErrGameNotFound
 		}
 
 		return nil, errors.Wrap(err, "cannot scan game")
@@ -69,26 +69,26 @@ func (db *Database) GetGame(ctx context.Context, gameID uuid.UUID) (*models.Game
 }
 
 // GetGames return the games with the host-ID from the database.
-func (db *Database) GetGames(ctx context.Context, hostID uuid.UUID) ([]*models.Game, error) {
+func (db *Database) GetGamesFromUser(ctx context.Context, hostID uuid.UUID) ([]*domain.Game, error) {
 
 	// Get the games with the host-ID.
 	rows, err := db.conn.Query(ctx, `SELECT * FROM games WHERE host_id = $1`, hostID)
 	if err != nil {
-		return []*models.Game{}, errors.Wrap(err, "cannot select games")
+		return []*domain.Game{}, errors.Wrap(err, "cannot select games")
 	}
 	defer rows.Close()
 
-	// Scan into a slice of game models.
-	games, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByNameLax[models.Game])
+	// Scan into a slice of game domain.
+	games, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByNameLax[domain.Game])
 	if err != nil {
-		return []*models.Game{}, errors.Wrap(err, "cannot scan games")
+		return []*domain.Game{}, errors.Wrap(err, "cannot scan games")
 	}
 
 	return games, nil
 }
 
 // DeleteGame deletes the game with the game-ID and host-ID from the database.
-// If the game doesn't exist, returns ErrGameNotFound.
+// If the game doesn't exist, returns domain.ErrGameNotFound.
 func (db *Database) DeleteGame(ctx context.Context, gameID uuid.UUID, hostID uuid.UUID) error {
 
 	// Delete the game with the game-ID and host-ID.
@@ -101,7 +101,7 @@ func (db *Database) DeleteGame(ctx context.Context, gameID uuid.UUID, hostID uui
 	}
 
 	if cmdTag.RowsAffected() == 0 {
-		return ErrGameNotFound
+		return domain.ErrGameNotFound
 	}
 
 	return nil

@@ -11,7 +11,6 @@ import "io"
 import "bytes"
 
 import (
-	"github.com/google/uuid"
 	. "rollbringer/pkg/views"
 )
 
@@ -69,7 +68,7 @@ func Nav(class string) templ.Component {
 			}
 		} else {
 			for _, game := range GetGames(ctx) {
-				templ_7745c5c3_Err = GameButton(game.ID, game.Title).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = GameButton(game.ID.String(), game.Title).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -117,7 +116,7 @@ func menuButton() templ.Component {
 	})
 }
 
-func GameButton(id uuid.UUID, title string) templ.Component {
+func GameButton(id string, title string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -146,7 +145,7 @@ func GameButton(id uuid.UUID, title string) templ.Component {
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/components/nav.templ`, Line: 53, Col: 52}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/components/nav.templ`, Line: 52, Col: 52}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {

@@ -2,11 +2,12 @@ package database
 
 import (
 	"context"
-	"rollbringer/pkg/models"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/pkg/errors"
+
+	"rollbringer/pkg/domain"
 )
 
 // Login inserts a new session for the user with the google-ID. If the user
@@ -18,16 +19,17 @@ func (db *Database) Login(ctx context.Context, googleID string) (uuid.UUID, erro
 	if err != nil {
 		return uuid.Nil, errors.Wrap(err, "cannot select user")
 	}
-	defer rows.Close()
 
 	// Scan first row into a user model.
-	user, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[models.User])
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+	user, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[domain.User])
+	if err != nil && errors.Is(err, pgx.ErrNoRows) {
 		return uuid.Nil, errors.Wrap(err, "cannot scan user")
 	}
 
+	rows.Close()
+
 	if user == nil {
-		user = &models.User{ID: uuid.New()}
+		user = &domain.User{ID: uuid.New()}
 
 		// Insert a new user.
 		_, err = db.conn.Exec(ctx,
@@ -59,8 +61,8 @@ func (db *Database) Login(ctx context.Context, googleID string) (uuid.UUID, erro
 }
 
 // GetUser returns the user with the user-ID from the database. If the user
-// doesn't exist, returns ErrUserNotFound.
-func (db *Database) GetUser(ctx context.Context, userID uuid.UUID) (*models.User, error) {
+// doesn't exist, returns domain.ErrUserNotFound.
+func (db *Database) GetUser(ctx context.Context, userID uuid.UUID) (*domain.User, error) {
 
 	// Get the user with the user-ID.
 	rows, err := db.conn.Query(ctx, `SELECT * FROM users WHERE id = $1`, userID)
@@ -70,10 +72,10 @@ func (db *Database) GetUser(ctx context.Context, userID uuid.UUID) (*models.User
 	defer rows.Close()
 
 	// Scan into a user model.
-	user, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[models.User])
+	user, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[domain.User])
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, ErrUserNotFound
+			return nil, domain.ErrUserNotFound
 		}
 
 		return nil, errors.Wrap(err, "cannot scan user")
@@ -83,8 +85,8 @@ func (db *Database) GetUser(ctx context.Context, userID uuid.UUID) (*models.User
 }
 
 // GetSession returns the session with the session-ID from the database. If the
-// session doesn't exist, returns ErrUnauthorized.
-func (db *Database) GetSession(ctx context.Context, sessionID string) (*models.Session, error) {
+// session doesn't exist, returns domain.ErrUnauthorized.
+func (db *Database) GetSession(ctx context.Context, sessionID uuid.UUID) (*domain.Session, error) {
 
 	// Get the session with the session-ID.
 	rows, err := db.conn.Query(ctx, `SELECT * FROM sessions WHERE id = $1`, sessionID)
@@ -94,10 +96,10 @@ func (db *Database) GetSession(ctx context.Context, sessionID string) (*models.S
 	defer rows.Close()
 
 	// Scan into a session model.
-	session, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[models.Session])
+	session, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[domain.Session])
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, ErrUnauthorized
+			return nil, domain.ErrUnauthorized
 		}
 
 		return nil, errors.Wrap(err, "cannot scan session")

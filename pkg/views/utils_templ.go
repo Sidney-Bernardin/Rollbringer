@@ -12,23 +12,23 @@ import "bytes"
 
 import (
 	"fmt"
-	"rollbringer/pkg/models"
+	"rollbringer/pkg/domain"
 )
 
 var F = fmt.Sprintf
 
-func GetUser(ctx context.Context) *models.User {
-	user, _ := ctx.Value("user").(*models.User)
+func GetUser(ctx context.Context) *domain.User {
+	user, _ := ctx.Value("user").(*domain.User)
 	return user
 }
 
-func GetSession(ctx context.Context) *models.Session {
-	session, _ := ctx.Value("session").(*models.Session)
+func GetSession(ctx context.Context) *domain.Session {
+	session, _ := ctx.Value("session").(*domain.Session)
 	return session
 }
 
-func GetGames(ctx context.Context) []*models.Game {
-	games, _ := ctx.Value("games").([]*models.Game)
+func GetGames(ctx context.Context) []*domain.Game {
+	games, _ := ctx.Value("games").([]*domain.Game)
 	return games
 }
 

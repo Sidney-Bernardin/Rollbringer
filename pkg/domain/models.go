@@ -1,4 +1,4 @@
-package models
+package domain
 
 import "github.com/google/uuid"
 
@@ -13,3 +13,11 @@ type Session struct {
 	CSRFToken uuid.UUID `db:"csrf_token,omitempty"`
 	UserID    uuid.UUID `db:"user_id,omitempty"`
 }
+
+type Game struct {
+	ID     uuid.UUID
+	HostID uuid.UUID
+	Title  string
+}
+
+type GameEvent map[string]any

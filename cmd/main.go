@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"rollbringer/pkg/api"
+	"rollbringer/pkg/domain/service"
 	"rollbringer/pkg/repositories/database"
 	"rollbringer/pkg/repositories/pubsub"
 	"time"
@@ -18,11 +19,11 @@ import (
 )
 
 type config struct {
-	Address   string `required:"true" split_words:"true"`
+	Address string `required:"true" split_words:"true"`
 
 	PostgresAddress string `required:"true" split_words:"true"`
 
-	RedisAddress string `required:"true" split_words:"true"`
+	RedisAddress  string `required:"true" split_words:"true"`
 	RedisPassword string `required:"true" split_words:"true"`
 
 	UserSessionTimeout time.Duration `required:"true" split_words:"true"`
@@ -46,7 +47,7 @@ func main() {
 		logger.Fatal().Stack().Err(err).Msg("Cannot generate configuration")
 	}
 
-	// Create a database repository.
+	// Create a Database repository.
 	db, err := database.New(cfg.PostgresAddress)
 	if err != nil {
 		logger.Fatal().Stack().Err(err).Msg("Cannot create database repository")
@@ -57,17 +58,16 @@ func main() {
 		Str("component", "database").
 		Logger().WithContext(context.Background())
 
-	// Create a pub-sub repository.
+	// Create a PubSub repository.
 	ps, err := pubsub.New(psLoggerCtx, cfg.RedisAddress, cfg.RedisPassword)
 	if err != nil {
 		logger.Fatal().Stack().Err(err).Msg("Cannot create pub-sub repository")
 	}
 
-	// Create and setup router with various services.
-	router := createRouter(&api.API{
-		DB:     db,
-		PubSub: ps,
-		Logger: &logger,
+	// Create an API handler.
+	apiHandler := &api.API{
+		Service: service.New(db, ps),
+		Logger:  &logger,
 		GoogleOAuthConfig: &oauth2.Config{
 			Endpoint:     google.Endpoint,
 			ClientID:     cfg.GoogleClientID,
@@ -75,11 +75,11 @@ func main() {
 			RedirectURL:  cfg.RedirectURL,
 			Scopes:       []string{"openid", "email"},
 		},
-	})
+	}
 
 	logger.Info().Str("address", cfg.Address).Msg("Serving")
 
 	// Start server.
-	err = http.ListenAndServe(cfg.Address, router)
+	err = http.ListenAndServe(cfg.Address, apiHandler)
 	logger.Fatal().Stack().Err(err).Msg("Server stopped")
 }

@@ -5,10 +5,10 @@ import (
 	"rollbringer/pkg/views/components"
 )
 
-templ Game() {
-	@Page("Game", "game.js") {
+templ Play() {
+	@Page("Play", "play.js") {
 		<body
-			hx-ws="connect:/games/123/join"
+			hx-ws="connect:/play/ws"
 			if session := GetSession(ctx); session != nil {
 				hx-headers={ F(`{"CSRF-Token": "%s"}`, session.CSRFToken.String()) }
 			}
