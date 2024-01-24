@@ -9,7 +9,13 @@ import (
 
 func (api *API) Log(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		api.Logger.Info().Str("url", r.URL.String()).Msg("New request")
+
+		// Log the request.
+		api.logger.Info().
+			Str("method", r.Method).
+			Str("url", r.URL.String()).
+			Msg("New request")
+
 		next.ServeHTTP(w, r)
 	})
 }
@@ -31,7 +37,7 @@ func (api *API) Auth(next http.Handler) http.Handler {
 		}
 
 		// Get the session.
-		session, err := api.Service.GetSession(r.Context(), stCookie.Value)
+		session, err := api.service.GetSession(r.Context(), stCookie.Value)
 		if err != nil {
 			api.domainErr(w, errors.Wrap(err, "cannot get session"))
 			return
@@ -65,7 +71,7 @@ func (api *API) LightAuth(next http.Handler) http.Handler {
 		}
 
 		// Get the session.
-		session, err := api.Service.GetSession(r.Context(), stCookie.Value)
+		session, err := api.service.GetSession(r.Context(), stCookie.Value)
 		if err != nil && err != domain.ErrUnauthorized {
 			err = errors.Wrap(err, "cannot get session")
 			api.err(w, err, http.StatusInternalServerError, 0)

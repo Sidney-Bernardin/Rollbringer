@@ -8,7 +8,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 
 	"rollbringer/pkg/domain"
 )
@@ -19,7 +18,7 @@ type PubSub struct {
 }
 
 // New returns a new PubSub that connects to a Redis server.
-func New(loggerCtx context.Context, addr, passw string) (*PubSub, error) {
+func New(rootLogger *zerolog.Logger, addr, passw string) (*PubSub, error) {
 
 	// Connect to the Redis server.
 	c := redis.NewClient(&redis.Options{
@@ -32,13 +31,15 @@ func New(loggerCtx context.Context, addr, passw string) (*PubSub, error) {
 		return nil, errors.Wrap(err, "cannot ping redis server")
 	}
 
+	pubsubLogger := rootLogger.With().Str("component", "pubsub").Logger()
+
 	return &PubSub{
 		client: c,
-		logger: log.Ctx(loggerCtx),
+		logger: &pubsubLogger,
 	}, nil
 }
 
-func (ps *PubSub) SubToGame(ctx context.Context, gameID uuid.UUID, eventChan chan *domain.GameEvent) {
+func (ps *PubSub) SubToGame(ctx context.Context, gameID uuid.UUID, resChan chan domain.GameEvent) {
 
 	sub := ps.client.Subscribe(ctx, gameID.String())
 	defer sub.Close()
@@ -51,13 +52,13 @@ func (ps *PubSub) SubToGame(ctx context.Context, gameID uuid.UUID, eventChan cha
 			return
 		}
 
-		var payload domain.GameEvent
-		if err := json.Unmarshal([]byte(msg.Payload), &payload); err != nil {
+		var event domain.GameEvent
+		if err := json.Unmarshal([]byte(msg.Payload), &event); err != nil {
 			ps.logger.Error().Stack().Err(err).Msg("Cannot decoded game event")
 			return
 		}
 
-		eventChan <- &payload
+		resChan <- event
 	}
 }
 

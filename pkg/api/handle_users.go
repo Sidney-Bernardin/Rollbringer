@@ -28,7 +28,7 @@ func (api *API) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	})
 
 	// Generate and redirect to the consent URL.
-	consentURL := api.GoogleOAuthConfig.AuthCodeURL(state, oauth2.S256ChallengeOption(codeVerifier))
+	consentURL := api.googleOAuthConfig.AuthCodeURL(state, oauth2.S256ChallengeOption(codeVerifier))
 	http.Redirect(w, r, consentURL, http.StatusTemporaryRedirect)
 }
 
@@ -55,7 +55,7 @@ func (api *API) HandleConsentCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Exchange the code for an oauth token.
-	token, err := api.GoogleOAuthConfig.Exchange(
+	token, err := api.googleOAuthConfig.Exchange(
 		r.Context(),
 		r.FormValue("code"),
 		oauth2.VerifierOption(state_and_verifier[1]))
@@ -82,7 +82,7 @@ func (api *API) HandleConsentCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Login the user.
-	sessionID, err := api.Service.LoginUser(r.Context(), idToken.Claims.(*openIDConnectClaims).Subject)
+	sessionID, err := api.service.LoginUser(r.Context(), idToken.Claims.(*openIDConnectClaims).Subject)
 	if err != nil {
 		api.domainErr(w, errors.Wrap(err, "cannot login user"))
 		return

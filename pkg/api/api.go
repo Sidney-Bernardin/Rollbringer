@@ -21,11 +21,22 @@ const (
 )
 
 type API struct {
-	router *chi.Mux
-	Logger *zerolog.Logger
-	GoogleOAuthConfig *oauth2.Config
+	router  *chi.Mux
+	service *service.Service
 
-	Service *service.Service
+	logger            *zerolog.Logger
+	googleOAuthConfig *oauth2.Config
+}
+
+func New(service *service.Service, rootLogger *zerolog.Logger, googleOAuthConfig *oauth2.Config) *API {
+	apiLogger := rootLogger.With().Str("component", "api").Logger()
+
+	return &API{
+		router:            chi.NewRouter(),
+		service:           service,
+		logger:            &apiLogger,
+		googleOAuthConfig: googleOAuthConfig,
+	}
 }
 
 func (api *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {

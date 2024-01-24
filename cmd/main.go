@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"net/http"
 	"os"
 	"rollbringer/pkg/api"
@@ -53,33 +52,28 @@ func main() {
 		logger.Fatal().Stack().Err(err).Msg("Cannot create database repository")
 	}
 
-	// Create a sub-logger for the pub-sub repository.
-	psLoggerCtx := logger.With().
-		Str("component", "database").
-		Logger().WithContext(context.Background())
-
 	// Create a PubSub repository.
-	ps, err := pubsub.New(psLoggerCtx, cfg.RedisAddress, cfg.RedisPassword)
+	ps, err := pubsub.New(&logger, cfg.RedisAddress, cfg.RedisPassword)
 	if err != nil {
 		logger.Fatal().Stack().Err(err).Msg("Cannot create pub-sub repository")
 	}
 
-	// Create an API handler.
-	apiHandler := &api.API{
-		Service: service.New(db, ps),
-		Logger:  &logger,
-		GoogleOAuthConfig: &oauth2.Config{
+	// Create an API.
+	API := api.New(
+		service.New(&logger, db, ps),
+		&logger,
+		&oauth2.Config{
 			Endpoint:     google.Endpoint,
 			ClientID:     cfg.GoogleClientID,
 			ClientSecret: cfg.GoogleClientSecret,
 			RedirectURL:  cfg.RedirectURL,
 			Scopes:       []string{"openid", "email"},
 		},
-	}
+	)
 
 	logger.Info().Str("address", cfg.Address).Msg("Serving")
 
 	// Start server.
-	err = http.ListenAndServe(cfg.Address, apiHandler)
+	err = http.ListenAndServe(cfg.Address, API)
 	logger.Fatal().Stack().Err(err).Msg("Server stopped")
 }
