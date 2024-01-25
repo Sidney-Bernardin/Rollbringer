@@ -15,9 +15,17 @@ type Session struct {
 }
 
 type Game struct {
-	ID     uuid.UUID
-	HostID uuid.UUID
-	Title  string
+	ID     uuid.UUID `db:"id,omitempty"`
+	HostID uuid.UUID `db:"host_id,omitempty"`
+	Title  string    `db:"title,omitempty"`
+}
+
+type PDF struct {
+	ID      uuid.UUID `db:"id,omitempty"`
+	OwnerID uuid.UUID `db:"owner_id,omitempty"`
+	Name    string    `db:"name,omitempty"`
+	Schema  string    `db:"schema,omitempty"`
+	Content []byte    `db:"content,omitempty"`
 }
 
 type GameEvent map[string]any

@@ -57,6 +57,10 @@ func (api *API) domainErr(writer io.Writer, err error) {
 		httpStatus = http.StatusForbidden
 		wsStatus = wsStatusPolicyViolation
 
+	case domain.ErrPlayMaterialNotFound:
+		httpStatus = http.StatusNotFound
+		wsStatus = wsStatusNormalClosure
+
 	default:
 		httpStatus = http.StatusInternalServerError
 		wsStatus = wsStatusInternalError

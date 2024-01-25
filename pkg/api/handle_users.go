@@ -5,14 +5,14 @@ import (
 	"strings"
 	"time"
 
-	jwt "github.com/golang-jwt/jwt/v5"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 
 	"rollbringer/pkg/domain"
 )
 
-func (api *API) HandleLogin(w http.ResponseWriter, r *http.Request) {
+func (api *API) handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	var (
 		state        = mustGetRandHexStr()
@@ -32,7 +32,7 @@ func (api *API) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, consentURL, http.StatusTemporaryRedirect)
 }
 
-func (api *API) HandleConsentCallback(w http.ResponseWriter, r *http.Request) {
+func (api *API) handleConsentCallback(w http.ResponseWriter, r *http.Request) {
 
 	// Get the state/code-verifier cookie.
 	cookie, err := r.Cookie("STATE_AND_VERIFIER")

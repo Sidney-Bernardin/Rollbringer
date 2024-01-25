@@ -9,4 +9,6 @@ var (
 
 	ErrMaxGames     = errors.New("max games reached")
 	ErrGameNotFound = errors.New("game was not found")
+
+	ErrPlayMaterialNotFound = errors.New("play material was not found")
 )

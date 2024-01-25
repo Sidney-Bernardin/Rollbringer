@@ -1,0 +1,92 @@
+package components
+
+import (
+	. "rollbringer/pkg/views"
+)
+
+templ PlayMaterials(class string) {
+	<div class={ "play-materials", class }>
+		@StaticTabContainer("play-materials__static-tab-container", map[string]templ.Component{
+            "pdfs": pdfs(),
+            "scenes": templ.NopComponent,
+            "assets": templ.NopComponent,
+            "combat": templ.NopComponent,
+        })
+	</div>
+}
+
+templ pdfs() {
+	<div class="your-stuff">
+		<div class="header">
+			<p>Character Sheets</p>
+			<button
+				hx-post="/play-materials/pdfs"
+				hx-target="next table"
+				hx-swap="beforeend"
+				name="schema"
+				value="CHARACTER_SHEET"
+			>
+				<iconify-icon icon="material-symbols:add"></iconify-icon>
+			</button>
+		</div>
+		<table>
+			<tbody>
+				for _, pdf := range GetPDFs(ctx) {
+					@PDFRow(pdf.ID.String(), pdf.Name, "foo bar")
+				}
+			</tbody>
+		</table>
+		<div class="header">
+			<p>Class Guides</p>
+			<button>
+				<iconify-icon icon="material-symbols:add"></iconify-icon>
+			</button>
+		</div>
+		<table>
+			<tbody>
+				for _, name := range []string{"Hoid", "Lee", "Yama"} {
+					<tr>
+						<td class="name"><button>{ name }</button></td>
+						<td class="info">foo</td>
+						<td class="controls">
+							<button>
+								<iconify-icon icon="material-symbols:edit"></iconify-icon>
+							</button>
+							<button>
+								<iconify-icon icon="material-symbols:delete"></iconify-icon>
+							</button>
+						</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+}
+
+templ PDFRow(pdfID, name, info string) {
+	<tr>
+		<td class="name"><button>{ name }</button></td>
+		<td class="info">{ info }</td>
+		<td class="controls">
+			<button>
+				<iconify-icon icon="material-symbols:edit"></iconify-icon>
+			</button>
+			<button 
+                hx-delete={ F("/play-materials/pdfs/%s", pdfID) }
+                hx-target="closest tr"
+                hx-swap="outerHTML"
+            >
+				<iconify-icon icon="material-symbols:delete"></iconify-icon>
+			</button>
+		</td>
+	</tr>
+}
+
+templ OObPdfTab(name string, content templ.Component) {
+	<div hx-swap-oob={ "beforeend:.tab-panel.layout__left .tab-panel__list" }>
+		@tabButton(name)
+	</div>
+	<div hx-swap-oob={ "beforeend:.tab-panel.layout__left .tab-panel__wrapper" }>
+		@tabItem(name, content)
+	</div>
+}

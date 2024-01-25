@@ -9,7 +9,7 @@ import (
 )
 
 func (svc *Service) LoginUser(ctx context.Context, googleID string) (string, error) {
-	
+
 	// Login the user.
 	sessionID, err := svc.db.Login(ctx, googleID)
 	return sessionID.String(), errors.Wrap(err, "cannot login user")

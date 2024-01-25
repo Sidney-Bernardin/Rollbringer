@@ -1,7 +1,8 @@
 CREATE TABLE users (
     id UUID NOT NULL,
     google_id text,
-    username VARCHAR(50),
+
+    username text NOT NULL,
 
     UNIQUE(google_id),
     UNIQUE(username)
@@ -17,8 +18,20 @@ CREATE TABLE sessions (
 
 CREATE TABLE games (
     id UUID NOT NULL,
-    host_id text,
-    title VARCHAR(50),
+    host_id UUID NOT NULL,
+
+    title text NOT NULL,
+
+    UNIQUE(id)
+);
+
+CREATE TABLE pdfs (
+    id UUID NOT NULL,
+    owner_id UUID NOT NULL,
+
+    name text NOT NULL,
+    schema text NOT NULL,
+    content bytea NOT NULL,
 
     UNIQUE(id)
 );

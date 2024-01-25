@@ -74,22 +74,18 @@ func (db *Database) GetGamesFromUser(ctx context.Context, hostID uuid.UUID) ([]*
 	// Get the games with the host-ID.
 	rows, err := db.conn.Query(ctx, `SELECT * FROM games WHERE host_id = $1`, hostID)
 	if err != nil {
-		return []*domain.Game{}, errors.Wrap(err, "cannot select games")
+		return nil, errors.Wrap(err, "cannot select games")
 	}
 	defer rows.Close()
 
-	// Scan into a slice of game domain.
+	// Scan into a slice of game models.
 	games, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByNameLax[domain.Game])
-	if err != nil {
-		return []*domain.Game{}, errors.Wrap(err, "cannot scan games")
-	}
-
-	return games, nil
+	return games, errors.Wrap(err, "cannot scan games")
 }
 
 // DeleteGame deletes the game with the game-ID and host-ID from the database.
 // If the game doesn't exist, returns domain.ErrGameNotFound.
-func (db *Database) DeleteGame(ctx context.Context, gameID uuid.UUID, hostID uuid.UUID) error {
+func (db *Database) DeleteGame(ctx context.Context, gameID, hostID uuid.UUID) error {
 
 	// Delete the game with the game-ID and host-ID.
 	cmdTag, err := db.conn.Exec(ctx,

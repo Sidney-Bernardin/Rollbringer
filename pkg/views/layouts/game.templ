@@ -8,7 +8,7 @@ import (
 templ Play() {
 	@Page("Play", "play.js") {
 		<body
-			hx-ws="connect:/play/ws"
+			hx-ws="connect:/play-materials"
 			if session := GetSession(ctx); session != nil {
 				hx-headers={ F(`{"CSRF-Token": "%s"}`, session.CSRFToken.String()) }
 			}
@@ -17,7 +17,7 @@ templ Play() {
 				@components.Nav("layout__nav")
 				@components.TabPanel("layout__top", nil)
 				@components.TabPanel("layout__left", nil)
-				@components.Library("layout__bottom")
+				@components.PlayMaterials("layout__bottom")
 				@components.Social("layout__right")
 				<span class="layout__gutter-1"></span>
 				<span class="layout__gutter-2"></span>

@@ -22,7 +22,7 @@ func (db *Database) Login(ctx context.Context, googleID string) (uuid.UUID, erro
 
 	// Scan first row into a user model.
 	user, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[domain.User])
-	if err != nil && errors.Is(err, pgx.ErrNoRows) {
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return uuid.Nil, errors.Wrap(err, "cannot scan user")
 	}
 

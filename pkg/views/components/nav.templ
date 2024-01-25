@@ -51,7 +51,7 @@ templ GameButton(id string, title string) {
 			<iconify-icon icon="material-symbols:edit"></iconify-icon>
 		</button>
 		<a href={ templ.URL(F("/play?g=%s", id)) }>{ title }</a>
-		<button hx-delete={ F("/play/%s", id) } hx-target="closest li" hx-swap="outerHTML">
+		<button hx-delete={ F("/games/%s", id) } hx-target="closest li" hx-swap="outerHTML">
 			<iconify-icon icon="material-symbols:delete"></iconify-icon>
 		</button>
 	</li>

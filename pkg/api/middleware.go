@@ -72,7 +72,7 @@ func (api *API) LightAuth(next http.Handler) http.Handler {
 
 		// Get the session.
 		session, err := api.service.GetSession(r.Context(), stCookie.Value)
-		if err != nil && err != domain.ErrUnauthorized {
+		if err != nil && errors.Cause(err) != domain.ErrUnauthorized {
 			err = errors.Wrap(err, "cannot get session")
 			api.err(w, err, http.StatusInternalServerError, 0)
 			return

@@ -22,6 +22,11 @@ func GetGames(ctx context.Context) []*domain.Game {
 	return games
 }
 
+func GetPDFs(ctx context.Context) []*domain.PDF {
+	pdfs, _ := ctx.Value("pdfs").([]*domain.PDF)
+	return pdfs
+}
+
 templ Page(title, script string) {
 	<html lang="en">
 		<head>

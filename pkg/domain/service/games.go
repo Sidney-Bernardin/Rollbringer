@@ -17,7 +17,7 @@ func (svc *Service) CreateGame(ctx context.Context, userID string) (string, stri
 		return "", "", domain.ErrUserNotFound
 	}
 
-	// Create the game.
+	// Insert a new game.
 	gameID, title, err := svc.db.InsertGame(ctx, parsedUserID)
 	return gameID.String(), title, errors.Wrap(err, "cannot insert game")
 }

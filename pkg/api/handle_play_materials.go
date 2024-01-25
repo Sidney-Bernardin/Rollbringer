@@ -1,0 +1,98 @@
+package api
+
+import (
+	"encoding/json"
+	"io"
+	"net/http"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/pkg/errors"
+	"golang.org/x/net/websocket"
+
+	"rollbringer/pkg/domain"
+	"rollbringer/pkg/views/components"
+)
+
+func (api *API) handlePlayMaterials(conn *websocket.Conn) {
+
+	defer func() {
+		if err := conn.Close(); err != nil {
+			api.logger.Error().Stack().Err(err).Msg("Cannot close connection")
+		}
+	}()
+
+	var (
+		r = conn.Request()
+
+		incomingChan = make(chan domain.GameEvent)
+		outgoingChan = make(chan domain.GameEvent)
+	)
+
+	go api.service.PlayMaterials(r.Context(), chi.URLParam(r, "game_id"), incomingChan, outgoingChan)
+
+	go func() {
+		for {
+
+			var msg domain.GameEvent
+			if err := websocket.JSON.Receive(conn, &msg); err != nil {
+
+				if err == io.EOF {
+					return
+				}
+
+				switch err.(type) {
+				case *json.SyntaxError, *json.UnmarshalTypeError, *json.InvalidUnmarshalError:
+					api.err(conn, err, 0, wsStatusUnsupportedData)
+					return
+				}
+
+				api.err(conn, err, 0, wsStatusInternalError)
+				return
+			}
+
+			incomingChan <- msg
+		}
+	}()
+
+	for {
+		select {
+
+		case <-r.Context().Done():
+			return
+
+		case event := <-outgoingChan:
+			if err := websocket.JSON.Send(conn, event); err != nil {
+				api.err(conn, err, 0, wsStatusInternalError)
+				return
+			}
+		}
+	}
+}
+
+func (api *API) handleCreatePDF(w http.ResponseWriter, r *http.Request) {
+
+	session, _ := r.Context().Value("session").(*domain.Session)
+
+	// Create a PDF.
+	pdfID, name, err := api.service.CreatePDF(r.Context(), session.UserID.String(), r.FormValue("schame"))
+	if err != nil {
+		api.domainErr(w, errors.Wrap(err, "cannot create pdf"))
+		return
+	}
+
+	// Respond with a PDF-row for the new PDF.
+	api.render(w, r, components.PDFRow(pdfID, name, "foo bar"), http.StatusOK)
+}
+
+func (api *API) handleDeletePDF(w http.ResponseWriter, r *http.Request) {
+
+	session, _ := r.Context().Value("session").(*domain.Session)
+
+	// Delete the PDF.
+	if err := api.service.DeletePDF(r.Context(), chi.URLParam(r, "pdf_id"), session.UserID.String()); err != nil {
+		api.domainErr(w, errors.Wrap(err, "cannot delete pdf"))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}

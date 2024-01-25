@@ -23,19 +23,24 @@ func (api *API) setRoutes() {
 		http.StripPrefix("/static/", http.FileServer(http.FS(os.DirFS("static")))),
 	)
 
-	api.router.Route("/play", func(r chi.Router) {
-		r.Use(api.LightAuth)
-		r.Get("/", api.HandlePlayPage)
-		r.Method("GET", "/ws", websocket.Handler(api.HandlePlayWS))
-	})
+	api.router.With(api.LightAuth).Get("/play", api.handlePlayPage)
 
 	api.router.Route("/users", func(r chi.Router) {
-		r.Get("/login", api.HandleLogin)
-		r.Get("/consent-callback", api.HandleConsentCallback)
+		r.Get("/login", api.handleLogin)
+		r.Get("/consent-callback", api.handleConsentCallback)
 	})
 
 	api.router.Route("/games", func(r chi.Router) {
-		r.With(api.Auth).Post("/", api.HandleCreateGame)
-		r.With(api.Auth).Delete("/{game_id}", api.HandleDeleteGame)
+		r.With(api.Auth).Post("/", api.handleCreateGame)
+		r.With(api.Auth).Delete("/{game_id}", api.handleDeleteGame)
+	})
+
+	api.router.Route("/play-materials", func(r chi.Router) {
+		r.Use(api.LightAuth)
+		r.Method("GET", "/", websocket.Handler(api.handlePlayMaterials))
+
+		// TODO: remove api.Auth when implementing guest-users.
+		r.With(api.Auth).Post("/pdfs", api.handleCreatePDF)
+		r.With(api.Auth).Delete("/pdfs/{pdf_id}", api.handleDeletePDF)
 	})
 }

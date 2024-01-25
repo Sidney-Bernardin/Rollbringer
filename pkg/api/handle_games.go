@@ -10,7 +10,7 @@ import (
 	"rollbringer/pkg/views/components"
 )
 
-func (api *API) HandleCreateGame(w http.ResponseWriter, r *http.Request) {
+func (api *API) handleCreateGame(w http.ResponseWriter, r *http.Request) {
 
 	session, _ := r.Context().Value("session").(*domain.Session)
 
@@ -25,7 +25,7 @@ func (api *API) HandleCreateGame(w http.ResponseWriter, r *http.Request) {
 	api.render(w, r, components.GameButton(gameID, title), http.StatusOK)
 }
 
-func (api *API) HandleDeleteGame(w http.ResponseWriter, r *http.Request) {
+func (api *API) handleDeleteGame(w http.ResponseWriter, r *http.Request) {
 
 	session, _ := r.Context().Value("session").(*domain.Session)
 
