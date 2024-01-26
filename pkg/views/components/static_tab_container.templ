@@ -31,3 +31,12 @@ templ StaticTabContainer(class string, tabs map[string]templ.Component) {
 		}
 	</div>
 }
+
+templ AddPDFViewerTab(name string, content templ.Component) {
+	<div hx-swap-oob={ "beforeend:.tab-panel.layout__left .tab-panel__list" }>
+		@tabButton(name)
+	</div>
+	<div hx-swap-oob={ "beforeend:.tab-panel.layout__left .tab-panel__wrapper" }>
+		@tabItem(name, content)
+	</div>
+}

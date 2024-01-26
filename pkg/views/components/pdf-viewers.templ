@@ -1,8 +1,8 @@
 package components
 
-import . "rollbringer/pkg/views"
-
-const characterSheetPDFurl = "/static/character_sheet.pdf"
+import (
+	. "rollbringer/pkg/views"
+)
 
 var dndCharacterSheetPages = []string{"main", "info", "spells"}
 
@@ -19,6 +19,19 @@ templ DNDCharacterSheet() {
 				</li>
 			}
 		</ul>
-		@PDFViewer("dnd-character-sheet__pdf-viewer", characterSheetPDFurl)
+		@PDFViewer("dnd-character-sheet__pdf-viewer", "/static/character_sheet.pdf")
+	</div>
+}
+
+templ PDFViewer(class, pdfURL string) {
+	<div class={ "pdf-viewer", class } x-data={ F("pdfViewer('%s')", pdfURL) }>
+		<form
+			class="pdf-viewer__container"
+			x-on:change="$dispatch('submit')"
+			x-on:submit.prevent
+			ws-send=""
+		>
+			<div class="viewer"></div>
+		</form>
 	</div>
 }

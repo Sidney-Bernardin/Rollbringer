@@ -4,6 +4,7 @@ module.exports = {
   entry: {
     play: path.resolve(__dirname, "web/play.ts"),
 
+    ws: path.resolve(__dirname, "node_modules/htmx.org/dist/ext/ws.js"),
     "pdf.worker": path.resolve(
       __dirname,
       "node_modules/pdfjs-dist/build/pdf.worker.js",

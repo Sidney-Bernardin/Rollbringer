@@ -43,8 +43,8 @@ func Social(class string) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Err = StaticTabContainer("social__static-tab-container", map[string]templ.Component{
-			"chat":    chat(),
-			"profile": profile(),
+			"Chat":    chat(),
+			"Profile": profile(),
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

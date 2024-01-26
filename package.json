@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "alpinejs": "^3.13.3",
-    "htmx.org": "^1.9.8",
+    "htmx.org": "^1.9.10",
     "panzoom": "^9.4.3",
     "pdfjs-dist": "^3.11.174",
     "split-grid": "^1.0.11"

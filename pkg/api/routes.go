@@ -39,8 +39,9 @@ func (api *API) setRoutes() {
 		r.Use(api.LightAuth)
 		r.Method("GET", "/", websocket.Handler(api.handlePlayMaterials))
 
-		// TODO: remove api.Auth when implementing guest-users.
+		// TODO: re-think api.Auth when implementing guest-users.
 		r.With(api.Auth).Post("/pdfs", api.handleCreatePDF)
+		r.With(api.Auth).Get("/pdfs/{pdf_id}", api.handleGetPDF)
 		r.With(api.Auth).Delete("/pdfs/{pdf_id}", api.handleDeletePDF)
 	})
 }

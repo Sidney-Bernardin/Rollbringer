@@ -28,14 +28,39 @@ func (db *Database) InsertPDF(ctx context.Context, ownerID uuid.UUID, schema str
 	return pdfID, name, nil
 }
 
+// GetPDF returns the PDF with the PDF-ID from the database. If the game
+// doesn't exist, returns domain.ErrPlayMaterialNotFound.
+func (db *Database) GetPDF(ctx context.Context, pdfID, ownerID uuid.UUID) (*domain.PDF, error) {
+
+	// Get the PDF with the PDF-ID.
+	rows, err := db.conn.Query(ctx, `SELECT * FROM pdfs WHERE id = $1 AND owner_id = $2`, pdfID, ownerID)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot select pdf")
+	}
+	defer rows.Close()
+
+	// Scan into a PDF model.
+	pdf, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[domain.PDF])
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, domain.ErrPlayMaterialNotFound
+		}
+
+		return nil, errors.Wrap(err, "cannot scan pdf")
+	}
+
+	return pdf, nil
+}
+
 // GetPDFs return the PDFs with the owner-ID from the database.
 func (db *Database) GetPDFs(ctx context.Context, ownerID uuid.UUID) ([]*domain.PDF, error) {
 
-	// Get the pdfs with the owner-ID.
+	// Get the PDFs with the owner-ID.
 	rows, err := db.conn.Query(ctx, `SELECT * FROM pdfs WHERE owner_id = $1`, ownerID)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot select pdfs")
 	}
+
 	defer rows.Close()
 
 	// Scan into a slice of PDF models.
@@ -57,9 +82,8 @@ func (db *Database) DeletePDF(ctx context.Context, pdfID, ownerID uuid.UUID) err
 	}
 
 	if cmdTag.RowsAffected() == 0 {
-		return domain.ErrGameNotFound
+		return domain.ErrPlayMaterialNotFound
 	}
 
 	return nil
 }
-

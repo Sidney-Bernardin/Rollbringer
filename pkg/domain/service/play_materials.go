@@ -51,6 +51,25 @@ func (svc *Service) CreatePDF(ctx context.Context, userID, schema string) (strin
 	return id.String(), title, errors.Wrap(err, "cannot insert PDF")
 }
 
+func (svc *Service) GetPDF(ctx context.Context, ownerID, pdfID string) (*domain.PDF, error) {
+
+	// Parse the owner-ID.
+	parsedOwnerID, err := uuid.Parse(ownerID)
+	if err != nil {
+		return nil, domain.ErrUserNotFound
+	}
+
+	// Parse the pdf-ID.
+	parsedPDFID, err := uuid.Parse(pdfID)
+	if err != nil {
+		return nil, domain.ErrPlayMaterialNotFound
+	}
+
+	// Get the PDF.
+	pdf, err := svc.db.GetPDF(ctx, parsedOwnerID, parsedPDFID)
+	return pdf, errors.Wrap(err, "cannot get pdf")
+}
+
 func (svc *Service) GetPDFs(ctx context.Context, ownerID string) ([]*domain.PDF, error) {
 
 	// Parse the owner-ID.

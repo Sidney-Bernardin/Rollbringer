@@ -8,7 +8,8 @@ import (
 templ Play() {
 	@Page("Play", "play.js") {
 		<body
-			hx-ws="connect:/play-materials"
+			hx-ext="ws"
+			ws-connect="/play-materials"
 			if session := GetSession(ctx); session != nil {
 				hx-headers={ F(`{"CSRF-Token": "%s"}`, session.CSRFToken.String()) }
 			}

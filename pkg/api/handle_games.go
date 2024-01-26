@@ -21,7 +21,7 @@ func (api *API) handleCreateGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Respond with a button for the new game.
+	// Respond with a GameButton component.
 	api.render(w, r, components.GameButton(gameID, title), http.StatusOK)
 }
 

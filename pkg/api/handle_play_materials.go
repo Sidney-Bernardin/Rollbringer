@@ -80,8 +80,23 @@ func (api *API) handleCreatePDF(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Respond with a PDF-row for the new PDF.
+	// Respond with a PDFRow component.
 	api.render(w, r, components.PDFRow(pdfID, name, "foo bar"), http.StatusOK)
+}
+
+func (api *API) handleGetPDF(w http.ResponseWriter, r *http.Request) {
+
+	session, _ := r.Context().Value("session").(*domain.Session)
+
+	// Get the PDF.
+	pdf, err := api.service.GetPDF(r.Context(), chi.URLParam(r, "pdf_id"), session.UserID.String())
+	if err != nil {
+		api.domainErr(w, errors.Wrap(err, "cannot get pdf"))
+		return
+	}
+
+	// Respond with a PDF-viewer tab.
+	api.render(w, r, components.AddPDFViewerTab(pdf.Name, components.DNDCharacterSheet()), http.StatusOK)
 }
 
 func (api *API) handleDeletePDF(w http.ResponseWriter, r *http.Request) {

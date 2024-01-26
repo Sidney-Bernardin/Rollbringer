@@ -3,7 +3,6 @@ package api
 import (
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/pkg/errors"
 
 	"rollbringer/pkg/domain"
@@ -13,7 +12,7 @@ import (
 func (api *API) handlePlayPage(w http.ResponseWriter, r *http.Request) {
 
 	// Get the game.
-	game, err := api.service.GetGame(r.Context(), chi.URLParam(r, "game_id"))
+	game, err := api.service.GetGame(r.Context(), r.URL.Query().Get("g"))
 	if err != nil && errors.Cause(err) != domain.ErrGameNotFound {
 		api.domainErr(w, errors.Wrap(err, "cannot get game"))
 		return

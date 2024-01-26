@@ -5,8 +5,8 @@ import . "rollbringer/pkg/views"
 templ Social(class string) {
 	<div class={ "social", class }>
 		@StaticTabContainer("social__static-tab-container", map[string]templ.Component{
-      "chat": chat(),
-      "profile": profile(),
+      "Chat": chat(),
+      "Profile": profile(),
     })
 	</div>
 }

@@ -7,10 +7,10 @@ import (
 templ PlayMaterials(class string) {
 	<div class={ "play-materials", class }>
 		@StaticTabContainer("play-materials__static-tab-container", map[string]templ.Component{
-            "pdfs": pdfs(),
-            "scenes": templ.NopComponent,
-            "assets": templ.NopComponent,
-            "combat": templ.NopComponent,
+            "PDFs": pdfs(),
+            "Scenes": templ.NopComponent,
+            "Assets": templ.NopComponent,
+            "Combat": templ.NopComponent,
         })
 	</div>
 }
@@ -65,28 +65,23 @@ templ pdfs() {
 
 templ PDFRow(pdfID, name, info string) {
 	<tr>
-		<td class="name"><button>{ name }</button></td>
+		<td class="name">
+			<button hx-get={ F("/play-materials/pdfs/%s", pdfID) } hx-swap="none">
+				{ name }
+			</button>
+		</td>
 		<td class="info">{ info }</td>
 		<td class="controls">
 			<button>
 				<iconify-icon icon="material-symbols:edit"></iconify-icon>
 			</button>
-			<button 
-                hx-delete={ F("/play-materials/pdfs/%s", pdfID) }
-                hx-target="closest tr"
-                hx-swap="outerHTML"
-            >
+			<button
+				hx-delete={ F("/play-materials/pdfs/%s", pdfID) }
+				hx-target="closest tr"
+				hx-swap="outerHTML"
+			>
 				<iconify-icon icon="material-symbols:delete"></iconify-icon>
 			</button>
 		</td>
 	</tr>
-}
-
-templ OObPdfTab(name string, content templ.Component) {
-	<div hx-swap-oob={ "beforeend:.tab-panel.layout__left .tab-panel__list" }>
-		@tabButton(name)
-	</div>
-	<div hx-swap-oob={ "beforeend:.tab-panel.layout__left .tab-panel__wrapper" }>
-		@tabItem(name, content)
-	</div>
 }
