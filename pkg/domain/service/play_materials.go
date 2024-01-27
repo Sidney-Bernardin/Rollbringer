@@ -2,10 +2,8 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"rollbringer/pkg/domain"
 
-	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
 
@@ -24,15 +22,13 @@ func (svc *Service) PlayMaterials(ctx context.Context, gameID string, incomingCh
 
 	for {
 		select {
-
 		case <-ctx.Done():
 			return
 
 		case event := <-incomingChan:
-			fmt.Println(event)
-
 			switch event["type"] {
-			case "pdf_update":
+			case "PDF_UPDATE":
+				// svc.db.GetPDF(ctx, event["PDF_ID"], event["FROM_ID"])
 			}
 		}
 	}
@@ -40,64 +36,28 @@ func (svc *Service) PlayMaterials(ctx context.Context, gameID string, incomingCh
 
 func (svc *Service) CreatePDF(ctx context.Context, userID, schema string) (string, string, error) {
 
-	// Parse the user-ID.
-	parsedUserID, err := uuid.Parse(userID)
-	if err != nil {
-		return "", "", domain.ErrUserNotFound
-	}
-
 	// Insert a new PDF.
-	id, title, err := svc.db.InsertPDF(ctx, parsedUserID, schema)
-	return id.String(), title, errors.Wrap(err, "cannot insert PDF")
+	pdfID, title, err := svc.db.InsertPDF(ctx, userID, schema)
+	return pdfID, title, errors.Wrap(err, "cannot insert PDF")
 }
 
 func (svc *Service) GetPDF(ctx context.Context, ownerID, pdfID string) (*domain.PDF, error) {
 
-	// Parse the owner-ID.
-	parsedOwnerID, err := uuid.Parse(ownerID)
-	if err != nil {
-		return nil, domain.ErrUserNotFound
-	}
-
-	// Parse the pdf-ID.
-	parsedPDFID, err := uuid.Parse(pdfID)
-	if err != nil {
-		return nil, domain.ErrPlayMaterialNotFound
-	}
-
 	// Get the PDF.
-	pdf, err := svc.db.GetPDF(ctx, parsedOwnerID, parsedPDFID)
+	pdf, err := svc.db.GetPDF(ctx, ownerID, pdfID)
 	return pdf, errors.Wrap(err, "cannot get pdf")
 }
 
 func (svc *Service) GetPDFs(ctx context.Context, ownerID string) ([]*domain.PDF, error) {
 
-	// Parse the owner-ID.
-	parsedOwnerID, err := uuid.Parse(ownerID)
-	if err != nil {
-		return nil, domain.ErrUserNotFound
-	}
-
 	// Get the PDF.
-	pdf, err := svc.db.GetPDFs(ctx, parsedOwnerID)
+	pdf, err := svc.db.GetPDFs(ctx, ownerID)
 	return pdf, errors.Wrap(err, "cannot get pdfs")
 }
 
 func (svc *Service) DeletePDF(ctx context.Context, pdfID, userID string) error {
 
-	// Parse the game-ID.
-	parsedPDFID, err := uuid.Parse(pdfID)
-	if err != nil {
-		return domain.ErrPlayMaterialNotFound
-	}
-
-	// Parse the user-ID.
-	parsedUserID, err := uuid.Parse(userID)
-	if err != nil {
-		return domain.ErrUserNotFound
-	}
-
-	// Delete the pdf.
-	err = svc.db.DeletePDF(ctx, parsedPDFID, parsedUserID)
+	// Delete the PDF.
+	err := svc.db.DeletePDF(ctx, pdfID, userID)
 	return errors.Wrap(err, "cannot delete pdf")
 }

@@ -44,7 +44,7 @@ func (api *API) Auth(next http.Handler) http.Handler {
 		}
 
 		// Verify the CSRF-Token.
-		if session.CSRFToken.String() != r.Header.Get("CSRF-Token") {
+		if session.CSRFToken != r.Header.Get("CSRF-Token") {
 			api.err(w, domain.ErrUnauthorized, http.StatusUnauthorized, 0)
 			return
 		}

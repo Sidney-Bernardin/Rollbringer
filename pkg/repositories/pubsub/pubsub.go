@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
@@ -39,9 +38,9 @@ func New(rootLogger *zerolog.Logger, addr, passw string) (*PubSub, error) {
 	}, nil
 }
 
-func (ps *PubSub) SubToGame(ctx context.Context, gameID uuid.UUID, resChan chan domain.GameEvent) {
+func (ps *PubSub) SubToGame(ctx context.Context, gameID string, resChan chan domain.GameEvent) {
 
-	sub := ps.client.Subscribe(ctx, gameID.String())
+	sub := ps.client.Subscribe(ctx, gameID)
 	defer sub.Close()
 
 	for {
@@ -62,13 +61,13 @@ func (ps *PubSub) SubToGame(ctx context.Context, gameID uuid.UUID, resChan chan 
 	}
 }
 
-func (ps *PubSub) PubToGame(ctx context.Context, gameID uuid.UUID, msg *domain.GameEvent) error {
+func (ps *PubSub) PubToGame(ctx context.Context, gameID string, msg *domain.GameEvent) error {
 
 	bytes, err := json.Marshal(msg)
 	if err != nil {
 		return errors.Wrap(err, "cannot encode game event")
 	}
 
-	err = ps.client.Publish(ctx, gameID.String(), bytes).Err()
+	err = ps.client.Publish(ctx, gameID, bytes).Err()
 	return errors.Wrap(err, "cannot publish game event")
 }

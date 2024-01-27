@@ -32,7 +32,7 @@ templ pdfs() {
 		<table>
 			<tbody>
 				for _, pdf := range GetPDFs(ctx) {
-					@PDFRow(pdf.ID.String(), pdf.Name, "foo bar")
+					@PDFRow(pdf.ID, pdf.Name, "foo bar")
 				}
 			</tbody>
 		</table>

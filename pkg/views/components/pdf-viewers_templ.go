@@ -113,7 +113,7 @@ func PDFViewer(class, pdfURL string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><form class=\"pdf-viewer__container\" x-on:change=\"$dispatch(&#39;submit&#39;)\" x-on:submit.prevent ws-send=\"\"><div class=\"viewer\"></div></form></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><form class=\"pdf-viewer__init-page-form\" style=\"display: none\" ws-send><input name=\"type\" value=\"INIT_PDF_PAGE\"></form><form class=\"pdf-viewer__container\" x-data x-on:change=\"$dispatch(&#39;submit&#39;, $el)\" ws-send><input style=\"display: none\" name=\"type\" value=\"PDF_UPDATE\"><div class=\"viewer\"></div></form></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

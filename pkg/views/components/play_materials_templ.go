@@ -91,7 +91,7 @@ func pdfs() templ.Component {
 			return templ_7745c5c3_Err
 		}
 		for _, pdf := range GetPDFs(ctx) {
-			templ_7745c5c3_Err = PDFRow(pdf.ID.String(), pdf.Name, "foo bar").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = PDFRow(pdf.ID, pdf.Name, "foo bar").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

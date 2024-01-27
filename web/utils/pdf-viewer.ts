@@ -6,10 +6,15 @@ import {
 } from "pdfjs-dist";
 import { EventBus, PDFPageView } from "pdfjs-dist/web/pdf_viewer";
 import panzoom from "panzoom";
+import htmx from "htmx.org";
 
 GlobalWorkerOptions.workerSrc = "static/pdf.worker.js";
 
-export default function(pdfURL: string, viewerContainer: HTMLDivElement) {
+export default function (
+  pdfURL: string,
+  initPageForm: HTMLFormElement,
+  viewerContainer: HTMLDivElement,
+) {
   panzoom(viewerContainer, {
     bounds: true,
     minZoom: 0.25,
@@ -28,11 +33,12 @@ export default function(pdfURL: string, viewerContainer: HTMLDivElement) {
       scale: 1,
     });
 
-    this.renderPage(1)
+    this.renderPage(1);
   });
 
   this.renderPage = async (num: number) => {
     await this.pageView.setPdfPage(await this.doc.getPage(num));
     await this.pageView.draw();
+    htmx.trigger(initPageForm, "submit", null);
   };
 }

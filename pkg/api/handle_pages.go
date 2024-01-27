@@ -28,7 +28,7 @@ func (api *API) handlePlayPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the user.
-	user, err := api.service.GetUser(r.Context(), session.UserID.String())
+	user, err := api.service.GetUser(r.Context(), session.UserID)
 	if err != nil {
 		api.domainErr(w, errors.Wrap(err, "cannot get user"))
 		return
@@ -36,7 +36,7 @@ func (api *API) handlePlayPage(w http.ResponseWriter, r *http.Request) {
 	giveToRequest(r, "user", user)
 
 	// Get the user's games.
-	games, err := api.service.GetGamesFromUser(r.Context(), session.UserID.String())
+	games, err := api.service.GetGamesFromUser(r.Context(), session.UserID)
 	if err != nil {
 		api.domainErr(w, errors.Wrap(err, "cannot get user's games"))
 		return
@@ -44,7 +44,7 @@ func (api *API) handlePlayPage(w http.ResponseWriter, r *http.Request) {
 	giveToRequest(r, "games", games)
 
 	// Get the user's PDFs.
-	pdfs, err := api.service.GetPDFs(r.Context(), session.UserID.String())
+	pdfs, err := api.service.GetPDFs(r.Context(), session.UserID)
 	if err != nil {
 		api.domainErr(w, errors.Wrap(err, "cannot get pdfs"))
 		return

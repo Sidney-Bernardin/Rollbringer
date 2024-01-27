@@ -11,7 +11,7 @@ templ Play() {
 			hx-ext="ws"
 			ws-connect="/play-materials"
 			if session := GetSession(ctx); session != nil {
-				hx-headers={ F(`{"CSRF-Token": "%s"}`, session.CSRFToken.String()) }
+				hx-headers={ F(`{"CSRF-Token": "%s"}`, session.CSRFToken) }
 			}
 		>
 			<div class="layout">

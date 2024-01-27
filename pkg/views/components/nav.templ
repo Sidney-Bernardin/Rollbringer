@@ -18,7 +18,7 @@ templ Nav(class string) {
 					</a>
 				} else {
 					for _, game := range GetGames(ctx) {
-						@GameButton(game.ID.String(), game.Title)
+						@GameButton(game.ID, game.Title)
 					}
 				}
 			</ul>
@@ -45,13 +45,13 @@ templ menuButton() {
 	}
 }
 
-templ GameButton(id string, title string) {
+templ GameButton(gameID string, title string) {
 	<li>
 		<button>
 			<iconify-icon icon="material-symbols:edit"></iconify-icon>
 		</button>
-		<a href={ templ.URL(F("/play?g=%s", id)) }>{ title }</a>
-		<button hx-delete={ F("/games/%s", id) } hx-target="closest li" hx-swap="outerHTML">
+		<a href={ templ.URL(F("/play?g=%s", gameID)) }>{ title }</a>
+		<button hx-delete={ F("/games/%s", gameID) } hx-target="closest li" hx-swap="outerHTML">
 			<iconify-icon icon="material-symbols:delete"></iconify-icon>
 		</button>
 	</li>

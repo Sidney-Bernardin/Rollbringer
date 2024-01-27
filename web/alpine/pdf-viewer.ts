@@ -4,12 +4,19 @@ window.alpine.data("pdfViewer", (pdfURL: string) => ({
   pdfViewer: null,
 
   init() {
-    const container: HTMLDivElement = this.$root.querySelector(
+    const initPageForm: HTMLFormElement = this.$root.querySelector(
+      ".pdf-viewer__init-page-form",
+    );
+
+    const viewerContainer: HTMLDivElement = this.$root.querySelector(
       ".pdf-viewer__container",
     );
 
-    this.pdfViewer = new PDFContainer(pdfURL, container);
+    this.pdfViewer = new PDFContainer(pdfURL, initPageForm, viewerContainer);
 
-    this.$watch("currentPage", async (newVal: string) => await this.pdfViewer.renderPage(newVal));
+    this.$watch(
+      "currentPage",
+      async (newVal: string) => await this.pdfViewer.renderPage(newVal),
+    );
   },
 }));

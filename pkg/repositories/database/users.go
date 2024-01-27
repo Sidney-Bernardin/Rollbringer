@@ -12,24 +12,24 @@ import (
 
 // Login inserts a new session for the user with the google-ID. If the user
 // doesn't exist, a new one will be inserted.
-func (db *Database) Login(ctx context.Context, googleID string) (uuid.UUID, error) {
+func (db *Database) Login(ctx context.Context, googleID string) (string, error) {
 
 	// Get a user with the google-ID.
 	rows, err := db.conn.Query(ctx, `SELECT id FROM users WHERE google_id = $1`, googleID)
 	if err != nil {
-		return uuid.Nil, errors.Wrap(err, "cannot select user")
+		return "", errors.Wrap(err, "cannot select user")
 	}
 
 	// Scan first row into a user model.
 	user, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[domain.User])
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		return uuid.Nil, errors.Wrap(err, "cannot scan user")
+		return "", errors.Wrap(err, "cannot scan user")
 	}
 
 	rows.Close()
 
 	if user == nil {
-		user = &domain.User{ID: uuid.New()}
+		user = &domain.User{ID: uuid.New().String()}
 
 		// Insert a new user.
 		_, err = db.conn.Exec(ctx,
@@ -37,11 +37,11 @@ func (db *Database) Login(ctx context.Context, googleID string) (uuid.UUID, erro
 			user.ID, "abc123", googleID)
 
 		if err != nil {
-			return uuid.Nil, errors.Wrap(err, "cannot insert user")
+			return "", errors.Wrap(err, "cannot insert user")
 		}
 	}
 
-	sessionID := uuid.New()
+	sessionID := uuid.New().String()
 
 	// Insert a new session for the user.
 	_, err = db.conn.Exec(ctx,
@@ -54,7 +54,7 @@ func (db *Database) Login(ctx context.Context, googleID string) (uuid.UUID, erro
 		sessionID, uuid.New(), user.ID)
 
 	if err != nil {
-		return uuid.Nil, errors.Wrap(err, "cannot insert session")
+		return "", errors.Wrap(err, "cannot insert session")
 	}
 
 	return sessionID, nil
@@ -62,10 +62,12 @@ func (db *Database) Login(ctx context.Context, googleID string) (uuid.UUID, erro
 
 // GetUser returns the user with the user-ID from the database. If the user
 // doesn't exist, returns domain.ErrUserNotFound.
-func (db *Database) GetUser(ctx context.Context, userID uuid.UUID) (*domain.User, error) {
+func (db *Database) GetUser(ctx context.Context, userID string) (*domain.User, error) {
+
+	userUUID, _ := uuid.Parse(userID)
 
 	// Get the user with the user-ID.
-	rows, err := db.conn.Query(ctx, `SELECT * FROM users WHERE id = $1`, userID)
+	rows, err := db.conn.Query(ctx, `SELECT * FROM users WHERE id = $1`, userUUID)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot select user")
 	}
@@ -86,10 +88,12 @@ func (db *Database) GetUser(ctx context.Context, userID uuid.UUID) (*domain.User
 
 // GetSession returns the session with the session-ID from the database. If the
 // session doesn't exist, returns domain.ErrUnauthorized.
-func (db *Database) GetSession(ctx context.Context, sessionID uuid.UUID) (*domain.Session, error) {
+func (db *Database) GetSession(ctx context.Context, sessionID string) (*domain.Session, error) {
+
+	sessionUUID, _ := uuid.Parse(sessionID)
 
 	// Get the session with the session-ID.
-	rows, err := db.conn.Query(ctx, `SELECT * FROM sessions WHERE id = $1`, sessionID)
+	rows, err := db.conn.Query(ctx, `SELECT * FROM sessions WHERE id = $1`, sessionUUID)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot select session")
 	}
