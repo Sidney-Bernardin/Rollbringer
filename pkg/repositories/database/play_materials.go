@@ -74,6 +74,24 @@ func (db *Database) GetPDFs(ctx context.Context, ownerID string) ([]*domain.PDF,
 	return pdfs, errors.Wrap(err, "cannot scan pdfs")
 }
 
+// UpdatePDF updates the PDF with the pdf-ID and owner-ID in the database.
+func (db *Database) UpdatePDF(ctx context.Context, pdfID, ownerID string, content []byte) error {
+
+	pdfUUID, _ := uuid.Parse(pdfID)
+	ownerUUID, _ := uuid.Parse(ownerID)
+
+	// Update the PDF with the pdf-ID and owner-ID.
+	cmdTag, err := db.conn.Exec(ctx, 
+		`UPDATE pdfs SET content = $1 WHERE id = $2 AND owner_id = $3`,
+		content, pdfUUID, ownerUUID)
+
+	if cmdTag.RowsAffected() == 0 {
+		return domain.ErrPlayMaterialNotFound
+	}
+
+	return errors.Wrap(err, "cannot update pdf")
+}
+
 // DeletePDF deletes the pdf with the pdf-ID and owner-ID from the database.
 // If the pdf doesn't exist, returns domain.ErrPlayMaterialNotFound.
 func (db *Database) DeletePDF(ctx context.Context, pdfID, ownerID string) error {

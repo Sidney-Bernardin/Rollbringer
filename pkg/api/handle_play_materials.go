@@ -15,12 +15,6 @@ import (
 
 func (api *API) handlePlayMaterials(conn *websocket.Conn) {
 
-	defer func() {
-		if err := conn.Close(); err != nil {
-			api.logger.Error().Stack().Err(err).Msg("Cannot close connection")
-		}
-	}()
-
 	var (
 		r = conn.Request()
 
@@ -31,41 +25,42 @@ func (api *API) handlePlayMaterials(conn *websocket.Conn) {
 	go api.service.PlayMaterials(r.Context(), chi.URLParam(r, "game_id"), incomingChan, outgoingChan)
 
 	go func() {
+		defer api.closeConn(conn)
+
 		for {
-
-			var msg domain.GameEvent
-			if err := websocket.JSON.Receive(conn, &msg); err != nil {
-
-				if err == io.EOF {
-					return
-				}
-
-				switch err.(type) {
-				case *json.SyntaxError, *json.UnmarshalTypeError, *json.InvalidUnmarshalError:
-					api.err(conn, err, 0, wsStatusUnsupportedData)
-					return
-				}
-
-				api.err(conn, err, 0, wsStatusInternalError)
+			select {
+			case <-r.Context().Done():
 				return
-			}
 
-			incomingChan <- msg
+			case event := <-outgoingChan:
+				if err := websocket.JSON.Send(conn, event); err != nil {
+					api.err(conn, err, 0, wsStatusInternalError)
+					return
+				}
+			}
 		}
 	}()
 
 	for {
-		select {
 
-		case <-r.Context().Done():
-			return
+		var msg domain.GameEvent
+		if err := websocket.JSON.Receive(conn, &msg); err != nil {
 
-		case event := <-outgoingChan:
-			if err := websocket.JSON.Send(conn, event); err != nil {
-				api.err(conn, err, 0, wsStatusInternalError)
+			if err == io.EOF {
 				return
 			}
+
+			switch err.(type) {
+			case *json.SyntaxError, *json.UnmarshalTypeError, *json.InvalidUnmarshalError:
+				api.err(conn, err, 0, wsStatusUnsupportedData)
+				return
+			}
+
+			api.err(conn, err, 0, wsStatusInternalError)
+			return
 		}
+
+		incomingChan <- msg
 	}
 }
 
@@ -96,7 +91,7 @@ func (api *API) handleGetPDF(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Respond with a PDF-viewer tab.
-	api.render(w, r, components.AddPDFViewerTab(pdf.Name, components.DNDCharacterSheet()), http.StatusOK)
+	api.render(w, r, components.AddPDFViewerTab(pdf.Name, components.DNDCharacterSheet(pdf.ID)), http.StatusOK)
 }
 
 func (api *API) handleDeletePDF(w http.ResponseWriter, r *http.Request) {

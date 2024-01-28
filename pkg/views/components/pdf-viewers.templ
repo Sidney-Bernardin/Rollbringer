@@ -6,7 +6,7 @@ import (
 
 var dndCharacterSheetPages = []string{"main", "info", "spells"}
 
-templ DNDCharacterSheet() {
+templ DNDCharacterSheet(pdfID string) {
 	<div class="dnd-character-sheet" x-data="{ currentPage: 1 }">
 		<ul class="dnd-character-sheet__list">
 			for i, name := range dndCharacterSheetPages {
@@ -19,26 +19,21 @@ templ DNDCharacterSheet() {
 				</li>
 			}
 		</ul>
-		@PDFViewer("dnd-character-sheet__pdf-viewer", "/static/character_sheet.pdf")
+		@PDFViewer("dnd-character-sheet__pdf-viewer", pdfID, "/static/character_sheet.pdf")
 	</div>
 }
 
-templ PDFViewer(class, pdfURL string) {
+templ PDFViewer(class, pdfID, pdfURL string) {
 	<div class={ "pdf-viewer", class } x-data={ F("pdfViewer('%s')", pdfURL) }>
-		<form
-			class="pdf-viewer__init-page-form"
-			style="display: none"
-			ws-send
-		>
+		<form class="pdf-viewer__init-page-form" style="display: none" ws-send>
 			<input name="type" value="INIT_PDF_PAGE"/>
 		</form>
-		<form
-			class="pdf-viewer__container"
-			x-data
-			x-on:change="$dispatch('submit', $el)"
-			ws-send
-		>
-			<input style="display: none" name="type" value="PDF_UPDATE"/>
+		<form class="pdf-viewer__container" hx-trigger="change" ws-send>
+            <div style="display: none">
+                <input name="type" value="PDF_UPDATE"/>
+                <input name="sender_id" value={ GetSession(ctx).UserID }/>
+                <input name="pdf_id" value={ pdfID }/>
+            </div>
 			<div class="viewer"></div>
 		</form>
 	</div>

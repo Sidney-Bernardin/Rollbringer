@@ -16,7 +16,7 @@ import (
 
 var dndCharacterSheetPages = []string{"main", "info", "spells"}
 
-func DNDCharacterSheet() templ.Component {
+func DNDCharacterSheet(pdfID string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -64,7 +64,7 @@ func DNDCharacterSheet() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = PDFViewer("dnd-character-sheet__pdf-viewer", "/static/character_sheet.pdf").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = PDFViewer("dnd-character-sheet__pdf-viewer", pdfID, "/static/character_sheet.pdf").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -79,7 +79,7 @@ func DNDCharacterSheet() templ.Component {
 	})
 }
 
-func PDFViewer(class, pdfURL string) templ.Component {
+func PDFViewer(class, pdfID, pdfURL string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -113,7 +113,23 @@ func PDFViewer(class, pdfURL string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><form class=\"pdf-viewer__init-page-form\" style=\"display: none\" ws-send><input name=\"type\" value=\"INIT_PDF_PAGE\"></form><form class=\"pdf-viewer__container\" x-data x-on:change=\"$dispatch(&#39;submit&#39;, $el)\" ws-send><input style=\"display: none\" name=\"type\" value=\"PDF_UPDATE\"><div class=\"viewer\"></div></form></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><form class=\"pdf-viewer__init-page-form\" style=\"display: none\" ws-send><input name=\"type\" value=\"INIT_PDF_PAGE\"></form><form class=\"pdf-viewer__container\" hx-trigger=\"change\" ws-send><div style=\"display: none\"><input name=\"type\" value=\"PDF_UPDATE\"> <input name=\"sender_id\" value=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(GetSession(ctx).UserID))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"> <input name=\"pdf_id\" value=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(pdfID))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"></div><div class=\"viewer\"></div></form></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

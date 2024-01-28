@@ -21,6 +21,7 @@ func (api *API) err(writer io.Writer, e error, httpStatus, wsStatus int) {
 		http.Error(w, e.Error(), httpStatus)
 
 	case *websocket.Conn:
+
 		if wsStatus == 1011 {
 			api.logger.Error().Stack().Err(e).Msg("Internal server error")
 			e = errors.New("internal server error")
@@ -29,6 +30,8 @@ func (api *API) err(writer io.Writer, e error, httpStatus, wsStatus int) {
 		if err := w.WriteClose(wsStatus); err != nil {
 			api.logger.Error().Stack().Err(err).Msg("Cannot write close status")
 		}
+
+		api.closeConn(w)
 	}
 }
 

@@ -2,9 +2,11 @@ package service
 
 import (
 	"context"
-	"rollbringer/pkg/domain"
+	"encoding/json"
 
 	"github.com/pkg/errors"
+
+	"rollbringer/pkg/domain"
 )
 
 func (svc *Service) PlayMaterials(ctx context.Context, gameID string, incomingChan, outgoingChan chan domain.GameEvent) {
@@ -28,7 +30,18 @@ func (svc *Service) PlayMaterials(ctx context.Context, gameID string, incomingCh
 		case event := <-incomingChan:
 			switch event["type"] {
 			case "PDF_UPDATE":
-				// svc.db.GetPDF(ctx, event["PDF_ID"], event["FROM_ID"])
+
+				content, err := json.Marshal(event)
+				if err != nil {
+					svc.logger.Error().Stack().Err(err).Msg("Cannot encode game event")
+					return
+				}
+
+				err = svc.db.UpdatePDF(ctx, event["pdf_id"].(string), event["sender_id"].(string), content)
+				if err != nil {
+					svc.logger.Error().Stack().Err(err).Msg("Cannot get PDF")
+					return
+				}
 			}
 		}
 	}
