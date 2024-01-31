@@ -113,7 +113,7 @@ func PDFViewer(class, pdfID, pdfURL string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><form class=\"pdf-viewer__init-page-form\" style=\"display: none\" ws-send><input name=\"type\" value=\"INIT_PDF_PAGE\"></form><form class=\"pdf-viewer__container\" hx-trigger=\"change\" ws-send><div style=\"display: none\"><input name=\"type\" value=\"PDF_UPDATE\"> <input name=\"sender_id\" value=\"")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><form class=\"pdf-viewer__init-page-form\" style=\"display: none\" ws-send><input name=\"TYPE\" value=\"INIT_PDF_PAGE\"></form><form class=\"pdf-viewer__container\" hx-trigger=\"change\" ws-send><div style=\"display: none\"><input name=\"TYPE\" value=\"SAVE_PDF\"> <input name=\"sender_id\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -129,7 +129,7 @@ func PDFViewer(class, pdfID, pdfURL string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"></div><div class=\"viewer\"></div></form></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"> <input name=\"page\" x-bind:value=\"currentPage\"></div><div class=\"viewer\"></div></form></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -2,14 +2,14 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/pkg/errors"
 
 	"rollbringer/pkg/domain"
 )
 
-func (svc *Service) PlayMaterials(ctx context.Context, gameID string, incomingChan, outgoingChan chan domain.GameEvent) {
+func (svc *Service) PlayMaterials(ctx context.Context, gameID string, incomingChan chan []byte, outgoingChan chan any) {
+	defer close(outgoingChan)
 
 	// Get the game.
 	game, err := svc.GetGame(ctx, gameID)
@@ -18,8 +18,9 @@ func (svc *Service) PlayMaterials(ctx context.Context, gameID string, incomingCh
 		return
 	}
 
+	pubsubResponseChan := make(chan domain.GameEvent)
 	if game != nil {
-		go svc.ps.SubToGame(ctx, game.ID, incomingChan)
+		go svc.ps.SubToGame(ctx, game.ID, pubsubResponseChan)
 	}
 
 	for {
@@ -27,22 +28,20 @@ func (svc *Service) PlayMaterials(ctx context.Context, gameID string, incomingCh
 		case <-ctx.Done():
 			return
 
-		case event := <-incomingChan:
-			switch event["type"] {
-			case "PDF_UPDATE":
+		case e := <-incomingChan:
 
-				content, err := json.Marshal(event)
-				if err != nil {
-					svc.logger.Error().Stack().Err(err).Msg("Cannot encode game event")
-					return
-				}
-
-				err = svc.db.UpdatePDF(ctx, event["pdf_id"].(string), event["sender_id"].(string), content)
-				if err != nil {
-					svc.logger.Error().Stack().Err(err).Msg("Cannot get PDF")
-					return
-				}
+			event := domain.DecodeGameEvent(e)
+			if event == nil {
+				continue
 			}
+
+			if err := svc.ps.PubToGame(ctx, gameID, event); err != nil {
+				svc.logger.Error().Stack().Err(err).Msg("Cannot publish game event")
+				return
+			}
+
+		case event := <-pubsubResponseChan:
+			outgoingChan <- event
 		}
 	}
 }

@@ -8,7 +8,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
-	"golang.org/x/net/websocket"
 	"golang.org/x/oauth2"
 
 	"rollbringer/pkg/domain/service"
@@ -54,11 +53,5 @@ func (api *API) render(w io.Writer, r *http.Request, component templ.Component, 
 	if err := component.Render(r.Context(), w); err != nil {
 		err = errors.Wrap(err, "cannot render component")
 		api.err(w, err, http.StatusInternalServerError, wsStatusInternalError)
-	}
-}
-
-func (api *API) closeConn(conn *websocket.Conn) {
-	if err := conn.Close(); err != nil {
-		api.logger.Error().Stack().Err(err).Msg("Cannot close connection")
 	}
 }

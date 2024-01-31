@@ -1,9 +1,10 @@
 package api
 
 import (
-	"encoding/json"
 	"io"
+	"net"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/pkg/errors"
@@ -18,21 +19,26 @@ func (api *API) handlePlayMaterials(conn *websocket.Conn) {
 	var (
 		r = conn.Request()
 
-		incomingChan = make(chan domain.GameEvent)
-		outgoingChan = make(chan domain.GameEvent)
+		incomingChan = make(chan []byte)
+		outgoingChan = make(chan any)
 	)
 
 	go api.service.PlayMaterials(r.Context(), chi.URLParam(r, "game_id"), incomingChan, outgoingChan)
 
 	go func() {
-		defer api.closeConn(conn)
+		defer conn.Close()
 
 		for {
 			select {
 			case <-r.Context().Done():
 				return
 
-			case event := <-outgoingChan:
+			case event, ok := <-outgoingChan:
+
+				if !ok {
+					return
+				}
+
 				if err := websocket.JSON.Send(conn, event); err != nil {
 					api.err(conn, err, 0, wsStatusInternalError)
 					return
@@ -42,17 +48,10 @@ func (api *API) handlePlayMaterials(conn *websocket.Conn) {
 	}()
 
 	for {
+		var event []byte
+		if err := websocket.Message.Receive(conn, &event); err != nil {
 
-		var msg domain.GameEvent
-		if err := websocket.JSON.Receive(conn, &msg); err != nil {
-
-			if err == io.EOF {
-				return
-			}
-
-			switch err.(type) {
-			case *json.SyntaxError, *json.UnmarshalTypeError, *json.InvalidUnmarshalError:
-				api.err(conn, err, 0, wsStatusUnsupportedData)
+			if err == io.EOF || strings.Contains(err.Error(), net.ErrClosed.Error()) {
 				return
 			}
 
@@ -60,7 +59,7 @@ func (api *API) handlePlayMaterials(conn *websocket.Conn) {
 			return
 		}
 
-		incomingChan <- msg
+		incomingChan <- event
 	}
 }
 

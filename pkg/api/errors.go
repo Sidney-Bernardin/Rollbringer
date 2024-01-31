@@ -31,7 +31,7 @@ func (api *API) err(writer io.Writer, e error, httpStatus, wsStatus int) {
 			api.logger.Error().Stack().Err(err).Msg("Cannot write close status")
 		}
 
-		api.closeConn(w)
+		w.Close()
 	}
 }
 

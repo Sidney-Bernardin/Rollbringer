@@ -26,14 +26,15 @@ templ DNDCharacterSheet(pdfID string) {
 templ PDFViewer(class, pdfID, pdfURL string) {
 	<div class={ "pdf-viewer", class } x-data={ F("pdfViewer('%s')", pdfURL) }>
 		<form class="pdf-viewer__init-page-form" style="display: none" ws-send>
-			<input name="type" value="INIT_PDF_PAGE"/>
+			<input name="TYPE" value="INIT_PDF_PAGE"/>
 		</form>
 		<form class="pdf-viewer__container" hx-trigger="change" ws-send>
-            <div style="display: none">
-                <input name="type" value="PDF_UPDATE"/>
-                <input name="sender_id" value={ GetSession(ctx).UserID }/>
-                <input name="pdf_id" value={ pdfID }/>
-            </div>
+			<div style="display: none">
+				<input name="TYPE" value="SAVE_PDF"/>
+				<input name="sender_id" value={ GetSession(ctx).UserID }/>
+				<input name="pdf_id" value={ pdfID }/>
+				<input name="page" x-bind:value="currentPage"/>
+			</div>
 			<div class="viewer"></div>
 		</form>
 	</div>

@@ -31,7 +31,10 @@ CREATE TABLE pdfs (
 
     name text NOT NULL,
     schema text NOT NULL,
-    content bytea NOT NULL,
+
+    main_page bytea NOT NULL,
+    info_page bytea NOT NULL,
+    spells_page bytea NOT NULL,
 
     UNIQUE(id)
 );

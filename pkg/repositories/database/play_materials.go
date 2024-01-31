@@ -19,8 +19,8 @@ func (db *Database) InsertPDF(ctx context.Context, ownerID string, schema string
 
 	// Insert a new PDF for the owner.
 	_, err := db.conn.Exec(ctx,
-		`INSERT INTO pdfs (id, owner_id, name, schema, content) VALUES ($1, $2, $3, $4, $5)`,
-		pdfID, ownerUUID, name, schema, []byte(``))
+		`INSERT INTO pdfs (id, owner_id, name, schema, main_page, info_page, spells_page) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+		pdfID, ownerUUID, name, schema, []byte(``), []byte(``), []byte(``))
 
 	if err != nil {
 		return "", "", errors.Wrap(err, "cannot insert pdf")
@@ -75,21 +75,18 @@ func (db *Database) GetPDFs(ctx context.Context, ownerID string) ([]*domain.PDF,
 }
 
 // UpdatePDF updates the PDF with the pdf-ID and owner-ID in the database.
-func (db *Database) UpdatePDF(ctx context.Context, pdfID, ownerID string, content []byte) error {
+func (db *Database) UpdatePDF(ctx context.Context, page int, pdfID, ownerID string, content []byte) error {
 
-	pdfUUID, _ := uuid.Parse(pdfID)
-	ownerUUID, _ := uuid.Parse(ownerID)
+	//	pdfUUID, _ := uuid.Parse(pdfID)
+	//	ownerUUID, _ := uuid.Parse(ownerID)
 
-	// Update the PDF with the pdf-ID and owner-ID.
-	cmdTag, err := db.conn.Exec(ctx, 
-		`UPDATE pdfs SET content = $1 WHERE id = $2 AND owner_id = $3`,
-		content, pdfUUID, ownerUUID)
+	//	if cmdTag.RowsAffected() == 0 {
+	//		return domain.ErrPlayMaterialNotFound
+	//	}
 
-	if cmdTag.RowsAffected() == 0 {
-		return domain.ErrPlayMaterialNotFound
-	}
+	//	return errors.Wrap(err, "cannot update pdf")
 
-	return errors.Wrap(err, "cannot update pdf")
+	return nil
 }
 
 // DeletePDF deletes the pdf with the pdf-ID and owner-ID from the database.
