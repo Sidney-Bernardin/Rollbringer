@@ -9,7 +9,11 @@ templ Play() {
 	@Page("Play", "play.js") {
 		<body
 			hx-ext="ws"
-			ws-connect="/play-materials"
+			if game := GetGame(ctx); game != nil {
+				ws-connect={ F("/play-materials?g=%s", game.ID) }
+			} else {
+				ws-connect="/play-materials"
+			}
 			if session := GetSession(ctx); session != nil {
 				hx-headers={ F(`{"CSRF-Token": "%s"}`, session.CSRFToken) }
 			}

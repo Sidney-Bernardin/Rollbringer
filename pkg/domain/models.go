@@ -22,16 +22,18 @@ type PDF struct {
 	ID      string `db:"id,omitempty"`
 	OwnerID string `db:"owner_id,omitempty"`
 
-	Name   string `db:"name,omitempty"`
-	Schema string `db:"schema,omitempty"`
-
-	MainPage   []byte `db:"main_page,omitempty"`
-	InfoPage   []byte `db:"info_page,omitempty"`
-	SpellsPage []byte `db:"spells_page,omitempty"`
+	Name   string   `db:"name,omitempty"`
+	Schema string   `db:"schema,omitempty"`
+	Pages  []string `db:"pages,omitempty"`
 }
 
 type GameEvent struct {
-	Headers map[string]string `json:"HEADERS"`
-	Type    string            `json:"TYPE"`
-	Body    map[string]string
+	Headers map[string]any `json:"HEADERS"`
+	Type    string         `json:"TYPE"`
+
+	SenderID string `json:"sender_id"`
+	PDFID    string `json:"pdf_id"`
+	PageNum  int    `json:"page_num,string"`
+
+	PDFFields map[string]string `json:"-"`
 }

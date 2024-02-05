@@ -2,28 +2,36 @@ package domain
 
 import (
 	"encoding/json"
+	"unicode"
 )
 
-func DecodeGameEvent(b []byte) *GameEvent {
+var PDFSchemaPageCount = map[string]int{
+	"DND_CHARACTER_SHEET": 3,
+}
 
-	var event map[string]any
-	if err := json.Unmarshal(b, &event); err != nil {
+func DecodeGameEvent(e []byte) *GameEvent {
+
+	var eventModel GameEvent
+	if err := json.Unmarshal(e, &eventModel); err != nil {
 		return nil
 	}
 
-	var ret GameEvent
-	if err := json.Unmarshal(b, &ret); err != nil {
+	var eventMap map[string]any
+	if err := json.Unmarshal(e, &eventMap); err != nil {
 		return nil
 	}
 
-	for _, v := range [2]string{"HEADERS", "TYPE"} {
-		delete(event, v)
+	delete(eventMap, "HEADERS")
+	delete(eventMap, "TYPE")
+
+	eventModel.PDFFields = make(map[string]string)
+	for k, v := range eventMap {
+		if unicode.IsUpper(rune(k[0])) {
+			if valStr, ok := v.(string); ok {
+				eventModel.PDFFields[k] = valStr
+			}
+		}
 	}
 
-	ret.Body = make(map[string]string)
-	for k, v := range event {
-		ret.Body[k] = v.(string)
-	}
-
-	return &ret
+	return &eventModel
 }

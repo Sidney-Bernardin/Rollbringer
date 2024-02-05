@@ -4,6 +4,7 @@ CREATE TABLE users (
 
     username text NOT NULL,
 
+    UNIQUE(id),
     UNIQUE(google_id),
     UNIQUE(username)
 );
@@ -13,6 +14,7 @@ CREATE TABLE sessions (
     user_id UUID NOT NULL,
     csrf_token UUID NOT NULL,
 
+    UNIQUE(id),
     UNIQUE(user_id)
 );
 
@@ -32,9 +34,7 @@ CREATE TABLE pdfs (
     name text NOT NULL,
     schema text NOT NULL,
 
-    main_page bytea NOT NULL,
-    info_page bytea NOT NULL,
-    spells_page bytea NOT NULL,
+    pages text[] NOT NULL,
 
     UNIQUE(id)
 );

@@ -1,10 +1,10 @@
 package service
 
 import (
+	"github.com/rs/zerolog"
+
 	"rollbringer/pkg/repositories/database"
 	"rollbringer/pkg/repositories/pubsub"
-
-	"github.com/rs/zerolog"
 )
 
 type Service struct {

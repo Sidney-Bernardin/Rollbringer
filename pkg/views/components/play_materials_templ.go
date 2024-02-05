@@ -86,7 +86,7 @@ func pdfs() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</p><button hx-post=\"/play-materials/pdfs\" hx-target=\"next table\" hx-swap=\"beforeend\" name=\"schema\" value=\"CHARACTER_SHEET\"><iconify-icon icon=\"material-symbols:add\"></iconify-icon></button></div><table><tbody>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</p><button hx-post=\"/play-materials/pdfs\" hx-target=\"next table\" hx-swap=\"beforeend\" name=\"schema\" value=\"DND_CHARACTER_SHEET\"><iconify-icon icon=\"material-symbols:add\"></iconify-icon></button></div><table><tbody>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

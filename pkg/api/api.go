@@ -44,10 +44,10 @@ func (api *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	api.router.ServeHTTP(w, r)
 }
 
-func (api *API) render(w io.Writer, r *http.Request, component templ.Component, status int) {
+func (api *API) render(w io.Writer, r *http.Request, component templ.Component, httpStatus int) {
 
 	if rw, ok := w.(http.ResponseWriter); ok {
-		rw.WriteHeader(status)
+		rw.WriteHeader(httpStatus)
 	}
 
 	if err := component.Render(r.Context(), w); err != nil {

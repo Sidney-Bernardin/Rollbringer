@@ -17,6 +17,11 @@ func GetSession(ctx context.Context) *domain.Session {
 	return session
 }
 
+func GetGame(ctx context.Context) *domain.Game {
+	game, _ := ctx.Value("game").(*domain.Game)
+	return game
+}
+
 func GetGames(ctx context.Context) []*domain.Game {
 	games, _ := ctx.Value("games").([]*domain.Game)
 	return games

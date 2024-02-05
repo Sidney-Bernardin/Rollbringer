@@ -20,10 +20,10 @@ func (api *API) handlePlayMaterials(conn *websocket.Conn) {
 		r = conn.Request()
 
 		incomingChan = make(chan []byte)
-		outgoingChan = make(chan any)
+		outgoingChan = make(chan *domain.GameEvent)
 	)
 
-	go api.service.PlayMaterials(r.Context(), chi.URLParam(r, "game_id"), incomingChan, outgoingChan)
+	go api.service.PlayMaterials(r.Context(), r.URL.Query().Get("g"), incomingChan, outgoingChan)
 
 	go func() {
 		defer conn.Close()
@@ -33,23 +33,25 @@ func (api *API) handlePlayMaterials(conn *websocket.Conn) {
 			case <-r.Context().Done():
 				return
 
-			case event, ok := <-outgoingChan:
+			case event := <-outgoingChan:
 
-				if !ok {
+				if event == nil {
 					return
 				}
 
-				if err := websocket.JSON.Send(conn, event); err != nil {
-					api.err(conn, err, 0, wsStatusInternalError)
-					return
+				switch event.Type {
+				case "UPDATE_PDF_PAGE":
+					api.render(conn, r, components.ReplacePDFFields(event), 0)
+				case "INIT_PDF_PAGE":
+					api.render(conn, r, components.ReplacePDFFields(event), 0)
 				}
 			}
 		}
 	}()
 
 	for {
-		var event []byte
-		if err := websocket.Message.Receive(conn, &event); err != nil {
+		var msg []byte
+		if err := websocket.Message.Receive(conn, &msg); err != nil {
 
 			if err == io.EOF || strings.Contains(err.Error(), net.ErrClosed.Error()) {
 				return
@@ -59,7 +61,7 @@ func (api *API) handlePlayMaterials(conn *websocket.Conn) {
 			return
 		}
 
-		incomingChan <- event
+		incomingChan <- msg
 	}
 }
 
