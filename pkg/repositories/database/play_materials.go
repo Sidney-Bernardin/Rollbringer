@@ -21,7 +21,7 @@ func (db *Database) InsertPDF(ctx context.Context, ownerID string, schema string
 	// Insert a new PDF for the owner.
 	_, err := db.conn.Exec(ctx,
 		`INSERT INTO pdfs (id, owner_id, name, schema, pages) VALUES ($1, $2, $3, $4, $5)`,
-		pdfID, ownerUUID, name, schema, make([]string, domain.PDFSchemaPageCount[schema]))
+		pdfID, ownerUUID, name, schema, make([]string, domain.PDFSchemaToPageCount[schema]))
 
 	if err != nil {
 		return "", "", errors.Wrap(err, "cannot insert pdf")
@@ -75,22 +75,22 @@ func (db *Database) GetPDFs(ctx context.Context, ownerID string) ([]*domain.PDF,
 	return pdfs, errors.Wrap(err, "cannot scan pdfs")
 }
 
-// UpdatePDFPage updates the PDF with the PDF-ID and owner-ID in the database. If
-// the PDF doesn't exist, returns domain.ErrPlayMaterialNotFound.
-func (db *Database) UpdatePDFPage(ctx context.Context, pdfID, ownerID string, pageNum int, pdfFields map[string]string) error {
+// UpdatePDFPage updates the PDF with the PDF-ID in the database. If the PDF
+// doesn't exist, returns domain.ErrPlayMaterialNotFound.
+func (db *Database) UpdatePDFPage(ctx context.Context, pdfID string, pageNum int, pdfPage any) error {
 
 	pdfUUID, _ := uuid.Parse(pdfID)
-	ownerUUID, _ := uuid.Parse(ownerID)
 
-	pdfFieldsJSON, err := json.Marshal(pdfFields)
+	// Encode the PDF page.
+	pdfPageJSON, err := json.Marshal(pdfPage)
 	if err != nil {
-		return errors.Wrap(err, "cannot encode pdf fields")
+		return errors.Wrap(err, "cannot encode pdf page")
 	}
 
-	// Update the PDF with the pdf-ID and owner-ID.
+	// Update the PDF with the PDF-ID.
 	cmdTag, err := db.conn.Exec(ctx,
-		`UPDATE pdfs SET pages[$1] = $2 WHERE id = $3 AND owner_id = $4`,
-		pageNum, string(pdfFieldsJSON), pdfUUID, ownerUUID)
+		`UPDATE pdfs SET pages[$1] = $2 WHERE id = $3`,
+		pageNum, string(pdfPageJSON), pdfUUID)
 
 	if err != nil {
 		return errors.Wrap(err, "cannot update pdf")

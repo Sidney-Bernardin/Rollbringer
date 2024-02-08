@@ -7,7 +7,7 @@ import (
 	"github.com/pkg/errors"
 
 	"rollbringer/pkg/domain"
-	"rollbringer/pkg/views/components"
+	"rollbringer/pkg/views/components/navigation"
 )
 
 func (api *API) handleCreateGame(w http.ResponseWriter, r *http.Request) {
@@ -22,7 +22,7 @@ func (api *API) handleCreateGame(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Respond with a GameButton component.
-	api.render(w, r, components.GameButton(gameID, title), http.StatusOK)
+	api.render(w, r, navigation.GameButton(gameID, title), http.StatusOK)
 }
 
 func (api *API) handleDeleteGame(w http.ResponseWriter, r *http.Request) {

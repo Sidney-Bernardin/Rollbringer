@@ -1,6 +1,6 @@
-@use "../global.scss" as *;
+@use "../../global.scss" as *;
 
-.tab-panel {
+.dynamic-tab-container {
   display: flex;
   flex-direction: column;
   height: 100%;

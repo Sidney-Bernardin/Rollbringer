@@ -1,0 +1,58 @@
+package pages
+
+import (
+	. "rollbringer/pkg/views"
+	. "rollbringer/pkg/views/components/navigation"
+	. "rollbringer/pkg/views/components/play_materials"
+	. "rollbringer/pkg/views/components/social"
+)
+
+templ page(title, script string) {
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>{ title } | Rollbringer</title>
+			<link rel="icon" type="image/x-icon" href="/static/favicon.png"/>
+			<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+			<script src={ "/static/" + script } defer></script>
+		</head>
+		{ children... }
+	</html>
+}
+
+templ Play() {
+	@page("Play", "play.js") {
+		<body
+			hx-ext="ws"
+			if game := GetGame(ctx); game != nil {
+				ws-connect={ F("/play-materials?g=%s", game.ID) }
+			} else {
+				ws-connect="/play-materials"
+			}
+			if session := GetSession(ctx); session != nil {
+				hx-headers={ F(`{"CSRF-Token": "%s"}`, session.CSRFToken) }
+			}
+		>
+			<div class="play-layout">
+				@NavBar("play-layout__nav-bar")
+				@DynamicTabContainer("play-layout__top")
+				@DynamicTabContainer("play-layout__left")
+				@StaticTabContainer("play-layout__bottom", map[string]templ.Component{
+          "PDFs": PDFs(),
+          "Scenes": templ.NopComponent,
+          "Assets": templ.NopComponent,
+          "Combat": templ.NopComponent,
+        })
+				@StaticTabContainer("play-layout__right", map[string]templ.Component{
+          "Chat": Chat(),
+          "Profile": Profile(),
+        })
+				<span class="play-layout__gutter-1"></span>
+				<span class="play-layout__gutter-2"></span>
+				<span class="play-layout__gutter-3"></span>
+				<span class="play-layout__gutter-4"></span>
+			</div>
+		</body>
+	}
+}

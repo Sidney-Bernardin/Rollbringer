@@ -1,0 +1,18 @@
+package social
+
+import (
+	. "rollbringer/pkg/views"
+)
+
+templ Profile() {
+	<div class="profile">
+		if GetSession(ctx) == nil {
+			<a href="/users/login">
+				<button class="login-btn">
+					<iconify-icon icon="devicon:google"></iconify-icon>
+					Login with Google
+				</button>
+			</a>
+		}
+	</div>
+}

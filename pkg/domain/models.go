@@ -31,9 +31,9 @@ type GameEvent struct {
 	Headers map[string]any `json:"HEADERS"`
 	Type    string         `json:"TYPE"`
 
-	SenderID string `json:"sender_id"`
-	PDFID    string `json:"pdf_id"`
-	PageNum  int    `json:"page_num,string"`
+	PDFID    string `json:"pdf_id,omitempty"`
+	SenderID string `json:"sender_ID,omitempty"`
+	PageNum  int    `json:"page_num,string,omitempty"`
 
-	PDFFields map[string]string `json:"-"`
+	PDFFields map[string]string `json:"pdf_fields"`
 }

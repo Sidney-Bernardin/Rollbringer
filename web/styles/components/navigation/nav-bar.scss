@@ -1,11 +1,11 @@
-@use "../global.scss" as *;
+@use "../../global.scss" as *;
 
-.nav {
+.nav-bar {
   display: flex;
   gap: 20px;
   align-items: center;
 
-  &__games {
+  .games {
     display: flex;
     gap: 5px;
 
@@ -20,7 +20,7 @@
         }
       }
 
-      .list {
+      ul {
         width: 100%;
       }
     }
@@ -36,7 +36,7 @@
       }
     }
 
-    .list {
+    ul {
       display: flex;
       width: 0;
       margin: 0;

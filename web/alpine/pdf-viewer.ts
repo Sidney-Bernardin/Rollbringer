@@ -1,18 +1,14 @@
 import PDFContainer from "../utils/pdf-viewer";
 
 window.alpine.data("pdfViewer", (pdfURL: string) => ({
+  currentPage: 1,
   pdfViewer: null,
 
   init() {
-    const initPageForm: HTMLFormElement = this.$root.querySelector(
-      ".pdf-viewer__init-page-form",
-    );
+    const viewerContainer: HTMLDivElement =
+      this.$root.querySelector(".pdf-viewer form");
 
-    const viewerContainer: HTMLDivElement = this.$root.querySelector(
-      ".pdf-viewer__container",
-    );
-
-    this.pdfViewer = new PDFContainer(pdfURL, initPageForm, viewerContainer);
+    this.pdfViewer = new PDFContainer(pdfURL, viewerContainer);
 
     this.$watch(
       "currentPage",

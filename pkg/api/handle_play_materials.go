@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"io"
 	"net"
 	"net/http"
@@ -12,6 +13,8 @@ import (
 
 	"rollbringer/pkg/domain"
 	"rollbringer/pkg/views/components"
+	"rollbringer/pkg/views/components/play_materials"
+	"rollbringer/pkg/views/oob_swaps"
 )
 
 func (api *API) handlePlayMaterials(conn *websocket.Conn) {
@@ -19,7 +22,7 @@ func (api *API) handlePlayMaterials(conn *websocket.Conn) {
 	var (
 		r = conn.Request()
 
-		incomingChan = make(chan []byte)
+		incomingChan = make(chan *domain.GameEvent)
 		outgoingChan = make(chan *domain.GameEvent)
 	)
 
@@ -33,17 +36,15 @@ func (api *API) handlePlayMaterials(conn *websocket.Conn) {
 			case <-r.Context().Done():
 				return
 
-			case event := <-outgoingChan:
+			case event, ok := <-outgoingChan:
 
-				if event == nil {
+				if !ok {
 					return
 				}
 
 				switch event.Type {
-				case "UPDATE_PDF_PAGE":
-					api.render(conn, r, components.ReplacePDFFields(event), 0)
-				case "INIT_PDF_PAGE":
-					api.render(conn, r, components.ReplacePDFFields(event), 0)
+				case "UPDATE_PDF_FIELDS":
+					api.render(conn, r, oob_swaps.UpdatePDFFields(event), 0)
 				}
 			}
 		}
@@ -52,7 +53,6 @@ func (api *API) handlePlayMaterials(conn *websocket.Conn) {
 	for {
 		var msg []byte
 		if err := websocket.Message.Receive(conn, &msg); err != nil {
-
 			if err == io.EOF || strings.Contains(err.Error(), net.ErrClosed.Error()) {
 				return
 			}
@@ -61,7 +61,13 @@ func (api *API) handlePlayMaterials(conn *websocket.Conn) {
 			return
 		}
 
-		incomingChan <- msg
+		var event *domain.GameEvent
+		if err := json.Unmarshal(msg, &event); err != nil {
+			api.err(conn, err, 0, wsStatusUnsupportedData)
+			return
+		}
+
+		incomingChan <- event
 	}
 }
 
@@ -77,7 +83,7 @@ func (api *API) handleCreatePDF(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Respond with a PDFRow component.
-	api.render(w, r, components.PDFRow(pdfID, name, "foo bar"), http.StatusOK)
+	api.render(w, r, play_materials.PDFRow(pdfID, name, "foo bar"), http.StatusOK)
 }
 
 func (api *API) handleGetPDF(w http.ResponseWriter, r *http.Request) {
@@ -92,7 +98,17 @@ func (api *API) handleGetPDF(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Respond with a PDF-viewer tab.
-	api.render(w, r, components.AddPDFViewerTab(pdf.Name, components.DNDCharacterSheet(pdf.ID)), http.StatusOK)
+	api.render(w, r,
+		oob_swaps.AddPDFViewerTab(
+			pdf.Name,
+			components.PDFViewer(
+				pdf.ID,
+				components.DNDCharacterSheetFileLocation,
+				components.DNDCharacterSheetPageNames,
+			),
+		),
+		http.StatusOK,
+	)
 }
 
 func (api *API) handleDeletePDF(w http.ResponseWriter, r *http.Request) {

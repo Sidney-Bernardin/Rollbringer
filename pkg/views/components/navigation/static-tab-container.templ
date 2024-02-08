@@ -1,0 +1,32 @@
+package navigation
+
+import (
+	"golang.org/x/exp/maps"
+	. "rollbringer/pkg/views"
+)
+
+templ StaticTabContainer(class string, tabs map[string]templ.Component) {
+	<div
+		class={ "static-tab-container", class }
+		x-data={ F("{ currentStaticTab: '%s' }", maps.Keys(tabs)[0]) }
+	>
+		<ul class="static-tab-container__list">
+			for name := range tabs {
+				<li
+					x-data={ F(`{ tabName: '%s' }`, name) }
+					x-bind:class="currentStaticTab == tabName && 'active'"
+					x-on:click="currentStaticTab = tabName"
+				>
+					{ name }
+				</li>
+			}
+		</ul>
+		<div class="static-tab-container__wrapper">
+			for name, content := range tabs {
+				<div x-show={ F("currentStaticTab == '%s'", name) }>
+					@content
+				</div>
+			}
+		</div>
+	</div>
+}

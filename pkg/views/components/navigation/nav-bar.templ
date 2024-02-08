@@ -1,14 +1,14 @@
-package components
+package navigation
 
 import (
 	. "rollbringer/pkg/views"
 )
 
-templ Nav(class string) {
-	<div class={ "nav", class }>
-		<div class="nav__games">
+templ NavBar(class string) {
+	<div class={ "nav-bar", class }>
+		<div class="games">
 			@menuButton()
-			<ul class="list">
+			<ul>
 				if GetSession(ctx) == nil {
 					<a href="/users/login">
 						<button class="login-btn">
@@ -31,7 +31,7 @@ templ menuButton() {
 		<button
 			class="main-btn"
 			hx-post="/games"
-			hx-target="next .list"
+			hx-target="next ul"
 			hx-swap="beforeend"
 		>
 			<iconify-icon class="menu" icon="ic:baseline-meeting-room"></iconify-icon>

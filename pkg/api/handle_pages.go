@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 
 	"rollbringer/pkg/domain"
-	"rollbringer/pkg/views/layouts"
+	"rollbringer/pkg/views/pages"
 )
 
 func (api *API) handlePlayPage(w http.ResponseWriter, r *http.Request) {
@@ -23,7 +23,7 @@ func (api *API) handlePlayPage(w http.ResponseWriter, r *http.Request) {
 	// logged out, render the page early.
 	session, _ := r.Context().Value("session").(*domain.Session)
 	if session == nil {
-		api.render(w, r, layouts.Play(), http.StatusOK)
+		api.render(w, r, pages.Play(), http.StatusOK)
 		return
 	}
 
@@ -51,5 +51,5 @@ func (api *API) handlePlayPage(w http.ResponseWriter, r *http.Request) {
 	}
 	giveToRequest(r, "pdfs", pdfs)
 
-	api.render(w, r, layouts.Play(), http.StatusOK)
+	api.render(w, r, pages.Play(), http.StatusOK)
 }

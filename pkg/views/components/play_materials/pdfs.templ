@@ -1,22 +1,11 @@
-package components
+package play_materials
 
 import (
 	. "rollbringer/pkg/views"
 )
 
-templ PlayMaterials(class string) {
-	<div class={ "play-materials", class }>
-		@StaticTabContainer("play-materials__static-tab-container", map[string]templ.Component{
-            "PDFs": pdfs(),
-            "Scenes": templ.NopComponent,
-            "Assets": templ.NopComponent,
-            "Combat": templ.NopComponent,
-        })
-	</div>
-}
-
-templ pdfs() {
-	<div class="your-stuff">
+templ PDFs() {
+	<div class="pdfs">
 		<div class="header">
 			<p>Character Sheets</p>
 			<button
@@ -37,7 +26,7 @@ templ pdfs() {
 			</tbody>
 		</table>
 		<div class="header">
-			<p>Class Guides</p>
+			<p>Leveling Guides</p>
 			<button>
 				<iconify-icon icon="material-symbols:add"></iconify-icon>
 			</button>

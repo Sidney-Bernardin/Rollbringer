@@ -1,16 +1,57 @@
+@use "../global.scss" as *;
 @import "~pdfjs-dist/web/pdf_viewer.css";
 
 .pdf-viewer {
-  position: relative;
-  width: 100%;
+  display: flex;
   height: 100%;
-  overflow: hidden;
+  flex-direction: column;
 
-  &__container {
-    position: absolute;
+  .wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border: 2px solid $bg0;
+    overflow: hidden;
+    flex: 5;
 
-    .textLayer {
-      user-select: none;
+    form {
+      position: absolute;
+
+      .textLayer {
+        user-select: none;
+      }
+    }
+  }
+
+  ul {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    background: $bg2;
+    margin: 0;
+    padding: 0 0 5px 0;
+    list-style-type: none;
+    justify-content: space-around;
+    align-self: center;
+
+    li {
+      cursor: pointer;
+      display: flex;
+      gap: 5px;
+      border: none;
+      color: $txt4;
+      background: transparent;
+      font-weight: bolder;
+      text-transform: capitalize;
+      align-items: center;
+
+      &.active {
+        color: $yellow;
+      }
+
+      iconify-icon {
+        font-size: 1.5rem;
+      }
     }
   }
 }

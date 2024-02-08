@@ -8,8 +8,13 @@ import (
 	"rollbringer/pkg/domain"
 )
 
-func (svc *Service) PlayMaterials(ctx context.Context, gameID string, incomingChan chan []byte, outgoingChan chan *domain.GameEvent) {
-	defer func() { outgoingChan <- nil }()
+func (svc *Service) PlayMaterials(
+	ctx context.Context,
+	gameID string,
+	incomingChan chan *domain.GameEvent,
+	outgoingChan chan *domain.GameEvent,
+) {
+	defer close(outgoingChan)
 
 	// Get the game.
 	game, err := svc.GetGame(ctx, gameID)
@@ -27,33 +32,25 @@ func (svc *Service) PlayMaterials(ctx context.Context, gameID string, incomingCh
 		case <-ctx.Done():
 			return
 
-		case e := <-incomingChan:
-
-			event := domain.DecodeGameEvent(e)
-			if event == nil {
-				continue
-			}
-
+		case event := <-incomingChan:
 			switch event.Type {
-			case "INIT_PDF_PAGE":
-				continue
 
-			case "UPDATE_PDF_PAGE":
+			// case "UPDATE_PDF_PAGE":
 
-				err = svc.db.UpdatePDFPage(ctx, event.PDFID, event.SenderID, event.PageNum, event.PDFFields)
-				if err != nil {
-					if errors.Cause(err) == domain.ErrPlayMaterialNotFound {
-						continue
-					}
+			// 	err = svc.db.UpdatePDFPage(ctx, event.PDFID, event.SenderID, event.PageNum, event.PDFFields)
+			// 	if err != nil {
+			// 		if errors.Cause(err) == domain.ErrPlayMaterialNotFound {
+			// 			continue
+			// 		}
 
-					svc.logger.Error().Stack().Err(err).Msg("Cannot update PDF")
-					return
-				}
+			// 		svc.logger.Error().Stack().Err(err).Msg("Cannot update PDF")
+			// 		return
+			// 	}
 
-				if err := svc.ps.Pub(ctx, gameID, e); err != nil {
-					svc.logger.Error().Stack().Err(err).Msg("Cannot publish game event")
-					return
-				}
+			// 	if err := svc.ps.PubToGame(ctx, gameID, event); err != nil {
+			// 		svc.logger.Error().Stack().Err(err).Msg("Cannot publish game event")
+			// 		return
+			// 	}
 			}
 		}
 	}

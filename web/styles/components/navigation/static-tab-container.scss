@@ -1,11 +1,11 @@
-@use "../global.scss" as *;
+@use "../../global.scss" as *;
 
 .static-tab-container {
   display: flex;
   height: 100%;
   flex-direction: column;
 
-  &__tab-item {
+  &__wrapper {
     height: 100%;
     border: 2px solid $bg0;
     overflow: auto;

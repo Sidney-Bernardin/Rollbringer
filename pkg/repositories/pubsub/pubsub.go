@@ -2,6 +2,7 @@ package pubsub
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/pkg/errors"
 	"github.com/redis/go-redis/v9"
@@ -50,11 +51,22 @@ func (ps *PubSub) SubToGame(ctx context.Context, gameID string, subChan chan *do
 			return
 		}
 
-		subChan <- domain.DecodeGameEvent([]byte(msg.Payload))
+		var event *domain.GameEvent
+		if err = json.Unmarshal([]byte(msg.Payload), &subChan); err != nil {
+			ps.logger.Error().Stack().Err(err).Msg("Cannot decode game event")
+			return
+		}
+
+		subChan <- event
 	}
 }
 
-func (ps *PubSub) Pub(ctx context.Context, topic string, msg any) error {
-	err := ps.client.Publish(ctx, topic, msg).Err()
+func (ps *PubSub) PubToGame(ctx context.Context, topic string, event *domain.GameEvent) error {
+	eventBytes, err := json.Marshal(event)
+	if err != nil {
+		return errors.Wrap(err, "cannot encode game event")
+	}
+
+	err = ps.client.Publish(ctx, topic, eventBytes).Err()
 	return errors.Wrap(err, "cannot publish game event")
 }

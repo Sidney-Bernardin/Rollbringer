@@ -1,0 +1,39 @@
+package components
+
+import (
+	. "rollbringer/pkg/views"
+)
+
+var DNDCharacterSheetFileLocation = "/static/character_sheet.pdf"
+var DNDCharacterSheetPageNames = []string{"main", "info", "spells"}
+
+templ PDFViewer(pdfID, pdfFile string, pageNames []string) {
+	<div
+		class="pdf-viewer"
+		x-data={ F("pdfViewer('%s') ", pdfFile) }
+		data-pdf-id={ pdfID }
+	>
+		<ul>
+			for i, name := range pageNames {
+				<li
+					x-data={ F(`{ pageNum: %v }`, i+1) }
+					x-on:click="currentPage = pageNum"
+					x-bind:class="currentPage == pageNum && 'active'"
+				>
+					{ name }
+				</li>
+			}
+		</ul>
+    <div class="wrapper">
+      <form hx-trigger="change" ws-send>
+        <div style="display: none">
+          <input name="TYPE" value="UPDATE_PDF_FIELDS"/>
+          <input name="sender_id" value={ GetSession(ctx).UserID }/>
+          <input name="pdf_id" value={ pdfID }/>
+          <input name="page_num" x-bind:value="currentPage"/>
+        </div>
+        <div class="viewer"></div>
+      </form>
+    </div>
+	</div>
+}
