@@ -27,7 +27,7 @@ type PDF struct {
 	Pages  []string `db:"pages,omitempty"`
 }
 
-type GameEvent struct {
+type Event struct {
 	Headers map[string]any `json:"HEADERS"`
 	Type    string         `json:"TYPE"`
 

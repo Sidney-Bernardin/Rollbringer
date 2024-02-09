@@ -4,7 +4,7 @@ import (
 	. "rollbringer/pkg/views"
 )
 
-var DNDCharacterSheetFileLocation = "/static/character_sheet.pdf"
+var DNDCharacterSheetFileLocation = "/static/character_sheet_test.pdf"
 var DNDCharacterSheetPageNames = []string{"main", "info", "spells"}
 
 templ PDFViewer(pdfID, pdfFile string, pageNames []string) {
@@ -24,16 +24,16 @@ templ PDFViewer(pdfID, pdfFile string, pageNames []string) {
 				</li>
 			}
 		</ul>
-    <div class="wrapper">
-      <form hx-trigger="change" ws-send>
-        <div style="display: none">
-          <input name="TYPE" value="UPDATE_PDF_FIELDS"/>
-          <input name="sender_id" value={ GetSession(ctx).UserID }/>
-          <input name="pdf_id" value={ pdfID }/>
-          <input name="page_num" x-bind:value="currentPage"/>
-        </div>
-        <div class="viewer"></div>
-      </form>
-    </div>
+		<div class="wrapper">
+			<form hx-trigger="change" ws-send>
+				<div style="display: none">
+					<input name="TYPE" value="UPDATE_PDF_FIELDS"/>
+					<input name="sender_id" value={ GetSession(ctx).UserID }/>
+					<input name="pdf_id" value={ pdfID }/>
+					<input name="page_num" x-bind:value="currentPage"/>
+				</div>
+				<div class="viewer"></div>
+			</form>
+		</div>
 	</div>
 }

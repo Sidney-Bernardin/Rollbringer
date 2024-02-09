@@ -2,56 +2,60 @@
 @import "~pdfjs-dist/web/pdf_viewer.css";
 
 .pdf-viewer {
-  display: flex;
-  height: 100%;
-  flex-direction: column;
-
-  .wrapper {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    border: 2px solid $bg0;
-    overflow: hidden;
-    flex: 5;
-
-    form {
-      position: absolute;
-
-      .textLayer {
-        user-select: none;
-      }
-    }
-  }
-
-  ul {
     display: flex;
-    gap: 10px;
-    width: 100%;
-    background: $bg2;
-    margin: 0;
-    padding: 0 0 5px 0;
-    list-style-type: none;
-    justify-content: space-around;
-    align-self: center;
+    height: 100%;
+    flex-direction: column;
 
-    li {
-      cursor: pointer;
-      display: flex;
-      gap: 5px;
-      border: none;
-      color: $txt4;
-      background: transparent;
-      font-weight: bolder;
-      text-transform: capitalize;
-      align-items: center;
+    .wrapper {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        border: 2px solid $bg0;
+        overflow: hidden;
+        flex: 5;
 
-      &.active {
-        color: $yellow;
-      }
+        form {
+            position: absolute;
 
-      iconify-icon {
-        font-size: 1.5rem;
-      }
+            .textLayer {
+                user-select: none;
+
+                section {
+                    border: none;
+                }
+            }
+        }
     }
-  }
+
+    ul {
+        display: flex;
+        gap: 10px;
+        width: 100%;
+        background: $bg2;
+        margin: 0;
+        padding: 0 0 5px 0;
+        list-style-type: none;
+        justify-content: space-around;
+        align-self: center;
+
+        li {
+            cursor: pointer;
+            display: flex;
+            gap: 5px;
+            border: none;
+            color: $txt4;
+            background: transparent;
+            font-weight: bolder;
+            text-transform: capitalize;
+            align-items: center;
+
+            &.active {
+                color: $yellow;
+            }
+
+            iconify-icon {
+                font-size: 1.5rem;
+            }
+        }
+    }
 }

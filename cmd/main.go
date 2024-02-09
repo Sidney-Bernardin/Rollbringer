@@ -3,10 +3,6 @@ package main
 import (
 	"net/http"
 	"os"
-	"rollbringer/pkg/api"
-	"rollbringer/pkg/domain/service"
-	"rollbringer/pkg/repositories/database"
-	"rollbringer/pkg/repositories/pubsub"
 	"time"
 
 	"github.com/kelseyhightower/envconfig"
@@ -15,6 +11,11 @@ import (
 	"github.com/rs/zerolog/pkgerrors"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
+
+	"rollbringer/pkg/api"
+	"rollbringer/pkg/domain/service"
+	"rollbringer/pkg/repositories/database"
+	"rollbringer/pkg/repositories/pubsub"
 )
 
 type config struct {

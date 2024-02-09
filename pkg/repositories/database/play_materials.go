@@ -82,7 +82,7 @@ func (db *Database) UpdatePDFPage(ctx context.Context, pdfID string, pageNum int
 	pdfUUID, _ := uuid.Parse(pdfID)
 
 	// Encode the PDF page.
-	pdfPageJSON, err := json.Marshal(pdfPage)
+	pdfFieldsJSON, err := json.Marshal(pdfPage)
 	if err != nil {
 		return errors.Wrap(err, "cannot encode pdf page")
 	}
@@ -90,7 +90,7 @@ func (db *Database) UpdatePDFPage(ctx context.Context, pdfID string, pageNum int
 	// Update the PDF with the PDF-ID.
 	cmdTag, err := db.conn.Exec(ctx,
 		`UPDATE pdfs SET pages[$1] = $2 WHERE id = $3`,
-		pageNum, string(pdfPageJSON), pdfUUID)
+		pageNum, string(pdfFieldsJSON), pdfUUID)
 
 	if err != nil {
 		return errors.Wrap(err, "cannot update pdf")

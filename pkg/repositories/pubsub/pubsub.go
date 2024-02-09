@@ -38,7 +38,7 @@ func New(rootLogger *zerolog.Logger, addr, passw string) (*PubSub, error) {
 	}, nil
 }
 
-func (ps *PubSub) SubToGame(ctx context.Context, gameID string, subChan chan *domain.GameEvent) {
+func (ps *PubSub) SubToGame(ctx context.Context, gameID string, subChan chan *domain.Event) {
 
 	sub := ps.client.Subscribe(ctx, gameID)
 	defer sub.Close()
@@ -51,9 +51,9 @@ func (ps *PubSub) SubToGame(ctx context.Context, gameID string, subChan chan *do
 			return
 		}
 
-		var event *domain.GameEvent
+		var event *domain.Event
 		if err = json.Unmarshal([]byte(msg.Payload), &subChan); err != nil {
-			ps.logger.Error().Stack().Err(err).Msg("Cannot decode game event")
+			ps.logger.Error().Stack().Err(err).Msg("Cannot decode event")
 			return
 		}
 
@@ -61,12 +61,12 @@ func (ps *PubSub) SubToGame(ctx context.Context, gameID string, subChan chan *do
 	}
 }
 
-func (ps *PubSub) PubToGame(ctx context.Context, topic string, event *domain.GameEvent) error {
+func (ps *PubSub) PubToGame(ctx context.Context, topic string, event *domain.Event) error {
 	eventBytes, err := json.Marshal(event)
 	if err != nil {
-		return errors.Wrap(err, "cannot encode game event")
+		return errors.Wrap(err, "cannot encode event")
 	}
 
 	err = ps.client.Publish(ctx, topic, eventBytes).Err()
-	return errors.Wrap(err, "cannot publish game event")
+	return errors.Wrap(err, "cannot publish event")
 }

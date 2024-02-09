@@ -24,6 +24,11 @@ func (api *API) setRoutes() {
 	)
 
 	api.router.With(api.LightAuth).Get("/play", api.handlePlayPage)
+	api.router.Route("/", func(r chi.Router) {
+		r.Use(api.LightAuth)
+		r.Get("/play", api.handlePlayPage)
+		r.Method("GET", "/ws", websocket.Handler(api.handleWebSocket))
+	})
 
 	api.router.Route("/users", func(r chi.Router) {
 		r.Get("/login", api.handleLogin)
@@ -31,17 +36,15 @@ func (api *API) setRoutes() {
 	})
 
 	api.router.Route("/games", func(r chi.Router) {
-		r.With(api.Auth).Post("/", api.handleCreateGame)
-		r.With(api.Auth).Delete("/{game_id}", api.handleDeleteGame)
+		r.Use(api.Auth)
+		r.Post("/", api.handleCreateGame)
+		r.Delete("/{game_id}", api.handleDeleteGame)
 	})
 
 	api.router.Route("/play-materials", func(r chi.Router) {
-		r.Use(api.LightAuth)
-		r.Method("GET", "/", websocket.Handler(api.handlePlayMaterials))
-
-		// TODO: re-think api.Auth when implementing guest-users.
-		r.With(api.Auth).Post("/pdfs", api.handleCreatePDF)
-		r.With(api.Auth).Get("/pdfs/{pdf_id}", api.handleGetPDF)
-		r.With(api.Auth).Delete("/pdfs/{pdf_id}", api.handleDeletePDF)
+		r.Use(api.Auth)
+		r.Post("/pdfs", api.handleCreatePDF)
+		r.Get("/pdfs/{pdf_id}", api.handleGetPDF)
+		r.Delete("/pdfs/{pdf_id}", api.handleDeletePDF)
 	})
 }

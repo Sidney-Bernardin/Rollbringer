@@ -26,9 +26,9 @@ templ Play() {
 		<body
 			hx-ext="ws"
 			if game := GetGame(ctx); game != nil {
-				ws-connect={ F("/play-materials?g=%s", game.ID) }
+				ws-connect={ F("/ws?g=%s", game.ID) }
 			} else {
-				ws-connect="/play-materials"
+				ws-connect="/ws"
 			}
 			if session := GetSession(ctx); session != nil {
 				hx-headers={ F(`{"CSRF-Token": "%s"}`, session.CSRFToken) }

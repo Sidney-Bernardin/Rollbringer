@@ -1,75 +1,16 @@
 package api
 
 import (
-	"encoding/json"
-	"io"
-	"net"
 	"net/http"
-	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/pkg/errors"
-	"golang.org/x/net/websocket"
 
 	"rollbringer/pkg/domain"
 	"rollbringer/pkg/views/components"
 	"rollbringer/pkg/views/components/play_materials"
 	"rollbringer/pkg/views/oob_swaps"
 )
-
-func (api *API) handlePlayMaterials(conn *websocket.Conn) {
-
-	var (
-		r = conn.Request()
-
-		incomingChan = make(chan *domain.GameEvent)
-		outgoingChan = make(chan *domain.GameEvent)
-	)
-
-	go api.service.PlayMaterials(r.Context(), r.URL.Query().Get("g"), incomingChan, outgoingChan)
-
-	go func() {
-		defer conn.Close()
-
-		for {
-			select {
-			case <-r.Context().Done():
-				return
-
-			case event, ok := <-outgoingChan:
-
-				if !ok {
-					return
-				}
-
-				switch event.Type {
-				case "UPDATE_PDF_FIELDS":
-					api.render(conn, r, oob_swaps.UpdatePDFFields(event), 0)
-				}
-			}
-		}
-	}()
-
-	for {
-		var msg []byte
-		if err := websocket.Message.Receive(conn, &msg); err != nil {
-			if err == io.EOF || strings.Contains(err.Error(), net.ErrClosed.Error()) {
-				return
-			}
-
-			api.err(conn, err, 0, wsStatusInternalError)
-			return
-		}
-
-		var event *domain.GameEvent
-		if err := json.Unmarshal(msg, &event); err != nil {
-			api.err(conn, err, 0, wsStatusUnsupportedData)
-			return
-		}
-
-		incomingChan <- event
-	}
-}
 
 func (api *API) handleCreatePDF(w http.ResponseWriter, r *http.Request) {
 

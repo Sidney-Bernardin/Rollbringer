@@ -14,7 +14,7 @@ import (
 	. "rollbringer/pkg/views"
 )
 
-var DNDCharacterSheetFileLocation = "/static/character_sheet.pdf"
+var DNDCharacterSheetFileLocation = "/static/character_sheet_test.pdf"
 var DNDCharacterSheetPageNames = []string{"main", "info", "spells"}
 
 func PDFViewer(pdfID, pdfFile string, pageNames []string) templ.Component {
