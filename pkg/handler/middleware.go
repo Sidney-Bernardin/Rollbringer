@@ -1,4 +1,4 @@
-package api
+package handler
 
 import (
 	"net/http"
@@ -7,11 +7,11 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (api *API) Log(next http.Handler) http.Handler {
+func (h *Handler) Log(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		// Log the request.
-		api.logger.Info().
+		h.Logger.Info().
 			Str("method", r.Method).
 			Str("url", r.URL.String()).
 			Msg("New request")
@@ -20,32 +20,32 @@ func (api *API) Log(next http.Handler) http.Handler {
 	})
 }
 
-func (api *API) Auth(next http.Handler) http.Handler {
+func (h *Handler) Auth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		// Get the session-ID cookie.
 		stCookie, err := r.Cookie("SESSION_ID")
 		if err != nil {
 			if err == http.ErrNoCookie {
-				api.err(w, domain.ErrUnauthorized, http.StatusUnauthorized, 0)
+				h.err(w, domain.ErrUnauthorized, http.StatusUnauthorized, 0)
 				return
 			}
 
 			err = errors.Wrap(err, "cannot get CSRF_Token cookie")
-			api.err(w, err, http.StatusInternalServerError, 0)
+			h.err(w, err, http.StatusInternalServerError, 0)
 			return
 		}
 
 		// Get the session.
-		session, err := api.service.GetSession(r.Context(), stCookie.Value)
+		session, err := h.Service.GetSession(r.Context(), stCookie.Value)
 		if err != nil {
-			api.domainErr(w, errors.Wrap(err, "cannot get session"))
+			h.domainErr(w, errors.Wrap(err, "cannot get session"))
 			return
 		}
 
 		// Verify the CSRF-Token.
 		if session.CSRFToken != r.Header.Get("CSRF-Token") {
-			api.err(w, domain.ErrUnauthorized, http.StatusUnauthorized, 0)
+			h.err(w, domain.ErrUnauthorized, http.StatusUnauthorized, 0)
 			return
 		}
 
@@ -54,7 +54,7 @@ func (api *API) Auth(next http.Handler) http.Handler {
 	})
 }
 
-func (api *API) LightAuth(next http.Handler) http.Handler {
+func (h *Handler) LightAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		// Get the session-ID cookie.
@@ -66,15 +66,15 @@ func (api *API) LightAuth(next http.Handler) http.Handler {
 			}
 
 			err = errors.Wrap(err, "cannot get CSRF_Token cookie")
-			api.err(w, err, http.StatusInternalServerError, 0)
+			h.err(w, err, http.StatusInternalServerError, 0)
 			return
 		}
 
 		// Get the session.
-		session, err := api.service.GetSession(r.Context(), stCookie.Value)
+		session, err := h.Service.GetSession(r.Context(), stCookie.Value)
 		if err != nil && errors.Cause(err) != domain.ErrUnauthorized {
 			err = errors.Wrap(err, "cannot get session")
-			api.err(w, err, http.StatusInternalServerError, 0)
+			h.err(w, err, http.StatusInternalServerError, 0)
 			return
 		}
 

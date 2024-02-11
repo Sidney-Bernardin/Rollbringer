@@ -5,15 +5,17 @@ import (
 	"os"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/rs/zerolog/pkgerrors"
+	"golang.org/x/net/websocket"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 
-	"rollbringer/pkg/api"
 	"rollbringer/pkg/domain/service"
+	"rollbringer/pkg/handler"
 	"rollbringer/pkg/repositories/database"
 	"rollbringer/pkg/repositories/pubsub"
 )
@@ -59,22 +61,44 @@ func main() {
 		logger.Fatal().Stack().Err(err).Msg("Cannot create pub-sub repository")
 	}
 
-	// Create an API.
-	API := api.New(
-		service.New(&logger, db, ps),
-		&logger,
-		&oauth2.Config{
+	// Create a Handler.
+	h := &handler.Handler{
+		Router:  chi.NewRouter(),
+		Service: service.New(&logger, db, ps),
+		Logger:  &logger,
+		GoogleOAuthConfig: &oauth2.Config{
 			Endpoint:     google.Endpoint,
 			ClientID:     cfg.GoogleClientID,
 			ClientSecret: cfg.GoogleClientSecret,
 			RedirectURL:  cfg.RedirectURL,
 			Scopes:       []string{"openid", "email"},
 		},
-	)
+	}
 
-	logger.Info().Str("address", cfg.Address).Msg("Serving")
+	h.Router.Use(h.Log)
+	h.Router.Handle("/static/*",
+		http.StripPrefix("/static/", http.FileServer(http.FS(os.DirFS("static")))))
+
+	// Basic
+	h.Router.Get("/", h.HandleHomePage)
+	h.Router.With(h.LightAuth).Get("/play", h.HandlePlayPage)
+	h.Router.With(h.LightAuth).Method("GET", "/ws", websocket.Handler(h.HandleWebSocket))
+
+	// Users
+	h.Router.Get("/users/login", h.HandleLogin)
+	h.Router.Get("/users/consent-callback", h.HandleConsentCallback)
+
+	// Games
+	h.Router.With(h.Auth).Post("/games", h.HandleCreateGame)
+	h.Router.With(h.Auth).Delete("/games/{game_id}", h.HandleDeleteGame)
+
+	// Play Materials
+	h.Router.With(h.Auth).Post("/play-materials/pdfs", h.HandleCreatePDF)
+	h.Router.With(h.Auth).Get("/play-materials/pdfs/{pdf_id}", h.HandleGetPDF)
+	h.Router.With(h.Auth).Delete("/play-materials/pdfs/{pdf_id}", h.HandleDeletePDF)
 
 	// Start server.
-	err = http.ListenAndServe(cfg.Address, API)
+	logger.Info().Str("address", cfg.Address).Msg("Serving")
+	err = http.ListenAndServe(cfg.Address, h)
 	logger.Fatal().Stack().Err(err).Msg("Server stopped")
 }

@@ -51,13 +51,13 @@ func (ps *PubSub) SubToGame(ctx context.Context, gameID string, subChan chan *do
 			return
 		}
 
-		var event *domain.Event
+		var event domain.Event
 		if err = json.Unmarshal([]byte(msg.Payload), &subChan); err != nil {
 			ps.logger.Error().Stack().Err(err).Msg("Cannot decode event")
 			return
 		}
 
-		subChan <- event
+		subChan <- &event
 	}
 }
 

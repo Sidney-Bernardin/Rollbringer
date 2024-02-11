@@ -1,4 +1,4 @@
-package api
+package handler
 
 import (
 	"encoding/json"
@@ -15,12 +15,16 @@ import (
 	"rollbringer/pkg/views/pages"
 )
 
-func (api *API) handlePlayPage(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) HandleHomePage(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/play", http.StatusTemporaryRedirect)
+}
+
+func (h *Handler) HandlePlayPage(w http.ResponseWriter, r *http.Request) {
 
 	// Get the game.
-	game, err := api.service.GetGame(r.Context(), r.URL.Query().Get("g"))
+	game, err := h.Service.GetGame(r.Context(), r.URL.Query().Get("g"))
 	if err != nil && errors.Cause(err) != domain.ErrGameNotFound {
-		api.domainErr(w, errors.Wrap(err, "cannot get game"))
+		h.domainErr(w, errors.Wrap(err, "cannot get game"))
 		return
 	}
 	giveToRequest(r, "game", game)
@@ -29,38 +33,38 @@ func (api *API) handlePlayPage(w http.ResponseWriter, r *http.Request) {
 	// logged out, render the page early.
 	session, _ := r.Context().Value("session").(*domain.Session)
 	if session == nil {
-		api.render(w, r, pages.Play(), http.StatusOK)
+		h.render(w, r, pages.Play(), http.StatusOK)
 		return
 	}
 
 	// Get the user.
-	user, err := api.service.GetUser(r.Context(), session.UserID)
+	user, err := h.Service.GetUser(r.Context(), session.UserID)
 	if err != nil {
-		api.domainErr(w, errors.Wrap(err, "cannot get user"))
+		h.domainErr(w, errors.Wrap(err, "cannot get user"))
 		return
 	}
 	giveToRequest(r, "user", user)
 
 	// Get the user's games.
-	games, err := api.service.GetGamesFromUser(r.Context(), session.UserID)
+	games, err := h.Service.GetGamesFromUser(r.Context(), session.UserID)
 	if err != nil {
-		api.domainErr(w, errors.Wrap(err, "cannot get user's games"))
+		h.domainErr(w, errors.Wrap(err, "cannot get user's games"))
 		return
 	}
 	giveToRequest(r, "games", games)
 
 	// Get the user's PDFs.
-	pdfs, err := api.service.GetPDFs(r.Context(), session.UserID)
+	pdfs, err := h.Service.GetPDFs(r.Context(), session.UserID)
 	if err != nil {
-		api.domainErr(w, errors.Wrap(err, "cannot get pdfs"))
+		h.domainErr(w, errors.Wrap(err, "cannot get pdfs"))
 		return
 	}
 	giveToRequest(r, "pdfs", pdfs)
 
-	api.render(w, r, pages.Play(), http.StatusOK)
+	h.render(w, r, pages.Play(), http.StatusOK)
 }
 
-func (api *API) handleWebSocket(conn *websocket.Conn) {
+func (h *Handler) HandleWebSocket(conn *websocket.Conn) {
 
 	var (
 		r = conn.Request()
@@ -69,7 +73,7 @@ func (api *API) handleWebSocket(conn *websocket.Conn) {
 		outgoingChan = make(chan *domain.Event)
 	)
 
-	go api.service.DoEvents(r.Context(), r.URL.Query().Get("g"), incomingChan, outgoingChan)
+	go h.Service.DoEvents(r.Context(), r.URL.Query().Get("g"), incomingChan, outgoingChan)
 
 	go func() {
 		defer conn.Close()
@@ -87,7 +91,7 @@ func (api *API) handleWebSocket(conn *websocket.Conn) {
 
 				switch event.Type {
 				case "UPDATE_PDF_FIELDS":
-					api.render(conn, r, oob_swaps.UpdatePDFFields(event), 0)
+					h.render(conn, r, oob_swaps.UpdatePDFFields(event), 0)
 				}
 			}
 		}
@@ -100,16 +104,16 @@ func (api *API) handleWebSocket(conn *websocket.Conn) {
 				return
 			}
 
-			api.err(conn, err, 0, wsStatusInternalError)
+			h.err(conn, err, 0, wsStatusInternalError)
 			return
 		}
 
-		var event *domain.Event
+		var event domain.Event
 		if err := json.Unmarshal(msg, &event); err != nil {
-			api.err(conn, err, 0, wsStatusUnsupportedData)
+			h.err(conn, err, 0, wsStatusUnsupportedData)
 			return
 		}
 
-		incomingChan <- event
+		incomingChan <- &event
 	}
 }

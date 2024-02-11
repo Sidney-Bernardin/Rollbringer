@@ -77,7 +77,7 @@ func PDFViewer(pdfID, pdfFile string, pageNames []string) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</ul><div class=\"wrapper\"><form hx-trigger=\"change\" ws-send><div style=\"display: none\"><input name=\"TYPE\" value=\"UPDATE_PDF_FIELDS\"> <input name=\"sender_id\" value=\"")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</ul><div class=\"wrapper\"><form hx-trigger=\"change\" ws-send><div style=\"display: none\"><input name=\"TYPE\" value=\"UPDATE_PDF_PAGE\"> <input name=\"sender_id\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

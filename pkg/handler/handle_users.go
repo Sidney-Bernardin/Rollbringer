@@ -1,4 +1,4 @@
-package api
+package handler
 
 import (
 	"net/http"
@@ -12,7 +12,7 @@ import (
 	"rollbringer/pkg/domain"
 )
 
-func (api *API) handleLogin(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 	var (
 		state        = mustGetRandHexStr()
@@ -28,40 +28,40 @@ func (api *API) handleLogin(w http.ResponseWriter, r *http.Request) {
 	})
 
 	// Generate and redirect to the consent URL.
-	consentURL := api.googleOAuthConfig.AuthCodeURL(state, oauth2.S256ChallengeOption(codeVerifier))
+	consentURL := h.GoogleOAuthConfig.AuthCodeURL(state, oauth2.S256ChallengeOption(codeVerifier))
 	http.Redirect(w, r, consentURL, http.StatusTemporaryRedirect)
 }
 
-func (api *API) handleConsentCallback(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) HandleConsentCallback(w http.ResponseWriter, r *http.Request) {
 
 	// Get the state/code-verifier cookie.
 	cookie, err := r.Cookie("STATE_AND_VERIFIER")
 	if err != nil {
-		api.err(w, domain.ErrUnauthorized, http.StatusUnauthorized, 0)
+		h.err(w, domain.ErrUnauthorized, http.StatusUnauthorized, 0)
 		return
 	}
 
 	// Get the state and code-verifier from the cookie.
 	state_and_verifier := strings.Split(cookie.Value, ",")
 	if len(state_and_verifier) != 2 {
-		api.err(w, domain.ErrUnauthorized, http.StatusUnauthorized, 0)
+		h.err(w, domain.ErrUnauthorized, http.StatusUnauthorized, 0)
 		return
 	}
 
 	// Verify both state.
 	if r.FormValue("state") != state_and_verifier[0] {
-		api.err(w, domain.ErrUnauthorized, http.StatusUnauthorized, 0)
+		h.err(w, domain.ErrUnauthorized, http.StatusUnauthorized, 0)
 		return
 	}
 
 	// Exchange the code for an oauth token.
-	token, err := api.googleOAuthConfig.Exchange(
+	token, err := h.GoogleOAuthConfig.Exchange(
 		r.Context(),
 		r.FormValue("code"),
 		oauth2.VerifierOption(state_and_verifier[1]))
 
 	if err != nil {
-		api.err(w, domain.ErrUnauthorized, http.StatusUnauthorized, 0)
+		h.err(w, domain.ErrUnauthorized, http.StatusUnauthorized, 0)
 		return
 	}
 
@@ -69,7 +69,7 @@ func (api *API) handleConsentCallback(w http.ResponseWriter, r *http.Request) {
 	idTokenStr, ok := token.Extra("id_token").(string)
 	if !ok {
 		err = errors.New("id_token should be string, but is not")
-		api.err(w, err, http.StatusInternalServerError, 0)
+		h.err(w, err, http.StatusInternalServerError, 0)
 		return
 	}
 
@@ -77,14 +77,14 @@ func (api *API) handleConsentCallback(w http.ResponseWriter, r *http.Request) {
 	idToken, _, err := jwt.NewParser().ParseUnverified(idTokenStr, &openIDConnectClaims{})
 	if err != nil {
 		err = errors.Wrap(err, "cannot parse ID token")
-		api.err(w, err, http.StatusInternalServerError, 0)
+		h.err(w, err, http.StatusInternalServerError, 0)
 		return
 	}
 
 	// Login the user.
-	sessionID, err := api.service.LoginUser(r.Context(), idToken.Claims.(*openIDConnectClaims).Subject)
+	sessionID, err := h.Service.LoginUser(r.Context(), idToken.Claims.(*openIDConnectClaims).Subject)
 	if err != nil {
-		api.domainErr(w, errors.Wrap(err, "cannot login user"))
+		h.domainErr(w, errors.Wrap(err, "cannot login user"))
 		return
 	}
 

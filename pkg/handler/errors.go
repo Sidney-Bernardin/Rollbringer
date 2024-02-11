@@ -1,4 +1,4 @@
-package api
+package handler
 
 import (
 	"io"
@@ -9,12 +9,19 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-func (api *API) err(writer io.Writer, e error, httpStatus, wsStatus int) {
+const (
+	wsStatusNormalClosure   = 1000
+	wsStatusUnsupportedData = 1003
+	wsStatusPolicyViolation = 1008
+	wsStatusInternalError   = 1011
+)
+
+func (h *Handler) err(writer io.Writer, e error, httpStatus, wsStatus int) {
 	switch w := writer.(type) {
 	case http.ResponseWriter:
 
 		if httpStatus >= 500 {
-			api.logger.Error().Stack().Err(e).Msg("Internal server error")
+			h.Logger.Error().Stack().Err(e).Msg("Internal server error")
 			e = errors.New("internal server error")
 		}
 
@@ -23,19 +30,19 @@ func (api *API) err(writer io.Writer, e error, httpStatus, wsStatus int) {
 	case *websocket.Conn:
 
 		if wsStatus == 1011 {
-			api.logger.Error().Stack().Err(e).Msg("Internal server error")
+			h.Logger.Error().Stack().Err(e).Msg("Internal server error")
 			e = errors.New("internal server error")
 		}
 
 		if err := w.WriteClose(wsStatus); err != nil {
-			api.logger.Error().Stack().Err(err).Msg("Cannot write close status")
+			h.Logger.Error().Stack().Err(err).Msg("Cannot write close status")
 		}
 
 		w.Close()
 	}
 }
 
-func (api *API) domainErr(writer io.Writer, err error) {
+func (h *Handler) domainErr(writer io.Writer, err error) {
 
 	var (
 		res = errors.Cause(err)
@@ -70,5 +77,5 @@ func (api *API) domainErr(writer io.Writer, err error) {
 		res = err
 	}
 
-	api.err(writer, res, httpStatus, wsStatus)
+	h.err(writer, res, httpStatus, wsStatus)
 }

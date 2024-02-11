@@ -27,7 +27,7 @@ templ PDFViewer(pdfID, pdfFile string, pageNames []string) {
 		<div class="wrapper">
 			<form hx-trigger="change" ws-send>
 				<div style="display: none">
-					<input name="TYPE" value="UPDATE_PDF_FIELDS"/>
+					<input name="TYPE" value="UPDATE_PDF_PAGE"/>
 					<input name="sender_id" value={ GetSession(ctx).UserID }/>
 					<input name="pdf_id" value={ pdfID }/>
 					<input name="page_num" x-bind:value="currentPage"/>

@@ -19,6 +19,7 @@ func (db *Database) Login(ctx context.Context, googleID string) (string, error) 
 	if err != nil {
 		return "", errors.Wrap(err, "cannot select user")
 	}
+	defer rows.Close()
 
 	// Scan first row into a user model.
 	user, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[domain.User])

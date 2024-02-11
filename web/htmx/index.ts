@@ -7,14 +7,16 @@ document.body.addEventListener("htmx:responseError", (e: CustomEvent) => {
 
 document.body.addEventListener("htmx:wsConfigSend", (e: CustomEvent) => {
     switch (e.detail.parameters["TYPE"]) {
-        case "UPDATE_PDF_FIELDS":
+        case "UPDATE_PDF_PAGE":
             e.detail.parameters["pdf_fields"] = {};
+
             for (const [k, v] of Object.entries(e.detail.parameters)) {
                 if (k.startsWith("PDF_")) {
-                    e.detail.parameters["pdf_fields"][k.replace("PDF_", "")] = v;
+                    e.detail.parameters["pdf_fields"][k] = v;
                     delete e.detail.parameters[k];
                 }
             }
+
             break;
     }
 });

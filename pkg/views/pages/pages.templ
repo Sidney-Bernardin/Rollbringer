@@ -39,15 +39,15 @@ templ Play() {
 				@DynamicTabContainer("play-layout__top")
 				@DynamicTabContainer("play-layout__left")
 				@StaticTabContainer("play-layout__bottom", map[string]templ.Component{
-          "PDFs": PDFs(),
-          "Scenes": templ.NopComponent,
-          "Assets": templ.NopComponent,
-          "Combat": templ.NopComponent,
-        })
+                    "PDFs": PDFs(),
+                    "Scenes": templ.NopComponent,
+                    "Assets": templ.NopComponent,
+                    "Combat": templ.NopComponent,
+                })
 				@StaticTabContainer("play-layout__right", map[string]templ.Component{
-          "Chat": Chat(),
-          "Profile": Profile(),
-        })
+                    "Chat": Chat(),
+                    "Profile": Profile(),
+                })
 				<span class="play-layout__gutter-1"></span>
 				<span class="play-layout__gutter-2"></span>
 				<span class="play-layout__gutter-3"></span>

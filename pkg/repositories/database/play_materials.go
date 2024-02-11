@@ -90,7 +90,7 @@ func (db *Database) UpdatePDFPage(ctx context.Context, pdfID string, pageNum int
 	// Update the PDF with the PDF-ID.
 	cmdTag, err := db.conn.Exec(ctx,
 		`UPDATE pdfs SET pages[$1] = $2 WHERE id = $3`,
-		pageNum, string(pdfFieldsJSON), pdfUUID)
+		pageNum-1, string(pdfFieldsJSON), pdfUUID)
 
 	if err != nil {
 		return errors.Wrap(err, "cannot update pdf")
