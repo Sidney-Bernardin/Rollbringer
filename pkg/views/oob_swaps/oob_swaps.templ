@@ -7,12 +7,12 @@ import (
 	. "rollbringer/pkg/views/components/navigation"
 )
 
-templ AddPDFViewerTab(name string, content templ.Component) {
+templ AddPDFViewerTab(PDFID, name string, content templ.Component) {
 	<div hx-swap-oob="beforeend:.play-layout__left .dynamic-tab-container__list">
-		@TabButton(name)
+		@TabButton(PDFID, name)
 	</div>
 	<div hx-swap-oob="beforeend:.play-layout__left .dynamic-tab-container__wrapper">
-		@TabItem(name, content)
+		@TabItem(PDFID, content)
 	</div>
 }
 

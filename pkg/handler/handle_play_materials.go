@@ -29,10 +29,10 @@ func (h *Handler) HandleCreatePDF(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) HandleGetPDF(w http.ResponseWriter, r *http.Request) {
 
-	session, _ := r.Context().Value("session").(*domain.Session)
+	_, _ = r.Context().Value("session").(*domain.Session)
 
 	// Get the PDF.
-	pdf, err := h.Service.GetPDF(r.Context(), chi.URLParam(r, "pdf_id"), session.UserID)
+	pdf, err := h.Service.GetPDF(r.Context(), chi.URLParam(r, "pdf_id"))
 	if err != nil {
 		h.domainErr(w, errors.Wrap(err, "cannot get pdf"))
 		return
@@ -41,6 +41,7 @@ func (h *Handler) HandleGetPDF(w http.ResponseWriter, r *http.Request) {
 	// Respond with a PDF-viewer tab.
 	h.render(w, r,
 		oob_swaps.AddPDFViewerTab(
+			pdf.ID,
 			pdf.Name,
 			components.PDFViewer(
 				pdf.ID,

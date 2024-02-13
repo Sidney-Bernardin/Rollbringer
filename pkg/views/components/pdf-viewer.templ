@@ -10,7 +10,7 @@ var DNDCharacterSheetPageNames = []string{"main", "info", "spells"}
 templ PDFViewer(pdfID, pdfFile string, pageNames []string) {
 	<div
 		class="pdf-viewer"
-		x-data={ F("pdfViewer('%s') ", pdfFile) }
+		x-data={ F("pdfViewer('%s', '%s') ", pdfFile, pdfID) }
 		data-pdf-id={ pdfID }
 	>
 		<ul>
@@ -25,7 +25,13 @@ templ PDFViewer(pdfID, pdfFile string, pageNames []string) {
 			}
 		</ul>
 		<div class="wrapper">
-			<form hx-trigger="change" ws-send>
+            <form class="init-pdf-page" style="display: none" ws-send>
+                <input name="TYPE" value="INIT_PDF_PAGE"/>
+                <input name="sender_id" value={ GetSession(ctx).UserID }/>
+                <input name="pdf_id" value={ pdfID }/>
+                <input name="page_num" x-bind:value="currentPage"/>
+            </form>
+			<form class="viewer-container" hx-trigger="change" ws-send>
 				<div style="display: none">
 					<input name="TYPE" value="UPDATE_PDF_PAGE"/>
 					<input name="sender_id" value={ GetSession(ctx).UserID }/>

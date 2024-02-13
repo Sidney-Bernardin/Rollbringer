@@ -17,7 +17,7 @@ type PubSub struct {
 }
 
 // New returns a new PubSub that connects to a Redis server.
-func New(rootLogger *zerolog.Logger, addr, passw string) (*PubSub, error) {
+func New(logger *zerolog.Logger, addr, passw string) (*PubSub, error) {
 
 	// Connect to the Redis server.
 	c := redis.NewClient(&redis.Options{
@@ -30,29 +30,31 @@ func New(rootLogger *zerolog.Logger, addr, passw string) (*PubSub, error) {
 		return nil, errors.Wrap(err, "cannot ping redis server")
 	}
 
-	pubsubLogger := rootLogger.With().Str("component", "pubsub").Logger()
-
 	return &PubSub{
 		client: c,
-		logger: &pubsubLogger,
+		logger: logger,
 	}, nil
 }
 
+// SubToGame receives events from the game's topic and sends them to subChan.
 func (ps *PubSub) SubToGame(ctx context.Context, gameID string, subChan chan *domain.Event) {
 
+	// Subscribe to the game's Redis channel.
 	sub := ps.client.Subscribe(ctx, gameID)
 	defer sub.Close()
 
 	for {
 
+		// Receive the next message.
 		msg, err := sub.ReceiveMessage(ctx)
 		if err != nil {
 			ps.logger.Error().Stack().Err(err).Msg("Cannot receive message")
 			return
 		}
 
+		// Decode the event.
 		var event domain.Event
-		if err = json.Unmarshal([]byte(msg.Payload), &subChan); err != nil {
+		if err = json.Unmarshal([]byte(msg.Payload), &event); err != nil {
 			ps.logger.Error().Stack().Err(err).Msg("Cannot decode event")
 			return
 		}
@@ -61,6 +63,7 @@ func (ps *PubSub) SubToGame(ctx context.Context, gameID string, subChan chan *do
 	}
 }
 
+// PubToGame sends the event to the game's topic.
 func (ps *PubSub) PubToGame(ctx context.Context, topic string, event *domain.Event) error {
 	eventBytes, err := json.Marshal(event)
 	if err != nil {

@@ -17,7 +17,7 @@ import (
 	. "rollbringer/pkg/views/components/navigation"
 )
 
-func AddPDFViewerTab(name string, content templ.Component) templ.Component {
+func AddPDFViewerTab(PDFID, name string, content templ.Component) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -34,7 +34,7 @@ func AddPDFViewerTab(name string, content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = TabButton(name).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = TabButton(PDFID, name).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -42,7 +42,7 @@ func AddPDFViewerTab(name string, content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = TabItem(name, content).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = TabItem(PDFID, content).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

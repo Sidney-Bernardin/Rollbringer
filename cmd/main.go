@@ -61,10 +61,17 @@ func main() {
 		logger.Fatal().Stack().Err(err).Msg("Cannot create pub-sub repository")
 	}
 
+	// Create a Service
+	svc := &service.Service{
+		DB:     db,
+		PS:     ps,
+		Logger: &logger,
+	}
+
 	// Create a Handler.
 	h := &handler.Handler{
 		Router:  chi.NewRouter(),
-		Service: service.New(&logger, db, ps),
+		Service: svc,
 		Logger:  &logger,
 		GoogleOAuthConfig: &oauth2.Config{
 			Endpoint:     google.Endpoint,
@@ -79,20 +86,16 @@ func main() {
 	h.Router.Handle("/static/*",
 		http.StripPrefix("/static/", http.FileServer(http.FS(os.DirFS("static")))))
 
-	// Basic
 	h.Router.Get("/", h.HandleHomePage)
 	h.Router.With(h.LightAuth).Get("/play", h.HandlePlayPage)
 	h.Router.With(h.LightAuth).Method("GET", "/ws", websocket.Handler(h.HandleWebSocket))
 
-	// Users
 	h.Router.Get("/users/login", h.HandleLogin)
 	h.Router.Get("/users/consent-callback", h.HandleConsentCallback)
 
-	// Games
 	h.Router.With(h.Auth).Post("/games", h.HandleCreateGame)
 	h.Router.With(h.Auth).Delete("/games/{game_id}", h.HandleDeleteGame)
 
-	// Play Materials
 	h.Router.With(h.Auth).Post("/play-materials/pdfs", h.HandleCreatePDF)
 	h.Router.With(h.Auth).Get("/play-materials/pdfs/{pdf_id}", h.HandleGetPDF)
 	h.Router.With(h.Auth).Delete("/play-materials/pdfs/{pdf_id}", h.HandleDeletePDF)

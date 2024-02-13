@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
@@ -12,20 +13,13 @@ import (
 )
 
 type Service struct {
-	db *database.Database
-	ps *pubsub.PubSub
+	DB *database.Database
+	PS *pubsub.PubSub
 
-	logger *zerolog.Logger
+	Logger *zerolog.Logger
 }
 
-func New(logger *zerolog.Logger, db *database.Database, ps *pubsub.PubSub) *Service {
-	return &Service{
-		db:     db,
-		ps:     ps,
-		logger: logger,
-	}
-}
-
+// DoEvents processes events. outgoingChan closes before returning.
 func (svc *Service) DoEvents(
 	ctx context.Context,
 	gameID string,
@@ -37,14 +31,16 @@ func (svc *Service) DoEvents(
 	// Get the game.
 	game, err := svc.GetGame(ctx, gameID)
 	if err != nil && errors.Cause(err) != domain.ErrGameNotFound {
-		svc.logger.Error().Stack().Err(err).Msg("Cannot get game")
+		svc.Logger.Error().Stack().Err(err).Msg("Cannot get game")
 		return
 	}
 
 	if game != nil {
-		go svc.ps.SubToGame(ctx, game.ID, outgoingChan)
+		// Subscribe to the game's events.
+		go svc.PS.SubToGame(ctx, game.ID, outgoingChan)
 	}
 
+	// Process incoming events.
 	for {
 		select {
 		case <-ctx.Done():
@@ -53,20 +49,44 @@ func (svc *Service) DoEvents(
 		case event := <-incomingChan:
 			switch event.Type {
 
-			case "UPDATE_PDF_PAGE":
+			case "INIT_PDF_PAGE":
 
-				err = svc.db.UpdatePDFPage(ctx, event.PDFID, event.PageNum, event.PDFFields)
+				// Get the PDF.
+				pdf, err := svc.DB.GetPDF(ctx, event.PDFID)
 				if err != nil {
 					if errors.Cause(err) == domain.ErrPlayMaterialNotFound {
 						continue
 					}
 
-					svc.logger.Error().Stack().Err(err).Msg("Cannot update PDF")
+					svc.Logger.Error().Stack().Err(err).Msg("Cannot get PDF")
 					return
 				}
 
-				if err := svc.ps.PubToGame(ctx, gameID, event); err != nil {
-					svc.logger.Error().Stack().Err(err).Msg("Cannot publish event")
+				// Decode the PDF page.
+				err = json.Unmarshal([]byte(pdf.Pages[event.PageNum-1]), &event.PDFFields)
+				if err != nil {
+					svc.Logger.Error().Stack().Err(err).Msg("Cannot unmarshal PDF page")
+					return
+				}
+
+				outgoingChan <- event
+
+			case "UPDATE_PDF_PAGE":
+
+				// Update the PDF page.
+				err = svc.DB.UpdatePDFPage(ctx, event.PDFID, event.PageNum, event.PDFFields)
+				if err != nil {
+					if errors.Cause(err) == domain.ErrPlayMaterialNotFound {
+						continue
+					}
+
+					svc.Logger.Error().Stack().Err(err).Msg("Cannot update PDF")
+					return
+				}
+
+				// Publish the event for the game.
+				if err := svc.PS.PubToGame(ctx, gameID, event); err != nil {
+					svc.Logger.Error().Stack().Err(err).Msg("Cannot publish event")
 					return
 				}
 			}

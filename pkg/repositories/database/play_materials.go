@@ -21,7 +21,7 @@ func (db *Database) InsertPDF(ctx context.Context, ownerID string, schema string
 	// Insert a new PDF for the owner.
 	_, err := db.conn.Exec(ctx,
 		`INSERT INTO pdfs (id, owner_id, name, schema, pages) VALUES ($1, $2, $3, $4, $5)`,
-		pdfID, ownerUUID, name, schema, make([]string, domain.PDFSchemaToPageCount[schema]))
+		pdfID, ownerUUID, name, schema, []string{"{}", "{}", "{}"})
 
 	if err != nil {
 		return "", "", errors.Wrap(err, "cannot insert pdf")
@@ -32,13 +32,12 @@ func (db *Database) InsertPDF(ctx context.Context, ownerID string, schema string
 
 // GetPDF returns the PDF with the PDF-ID from the database. If the PDF doesn't
 // exist, returns domain.ErrPlayMaterialNotFound.
-func (db *Database) GetPDF(ctx context.Context, pdfID, ownerID string) (*domain.PDF, error) {
+func (db *Database) GetPDF(ctx context.Context, pdfID string) (*domain.PDF, error) {
 
 	pdfUUID, _ := uuid.Parse(pdfID)
-	ownerUUID, _ := uuid.Parse(ownerID)
 
 	// Get the PDF with the PDF-ID.
-	rows, err := db.conn.Query(ctx, `SELECT * FROM pdfs WHERE id = $1 AND owner_id = $2`, pdfUUID, ownerUUID)
+	rows, err := db.conn.Query(ctx, `SELECT * FROM pdfs WHERE id = $1`, pdfUUID)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot select pdf")
 	}

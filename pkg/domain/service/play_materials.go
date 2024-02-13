@@ -9,21 +9,21 @@ import (
 )
 
 func (svc *Service) CreatePDF(ctx context.Context, userID, schema string) (string, string, error) {
-	pdfID, title, err := svc.db.InsertPDF(ctx, userID, schema)
+	pdfID, title, err := svc.DB.InsertPDF(ctx, userID, schema)
 	return pdfID, title, errors.Wrap(err, "cannot insert PDF")
 }
 
-func (svc *Service) GetPDF(ctx context.Context, ownerID, pdfID string) (*domain.PDF, error) {
-	pdf, err := svc.db.GetPDF(ctx, ownerID, pdfID)
+func (svc *Service) GetPDF(ctx context.Context, pdfID string) (*domain.PDF, error) {
+	pdf, err := svc.DB.GetPDF(ctx, pdfID)
 	return pdf, errors.Wrap(err, "cannot get pdf")
 }
 
 func (svc *Service) GetPDFs(ctx context.Context, ownerID string) ([]*domain.PDF, error) {
-	pdf, err := svc.db.GetPDFs(ctx, ownerID)
+	pdf, err := svc.DB.GetPDFs(ctx, ownerID)
 	return pdf, errors.Wrap(err, "cannot get pdfs")
 }
 
 func (svc *Service) DeletePDF(ctx context.Context, pdfID, userID string) error {
-	err := svc.db.DeletePDF(ctx, pdfID, userID)
+	err := svc.DB.DeletePDF(ctx, pdfID, userID)
 	return errors.Wrap(err, "cannot delete pdf")
 }

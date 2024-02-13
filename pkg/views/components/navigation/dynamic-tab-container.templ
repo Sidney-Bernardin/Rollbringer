@@ -5,32 +5,32 @@ import (
 )
 
 templ DynamicTabContainer(class string) {
-	<div class={ "dynamic-tab-container", class } x-data="{ currentDynamicTab: '' }">
+	<div class={ "dynamic-tab-container", class } x-data="{ currentDynamicTab: ''}">
 		<ul class="dynamic-tab-container__list"></ul>
 		<div class="dynamic-tab-container__wrapper"></div>
 	</div>
 }
 
-templ TabButton(name string) {
+templ TabButton(tabID, name string) {
 	<li
 		class="tab-button"
-		x-data={ F(`{ tabName: '%s' }`, name) }
-		x-bind:class="currentDynamicTab == tabName && 'active'"
-		x-on:click="currentDynamicTab = tabName"
+		x-data={ F(`{ tabID: '%s' }`, tabID) }
+		x-bind:class="currentDynamicTab == tabID && 'active'"
+		x-on:click="currentDynamicTab = tabID"
 		x-on:close-tab="$el.remove()"
 	>
 		{ name }
-		<button x-on:click="$dispatch('close-tab', { tabName })">
+		<button x-on:click="$dispatch('close-tab', { tabID })">
 			<iconify-icon icon="material-symbols:close"></iconify-icon>
 		</button>
 	</li>
 }
 
-templ TabItem(name string, content templ.Component) {
+templ TabItem(tabID string, content templ.Component) {
 	<div
-		x-data={ F(`{ tabName: '%s' }`, name) }
-		x-show="currentDynamicTab == tabName"
-		x-on:close-tab.window="($event.detail.tabName == tabName) && $el.remove()"
+		x-data={ F(`{ tabID: '%s' }`, tabID) }
+		x-show="currentDynamicTab == tabID"
+		x-on:close-tab.window="($event.detail.tabID == tabID) && $el.remove()"
 	>
 		@content
 	</div>

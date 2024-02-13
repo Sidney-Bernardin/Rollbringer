@@ -73,8 +73,10 @@ func (h *Handler) HandleWebSocket(conn *websocket.Conn) {
 		outgoingChan = make(chan *domain.Event)
 	)
 
+	// Process events in another go-routine.
 	go h.Service.DoEvents(r.Context(), r.URL.Query().Get("g"), incomingChan, outgoingChan)
 
+	// Prepare outoutgoing events in another go-routine.
 	go func() {
 		defer conn.Close()
 
@@ -90,7 +92,9 @@ func (h *Handler) HandleWebSocket(conn *websocket.Conn) {
 				}
 
 				switch event.Type {
-				case "UPDATE_PDF_FIELDS":
+
+				// Respond with updated PDF fields.
+				case "UPDATE_PDF_PAGE", "INIT_PDF_PAGE":
 					h.render(conn, r, oob_swaps.UpdatePDFFields(event), 0)
 				}
 			}
@@ -98,6 +102,8 @@ func (h *Handler) HandleWebSocket(conn *websocket.Conn) {
 	}()
 
 	for {
+
+		// Receive the next message from the client.
 		var msg []byte
 		if err := websocket.Message.Receive(conn, &msg); err != nil {
 			if err == io.EOF || strings.Contains(err.Error(), net.ErrClosed.Error()) {
@@ -108,6 +114,7 @@ func (h *Handler) HandleWebSocket(conn *websocket.Conn) {
 			return
 		}
 
+		// Decode the event.
 		var event domain.Event
 		if err := json.Unmarshal(msg, &event); err != nil {
 			h.err(conn, err, 0, wsStatusUnsupportedData)

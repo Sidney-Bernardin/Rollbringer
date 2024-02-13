@@ -25,6 +25,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.Router.ServeHTTP(w, r)
 }
 
+// render writes the Templ component to the io.Writer.
 func (h *Handler) render(w io.Writer, r *http.Request, component templ.Component, httpStatus int) {
 
 	if rw, ok := w.(http.ResponseWriter); ok {

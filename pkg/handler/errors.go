@@ -16,10 +16,12 @@ const (
 	wsStatusInternalError   = 1011
 )
 
+// err writes the error to the io.Writer.
 func (h *Handler) err(writer io.Writer, e error, httpStatus, wsStatus int) {
 	switch w := writer.(type) {
 	case http.ResponseWriter:
 
+		// Log and mask internal server errors.
 		if httpStatus >= 500 {
 			h.Logger.Error().Stack().Err(e).Msg("Internal server error")
 			e = errors.New("internal server error")
@@ -29,19 +31,21 @@ func (h *Handler) err(writer io.Writer, e error, httpStatus, wsStatus int) {
 
 	case *websocket.Conn:
 
-		if wsStatus == 1011 {
+		// Log and mask internal server errors.
+		if wsStatus == wsStatusInternalError {
 			h.Logger.Error().Stack().Err(e).Msg("Internal server error")
 			e = errors.New("internal server error")
 		}
 
+		// Close the connection.
 		if err := w.WriteClose(wsStatus); err != nil {
 			h.Logger.Error().Stack().Err(err).Msg("Cannot write close status")
 		}
-
 		w.Close()
 	}
 }
 
+// domainErr processes errors from pkg/domain and writes them to the io.Writer.
 func (h *Handler) domainErr(writer io.Writer, err error) {
 
 	var (

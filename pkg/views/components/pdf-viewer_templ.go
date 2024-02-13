@@ -34,7 +34,7 @@ func PDFViewer(pdfID, pdfFile string, pageNames []string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(F("pdfViewer('%s') ", pdfFile)))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(F("pdfViewer('%s', '%s') ", pdfFile, pdfID)))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -77,7 +77,23 @@ func PDFViewer(pdfID, pdfFile string, pageNames []string) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</ul><div class=\"wrapper\"><form hx-trigger=\"change\" ws-send><div style=\"display: none\"><input name=\"TYPE\" value=\"UPDATE_PDF_PAGE\"> <input name=\"sender_id\" value=\"")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</ul><div class=\"wrapper\"><form class=\"init-pdf-page\" style=\"display: none\" ws-send><input name=\"TYPE\" value=\"INIT_PDF_PAGE\"> <input name=\"sender_id\" value=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(GetSession(ctx).UserID))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"> <input name=\"pdf_id\" value=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(pdfID))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"> <input name=\"page_num\" x-bind:value=\"currentPage\"></form><form class=\"viewer-container\" hx-trigger=\"change\" ws-send><div style=\"display: none\"><input name=\"TYPE\" value=\"UPDATE_PDF_PAGE\"> <input name=\"sender_id\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
