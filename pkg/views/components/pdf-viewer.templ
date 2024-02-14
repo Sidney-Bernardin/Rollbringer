@@ -46,37 +46,36 @@ templ PDFViewer(pdfID, pdfFile string, pageNames []string) {
 }
 
 templ roller() {
-	<form class="roller" x-bind:class="rolling && 'active'">
+	<form class="roller" x-data="roller" x-bind:class="rolling && 'active'" ws-send>
 		<input type="submit" value="Roll!"/>
 		<div class="roll">
 			<ul>
+				<template x-for="die in dice">
+					<li>
+						<button x-on:click.prevent="removeDie(die)">
+							<input type="text" style="display: none" name="dice" x-bind:value="die"/>
+							<iconify-icon x-bind:icon="`mdi:dice-${die}-outline`"></iconify-icon>
+						</button>
+					</li>
+				</template>
 				<li>
-					<button>
-						<iconify-icon icon="mdi:dice-d8-outline"></iconify-icon>
-					</button>
-				</li>
-				<li>
-					<button>
-						<iconify-icon icon="mdi:dice-d4-outline"></iconify-icon>
-					</button>
-				</li>
-				<li>
-					<select name="die">
-						<option value="d4">d4</option>
-						<option value="d6">d6</option>
-						<option value="d8">d8</option>
-						<option value="d10">d10</option>
-						<option value="d12">d12</option>
+					<select x-on:change="addDie">
+						<option value="default">Add Die</option>
 						<option value="d20">d20</option>
+						<option value="d12">d12</option>
+						<option value="d10">d10</option>
+						<option value="d8">d8</option>
+						<option value="d6">d6</option>
+						<option value="d4">d4</option>
 					</select>
 				</li>
 			</ul>
 			<span>+</span>
-			<input type="text"/>
+			<input type="text" name="modifier"/>
 		</div>
 		<button
 			class="roll-btn"
-			x-on:click.prevent="rolling = !rolling"
+			x-on:click="rolling = !rolling"
 		>
 			<iconify-icon icon="game-icons:dice-fire"></iconify-icon>
 		</button>

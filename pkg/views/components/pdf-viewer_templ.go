@@ -141,29 +141,29 @@ func roller() templ.Component {
 			templ_7745c5c3_Var3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form class=\"roller\" x-bind:class=\"rolling &amp;&amp; &#39;active&#39;\"><input type=\"submit\" value=\"Roll!\"><div class=\"roll\"><ul><li><button><iconify-icon icon=\"mdi:dice-d8-outline\"></iconify-icon></button></li><li><button><iconify-icon icon=\"mdi:dice-d4-outline\"></iconify-icon></button></li><li><select name=\"die\"><option value=\"d4\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form class=\"roller\" x-data=\"roller\" x-bind:class=\"rolling &amp;&amp; &#39;active&#39;\" ws-send><input type=\"submit\" value=\"Roll!\"><div class=\"roll\"><ul><template x-for=\"die in dice\"><li><button x-on:click.prevent=\"removeDie(die)\"><input type=\"text\" style=\"display: none\" name=\"dice\" x-bind:value=\"die\"> <iconify-icon x-bind:icon=\"`mdi:dice-${die}-outline`\"></iconify-icon></button></li></template><li><select x-on:change=\"addDie\"><option value=\"default\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Var4 := `d4`
+		templ_7745c5c3_Var4 := `Add Die`
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</option> <option value=\"d6\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</option> <option value=\"d20\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Var5 := `d6`
+		templ_7745c5c3_Var5 := `d20`
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</option> <option value=\"d8\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</option> <option value=\"d12\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Var6 := `d8`
+		templ_7745c5c3_Var6 := `d12`
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var6)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -177,21 +177,30 @@ func roller() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</option> <option value=\"d12\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</option> <option value=\"d8\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Var8 := `d12`
+		templ_7745c5c3_Var8 := `d8`
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</option> <option value=\"d20\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</option> <option value=\"d6\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Var9 := `d20`
+		templ_7745c5c3_Var9 := `d6`
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var9)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</option> <option value=\"d4\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Var10 := `d4`
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -199,12 +208,12 @@ func roller() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Var10 := `+`
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
+		templ_7745c5c3_Var11 := `+`
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</span> <input type=\"text\"></div><button class=\"roll-btn\" x-on:click.prevent=\"rolling = !rolling\"><iconify-icon icon=\"game-icons:dice-fire\"></iconify-icon></button></form>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</span> <input type=\"text\" name=\"modifier\"></div><button class=\"roll-btn\" x-on:click=\"rolling = !rolling\"><iconify-icon icon=\"game-icons:dice-fire\"></iconify-icon></button></form>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -31,9 +31,10 @@ type Event struct {
 	Headers map[string]any `json:"HEADERS"`
 	Type    string         `json:"TYPE"`
 
-	PDFID    string `json:"pdf_id,omitempty"`
-	SenderID string `json:"sender_ID,omitempty"`
-	PageNum  int    `json:"page_num,string,omitempty"`
-
+	PDFID     string            `json:"pdf_id,omitempty"`
+	SenderID  string            `json:"sender_ID,omitempty"`
+	PageNum   int               `json:"page_num,string,omitempty"`
 	PDFFields map[string]string `json:"pdf_fields"`
+
+	Modifier string `json:"modifier,omitempty"`
 }
