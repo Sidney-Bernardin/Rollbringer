@@ -95,7 +95,7 @@ func UpdatePDFFields(event *domain.Event) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"></div>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" x-bind:class=\"rolling &amp;&amp; &#39;rolling&#39;\"></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -25,12 +25,13 @@ templ PDFViewer(pdfID, pdfFile string, pageNames []string) {
 			}
 		</ul>
 		<div class="wrapper">
-            <form class="init-pdf-page" style="display: none" ws-send>
-                <input name="TYPE" value="INIT_PDF_PAGE"/>
-                <input name="sender_id" value={ GetSession(ctx).UserID }/>
-                <input name="pdf_id" value={ pdfID }/>
-                <input name="page_num" x-bind:value="currentPage"/>
-            </form>
+			@roller()
+			<form class="init-pdf-page" style="display: none" ws-send>
+				<input name="TYPE" value="INIT_PDF_PAGE"/>
+				<input name="sender_id" value={ GetSession(ctx).UserID }/>
+				<input name="pdf_id" value={ pdfID }/>
+				<input name="page_num" x-bind:value="currentPage"/>
+			</form>
 			<form class="viewer-container" hx-trigger="change" ws-send>
 				<div style="display: none">
 					<input name="TYPE" value="UPDATE_PDF_PAGE"/>
@@ -42,4 +43,42 @@ templ PDFViewer(pdfID, pdfFile string, pageNames []string) {
 			</form>
 		</div>
 	</div>
+}
+
+templ roller() {
+	<form class="roller" x-bind:class="rolling && 'active'">
+		<input type="submit" value="Roll!"/>
+		<div class="roll">
+			<ul>
+				<li>
+					<button>
+						<iconify-icon icon="mdi:dice-d8-outline"></iconify-icon>
+					</button>
+				</li>
+				<li>
+					<button>
+						<iconify-icon icon="mdi:dice-d4-outline"></iconify-icon>
+					</button>
+				</li>
+				<li>
+					<select name="die">
+						<option value="d4">d4</option>
+						<option value="d6">d6</option>
+						<option value="d8">d8</option>
+						<option value="d10">d10</option>
+						<option value="d12">d12</option>
+						<option value="d20">d20</option>
+					</select>
+				</li>
+			</ul>
+			<span>+</span>
+			<input type="text"/>
+		</div>
+		<button
+			class="roll-btn"
+			x-on:click.prevent="rolling = !rolling"
+		>
+			<iconify-icon icon="game-icons:dice-fire"></iconify-icon>
+		</button>
+	</form>
 }

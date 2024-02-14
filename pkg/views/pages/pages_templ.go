@@ -153,7 +153,7 @@ func Play() templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("><div class=\"play-layout\">")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("><div class=\"play-layout\" x-data=\"{ rolling: false }\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

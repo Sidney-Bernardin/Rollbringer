@@ -14,15 +14,96 @@
         overflow: hidden;
         flex: 5;
 
-        form {
+        .roller {
+            z-index: 5;
             position: absolute;
+            display: flex;
+            top: 10px;
+            right: 10px;
+            gap: 10px;
+            border: 2px solid $bg0;
+            background: $bg2;
+            padding: 10px;
+
+            &.active {
+                .roll {
+                    display: flex;
+                }
+
+                input[type="submit"] {
+                    display: block;
+                }
+            }
+
+            .roll-btn {
+                @include btn($purple1, $bg3, $purple2);
+
+                font-size: 2rem;
+                padding: 0;
+            }
+
+            .roll {
+                display: none;
+                gap: 5px;
+                font-weight: bolder;
+                align-items: center;
+
+                ul {
+                    border: 2px solid $bg0;
+                    background: $bg1;
+                    padding: 5px;
+
+                    li button {
+                        @include icon_btn($purple1, $purple2);
+                    }
+                }
+
+                span {
+                    color: $bg4;
+                    font-size: 1.5rem;
+                    font-weight: normal;
+                }
+
+                input {
+                    height: 100%;
+                    border: 2px solid $bg0;
+                    color: $purple1;
+                    background: $bg1;
+                    font-weight: bolder;
+                    padding: 0 5px;
+                }
+            }
+
+            input[type="submit"] {
+                @include btn($purple1, $bg3, $purple2);
+
+                display: none;
+                cursor: pointer;
+            }
+        }
+
+        .viewer-container {
+            position: absolute;
+
+            .annotationLayer {
+                input {
+                    border: none;
+
+                    &:hover {
+                        border: none;
+                    }
+
+                    &.rolling {
+                        cursor: pointer;
+                        color: #fff;
+                        background: $purple2;
+                        font-weight: bolder;
+                    }
+                }
+            }
 
             .textLayer {
                 user-select: none;
-
-                section {
-                    border: none;
-                }
             }
         }
     }

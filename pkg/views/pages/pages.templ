@@ -34,7 +34,7 @@ templ Play() {
 				hx-headers={ F(`{"CSRF-Token": "%s"}`, session.CSRFToken) }
 			}
 		>
-			<div class="play-layout">
+			<div class="play-layout" x-data="{ rolling: false }">
 				@NavBar("play-layout__nav-bar")
 				@DynamicTabContainer("play-layout__top")
 				@DynamicTabContainer("play-layout__left")

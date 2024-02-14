@@ -1,11 +1,13 @@
 $blue: #83a598;
 $red: #cc241d;
-$purple: #d3869b;
 $gray: #928374;
 $yellow: #fabd2f;
 
 $green1: #b8bb26;
 $green2: #98971a;
+
+$purple1: #d3869b;
+$purple2: #b16286;
 
 $bg0: #1d2021;
 $bg1: #282828;
@@ -17,69 +19,70 @@ $txt1: #ebdbb2;
 $txt4: #a89984;
 
 @mixin panel {
-  border: 5px solid $bg2;
-  outline: 2px solid $bg0;
+    outline: 2px solid $bg0;
+    border: 5px solid $bg2;
+    background: $bg1;
 }
 
 @mixin btn($bg, $fg, $border-color) {
-  display: flex;
-  gap: 5px;
-  border: 3px solid $border-color;
-  color: $fg;
-  background: $bg;
-  font-weight: bolder;
-  padding: 5px;
-  text-decoration: none;
-  align-items: center;
-  justify-content: center;
+    display: flex;
+    gap: 5px;
+    border: 3px solid $border-color;
+    color: $fg;
+    background: $bg;
+    font-weight: bolder;
+    padding: 5px;
+    text-decoration: none;
+    align-items: center;
+    justify-content: center;
 
-  span {
-    @include icon_btn($border-color, $fg);
-  }
+    span {
+        @include icon_btn($border-color, $fg);
+    }
 }
 
 @mixin icon_btn($fg, $fg_hover) {
-  border: none;
-  color: $fg;
-  background: transparent;
-  padding: 0;
+    border: none;
+    color: $fg;
+    background: transparent;
+    padding: 0;
 
-  &:hover {
-    color: $fg_hover;
-  }
+    &:hover {
+        color: $fg_hover;
+    }
 }
 
 @mixin underline_btn($fg) {
-  border: none;
-  color: $fg;
-  background: transparent;
-  font-weight: bolder;
-  padding: 0;
-  text-decoration: underline;
+    border: none;
+    color: $fg;
+    background: transparent;
+    font-weight: bolder;
+    padding: 0;
+    text-decoration: underline;
 }
 
 * {
-  box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 body {
-  width: 100%;
-  height: 100vh;
-  color: $txt1;
-  background: $bg1;
-  font-family: sans-serif;
-  margin: 0;
-  padding: 0;
-
-  a {
+    width: 100%;
+    height: 100vh;
     color: $txt1;
-  }
+    background: $bg1;
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
 
-  button {
-    cursor: pointer;
-  }
+    a {
+        color: $txt1;
+    }
 
-  .login-btn {
-    @include btn($txt1, $bg3, $txt4);
-  }
+    button {
+        cursor: pointer;
+    }
+
+    .login-btn {
+        @include btn($txt1, $bg3, $txt4);
+    }
 }
