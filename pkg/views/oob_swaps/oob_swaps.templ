@@ -1,9 +1,11 @@
 package oob_swaps
 
 import (
+	"strings"
 	"rollbringer/pkg/domain"
 
 	. "rollbringer/pkg/views"
+	. "rollbringer/pkg/views/components"
 	. "rollbringer/pkg/views/components/navigation"
 )
 
@@ -18,13 +20,18 @@ templ AddPDFViewerTab(PDFID, name string, content templ.Component) {
 
 templ UpdatePDFFields(event *domain.Event) {
 	for k, v := range event.PDFFields {
-		<div hx-swap-oob={ F(`outerHTML:.pdf-viewer[data-pdf-id='%s'] input[name='%s']`, event.PDFID, k) }>
-			<input
-				type="text"
-				name={ k }
-				value={ v }
-				x-bind:class="rolling && 'rolling'"
-			/>
-		</div>
+		if strings.HasPrefix(k, "PDF_TA") {
+			<div hx-swap-oob={ F(`outerHTML:.pdf-viewer[data-pdf-id='%s'] textarea[name='%s']`, event.PDFID, k) }>
+				@PDFTextAreaField(k, v)
+			</div>
+		} else if strings.HasPrefix(k, "PDF_CB") {
+			<div hx-swap-oob={ F(`outerHTML:.pdf-viewer[data-pdf-id='%s'] input[name='%s']`, event.PDFID, k) }>
+				@PDFInputField("checkbox", k, v)
+			</div>
+		} else {
+			<div hx-swap-oob={ F(`outerHTML:.pdf-viewer[data-pdf-id='%s'] input[name='%s']`, event.PDFID, k) }>
+				@PDFInputField("text", k, v)
+			</div>
+		}
 	}
 }

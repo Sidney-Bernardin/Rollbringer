@@ -4,7 +4,7 @@ import (
 	. "rollbringer/pkg/views"
 )
 
-var DNDCharacterSheetFileLocation = "/static/character_sheet_test.pdf"
+var DNDCharacterSheetFileLocation = "/static/DND_CharacterSheet.pdf"
 var DNDCharacterSheetPageNames = []string{"main", "info", "spells"}
 
 templ PDFViewer(pdfID, pdfFile string, pageNames []string) {
@@ -45,6 +45,31 @@ templ PDFViewer(pdfID, pdfFile string, pageNames []string) {
 	</div>
 }
 
+templ PDFInputField(type_, k, v string) {
+	<input
+		type={ type_ }
+		name={ k }
+		value={ v }
+        if type_ == "checkbox" && v == "on" {
+            checked
+        }
+        if type_ != "checkbox"   {
+            x-bind:class="rolling && 'rolling'"
+            x-on:click="rolling && $dispatch('add-modifier', { modifier: $el.value })"
+        }
+	/>
+}
+
+templ PDFTextAreaField(k, v string) {
+	<textarea
+		name={ k }
+		x-bind:class="rolling && 'rolling'"
+		x-on:click="rolling && $dispatch('add-modifier', { modifier: $el.value })"
+	>
+        { v }
+    </textarea>
+}
+
 templ roller() {
 	<form class="roller" x-data="roller" x-bind:class="rolling && 'active'" ws-send>
 		<input type="submit" value="Roll!"/>
@@ -71,13 +96,19 @@ templ roller() {
 				</li>
 			</ul>
 			<span>+</span>
-			<input type="text" name="modifier"/>
+			<input
+				type="text"
+				name="modifier"
+				x-on:add-modifier.window="$el.value += ` + ${$event.detail.modifier}`"
+			/>
 		</div>
 		<button
 			class="roll-btn"
+			x-bind:class="rolling && 'close-btn'"
 			x-on:click="rolling = !rolling"
 		>
-			<iconify-icon icon="game-icons:dice-fire"></iconify-icon>
+			<iconify-icon icon="game-icons:dice-fire" x-show="!rolling"></iconify-icon>
+			<iconify-icon icon="material-symbols:close" x-show="rolling"></iconify-icon>
 		</button>
 	</form>
 }
