@@ -32,7 +32,12 @@ templ PDFViewer(pdfID, pdfFile string, pageNames []string) {
 				<input name="pdf_id" value={ pdfID }/>
 				<input name="page_num" x-bind:value="currentPage"/>
 			</form>
-			<form class="viewer-container" hx-trigger="change" ws-send>
+			<form
+				class="viewer-container"
+				x-bind:class="rolling && 'rolling'"
+				hx-trigger="change"
+				ws-send
+			>
 				<div style="display: none">
 					<input name="TYPE" value="UPDATE_PDF_PAGE"/>
 					<input name="sender_id" value={ GetSession(ctx).UserID }/>
@@ -50,13 +55,13 @@ templ PDFInputField(type_, k, v string) {
 		type={ type_ }
 		name={ k }
 		value={ v }
-        if type_ == "checkbox" && v == "on" {
-            checked
-        }
-        if type_ != "checkbox"   {
-            x-bind:class="rolling && 'rolling'"
-            x-on:click="rolling && $dispatch('add-modifier', { modifier: $el.value })"
-        }
+		if type_ == "checkbox" && v == "on" {
+			checked
+		}
+		if type_ != "checkbox" {
+			x-bind:class="rolling && 'rolling'"
+			x-on:click="rolling && $el.value !== '' && $dispatch('add-modifier', { modifier: $el.value })"
+		}
 	/>
 }
 
@@ -66,49 +71,50 @@ templ PDFTextAreaField(k, v string) {
 		x-bind:class="rolling && 'rolling'"
 		x-on:click="rolling && $dispatch('add-modifier', { modifier: $el.value })"
 	>
-        { v }
-    </textarea>
+		{ v }
+	</textarea>
 }
 
 templ roller() {
 	<form class="roller" x-data="roller" x-bind:class="rolling && 'active'" ws-send>
 		<input type="submit" value="Roll!"/>
+		<input type="hidden" name="TYPE" value="ROLL"/>
 		<div class="roll">
 			<ul>
 				<template x-for="die in dice">
 					<li>
 						<button x-on:click.prevent="removeDie(die)">
-							<input type="text" style="display: none" name="dice" x-bind:value="die"/>
-							<iconify-icon x-bind:icon="`mdi:dice-${die}-outline`"></iconify-icon>
+							<input type="hidden" name="die_expressions" x-bind:value="die"/>
+							<iconify-icon x-bind:icon="`mdi:dice-d${die}-outline`"></iconify-icon>
 						</button>
 					</li>
 				</template>
 				<li>
 					<select x-on:change="addDie">
 						<option value="default">Add Die</option>
-						<option value="d20">d20</option>
-						<option value="d12">d12</option>
-						<option value="d10">d10</option>
-						<option value="d8">d8</option>
-						<option value="d6">d6</option>
-						<option value="d4">d4</option>
+						<option value="20">d20</option>
+						<option value="12">d12</option>
+						<option value="10">d10</option>
+						<option value="8">d8</option>
+						<option value="6">d6</option>
+						<option value="4">d4</option>
 					</select>
 				</li>
 			</ul>
 			<span>+</span>
 			<input
 				type="text"
-				name="modifier"
+				name="modifier_expression"
 				x-on:add-modifier.window="$el.value += ` + ${$event.detail.modifier}`"
 			/>
 		</div>
-		<button
+		<div
 			class="roll-btn"
 			x-bind:class="rolling && 'close-btn'"
 			x-on:click="rolling = !rolling"
 		>
 			<iconify-icon icon="game-icons:dice-fire" x-show="!rolling"></iconify-icon>
 			<iconify-icon icon="material-symbols:close" x-show="rolling"></iconify-icon>
-		</button>
+		</div>
 	</form>
 }

@@ -101,7 +101,7 @@ func PDFViewer(pdfID, pdfFile string, pageNames []string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"> <input name=\"page_num\" x-bind:value=\"currentPage\"></form><form class=\"viewer-container\" hx-trigger=\"change\" ws-send><div style=\"display: none\"><input name=\"TYPE\" value=\"UPDATE_PDF_PAGE\"> <input name=\"sender_id\" value=\"")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"> <input name=\"page_num\" x-bind:value=\"currentPage\"></form><form class=\"viewer-container\" x-bind:class=\"rolling &amp;&amp; &#39;rolling&#39;\" hx-trigger=\"change\" ws-send><div style=\"display: none\"><input name=\"TYPE\" value=\"UPDATE_PDF_PAGE\"> <input name=\"sender_id\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -176,7 +176,7 @@ func PDFInputField(type_, k, v string) templ.Component {
 			}
 		}
 		if type_ != "checkbox" {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" x-bind:class=\"rolling &amp;&amp; &#39;rolling&#39;\" x-on:click=\"rolling &amp;&amp; $dispatch(&#39;add-modifier&#39;, { modifier: $el.value })\"")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" x-bind:class=\"rolling &amp;&amp; &#39;rolling&#39;\" x-on:click=\"rolling &amp;&amp; $el.value !== &#39;&#39; &amp;&amp; $dispatch(&#39;add-modifier&#39;, { modifier: $el.value })\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -220,7 +220,7 @@ func PDFTextAreaField(k, v string) templ.Component {
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(v)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/components/pdf-viewer.templ`, Line: 68, Col: 11}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/components/pdf-viewer.templ`, Line: 73, Col: 5}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -250,7 +250,7 @@ func roller() templ.Component {
 			templ_7745c5c3_Var6 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form class=\"roller\" x-data=\"roller\" x-bind:class=\"rolling &amp;&amp; &#39;active&#39;\" ws-send><input type=\"submit\" value=\"Roll!\"><div class=\"roll\"><ul><template x-for=\"die in dice\"><li><button x-on:click.prevent=\"removeDie(die)\"><input type=\"text\" style=\"display: none\" name=\"dice\" x-bind:value=\"die\"> <iconify-icon x-bind:icon=\"`mdi:dice-${die}-outline`\"></iconify-icon></button></li></template><li><select x-on:change=\"addDie\"><option value=\"default\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form class=\"roller\" x-data=\"roller\" x-bind:class=\"rolling &amp;&amp; &#39;active&#39;\" ws-send><input type=\"submit\" value=\"Roll!\"> <input type=\"hidden\" name=\"TYPE\" value=\"ROLL\"><div class=\"roll\"><ul><template x-for=\"die in dice\"><li><button x-on:click.prevent=\"removeDie(die)\"><input type=\"hidden\" name=\"die_expressions\" x-bind:value=\"die\"> <iconify-icon x-bind:icon=\"`mdi:dice-d${die}-outline`\"></iconify-icon></button></li></template><li><select x-on:change=\"addDie\"><option value=\"default\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -259,7 +259,7 @@ func roller() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</option> <option value=\"d20\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</option> <option value=\"20\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -268,7 +268,7 @@ func roller() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</option> <option value=\"d12\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</option> <option value=\"12\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -277,7 +277,7 @@ func roller() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</option> <option value=\"d10\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</option> <option value=\"10\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -286,7 +286,7 @@ func roller() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</option> <option value=\"d8\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</option> <option value=\"8\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -295,7 +295,7 @@ func roller() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</option> <option value=\"d6\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</option> <option value=\"6\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -304,7 +304,7 @@ func roller() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</option> <option value=\"d4\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</option> <option value=\"4\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -322,7 +322,7 @@ func roller() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</span> <input type=\"text\" name=\"modifier\" x-on:add-modifier.window=\"$el.value += ` + ${$event.detail.modifier}`\"></div><button class=\"roll-btn\" x-bind:class=\"rolling &amp;&amp; &#39;close-btn&#39;\" x-on:click=\"rolling = !rolling\"><iconify-icon icon=\"game-icons:dice-fire\" x-show=\"!rolling\"></iconify-icon> <iconify-icon icon=\"material-symbols:close\" x-show=\"rolling\"></iconify-icon></button></form>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</span> <input type=\"text\" name=\"modifier_expression\" x-on:add-modifier.window=\"$el.value += ` + ${$event.detail.modifier}`\"></div><div class=\"roll-btn\" x-bind:class=\"rolling &amp;&amp; &#39;close-btn&#39;\" x-on:click=\"rolling = !rolling\"><iconify-icon icon=\"game-icons:dice-fire\" x-show=\"!rolling\"></iconify-icon> <iconify-icon icon=\"material-symbols:close\" x-show=\"rolling\"></iconify-icon></div></form>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

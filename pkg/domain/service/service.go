@@ -49,6 +49,25 @@ func (svc *Service) DoEvents(
 		case event := <-incomingChan:
 			switch event.Type {
 
+			case "ROLL":
+
+				// Calculate the event's roll expressions.
+				if err := event.CalculateRoll(); err != nil {
+					continue
+				}
+
+				// Insert the roll.
+				event.Roll.GameID = gameID
+				if err := svc.DB.InsertRoll(ctx, &event.Roll); err != nil {
+					svc.Logger.Error().Stack().Err(err).Msg("Cannot insert roll")
+					return
+				}
+
+				if err := svc.PS.PubToGame(ctx, gameID, event); err != nil {
+					svc.Logger.Error().Stack().Err(err).Msg("Cannot publish event")
+					return
+				}
+
 			case "INIT_PDF_PAGE":
 
 				// Get the PDF.
@@ -84,7 +103,6 @@ func (svc *Service) DoEvents(
 					return
 				}
 
-				// Publish the event for the game.
 				if err := svc.PS.PubToGame(ctx, gameID, event); err != nil {
 					svc.Logger.Error().Stack().Err(err).Msg("Cannot publish event")
 					return

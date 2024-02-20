@@ -91,11 +91,14 @@
         .viewer-container {
             position: absolute;
 
-            .annotationLayer {
+            &.rolling {
+                cursor: crosshair;
+            }
 
+            .annotationLayer {
                 input,
                 textarea {
-                    border: none;
+                    border: 2px solid transparent;
                     background: rgba(0, 0, 0, 0);
                     font-weight: bolder;
 
@@ -106,12 +109,10 @@
                     &:hover {
                         border: 2px solid #000;
                     }
-                }
 
-                input[type="text"].rolling {
-                    cursor: pointer;
-                    color: #fff;
-                    background: $purple2faded;
+                    &.rolling {
+                        cursor: crosshair;
+                    }
                 }
             }
 

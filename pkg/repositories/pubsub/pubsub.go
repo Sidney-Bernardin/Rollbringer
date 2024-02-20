@@ -64,12 +64,12 @@ func (ps *PubSub) SubToGame(ctx context.Context, gameID string, subChan chan *do
 }
 
 // PubToGame sends the event to the game's topic.
-func (ps *PubSub) PubToGame(ctx context.Context, topic string, event *domain.Event) error {
+func (ps *PubSub) PubToGame(ctx context.Context, gameID string, event *domain.Event) error {
 	eventBytes, err := json.Marshal(event)
 	if err != nil {
 		return errors.Wrap(err, "cannot encode event")
 	}
 
-	err = ps.client.Publish(ctx, topic, eventBytes).Err()
+	err = ps.client.Publish(ctx, gameID, eventBytes).Err()
 	return errors.Wrap(err, "cannot publish event")
 }

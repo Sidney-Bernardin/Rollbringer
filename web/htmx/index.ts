@@ -7,15 +7,31 @@ document.body.addEventListener("htmx:responseError", (e: CustomEvent) => {
 });
 
 document.body.addEventListener("htmx:wsConfigSend", (e: CustomEvent) => {
-    if (e.detail.parameters["TYPE"] === "UPDATE_PDF_PAGE") {
-        e.detail.parameters["pdf_fields"] = {};
+    const params = e.detail.parameters;
 
-        // Moves the message's PDF fields into the nested-object, pdf_fields.
-        for (const [k, v] of Object.entries(e.detail.parameters)) {
-            if (k.startsWith("PDF_")) {
-                e.detail.parameters["pdf_fields"][k] = v;
-                delete e.detail.parameters[k];
+    switch (e.detail.parameters["TYPE"]) {
+        case "UPDATE_PDF_PAGE":
+            params["pdf_fields"] = {};
+
+            // Moves the message's PDF fields into the nested-object, pdf_fields.
+            for (const [k, v] of Object.entries(params)) {
+                if (k.startsWith("PDF_")) {
+                    params["pdf_fields"][k] = v;
+                    delete params[k];
+                }
             }
-        }
+
+            break;
+
+        case "ROLL":
+            if (!(params["die_expressions"] instanceof Array)) {
+                params["die_expressions"] = [params["die_expressions"]];
+            }
+
+            (params["die_expressions"] as string[]).forEach((dieExpr, idx) => {
+                params["die_expressions"][idx] = parseInt(dieExpr);
+            });
+
+            break;
     }
 });

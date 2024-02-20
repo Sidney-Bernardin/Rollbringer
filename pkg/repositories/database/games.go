@@ -111,3 +111,20 @@ func (db *Database) DeleteGame(ctx context.Context, gameID, hostID string) error
 
 	return nil
 }
+
+func (db *Database) InsertRoll(ctx context.Context, roll *domain.Roll) error {
+
+	gameUUID, _ := uuid.Parse(roll.GameID)
+	(*roll).ID = uuid.New().String()
+
+	fmt.Println(roll.DieExpressions == nil, roll.DieResults == nil)
+
+	// Insert the roll.
+	_, err := db.conn.Exec(ctx,
+		`INSERT INTO rolls (id, game_id, die_expressions, die_results, modifier_expression, modifier_result)
+			VALUES ($1, $2, $3, $4, $5, $6)`,
+		roll.ID, gameUUID, roll.DieExpressions, roll.DieResults, roll.ModifierExpression, roll.ModifierResult,
+	)
+
+	return errors.Wrap(err, "cannot insert roll")
+}

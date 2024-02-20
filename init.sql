@@ -27,6 +27,19 @@ CREATE TABLE games (
     UNIQUE(id)
 );
 
+CREATE TABLE rolls (
+    id UUID NOT NULL,
+    game_id UUID NOT NULL,
+
+    die_expressions integer[] NOT NULL,
+    die_results integer[] NOT NULL,
+
+    modifier_expression text NOT NULL,
+    modifier_result decimal NOT NULL,
+
+    unique(id)
+);
+
 CREATE TABLE pdfs (
     id UUID NOT NULL,
     owner_id UUID NOT NULL,

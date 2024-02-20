@@ -3,6 +3,7 @@ package domain
 type User struct {
 	ID       string `db:"id,omitempty"`
 	GoogleID string `db:"google_id,omitempty"`
+
 	Username string `db:"username,omitempty"`
 }
 
@@ -15,7 +16,9 @@ type Session struct {
 type Game struct {
 	ID     string `db:"id,omitempty"`
 	HostID string `db:"host_id,omitempty"`
-	Title  string `db:"title,omitempty"`
+
+	Title string   `db:"title,omitempty"`
+	Rolls []string `db:"rolls,omitempty"`
 }
 
 type PDF struct {
@@ -36,5 +39,5 @@ type Event struct {
 	PageNum   int               `json:"page_num,string,omitempty"`
 	PDFFields map[string]string `json:"pdf_fields"`
 
-	Modifier string `json:"modifier,omitempty"`
+	Roll
 }

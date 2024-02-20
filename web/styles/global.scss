@@ -10,7 +10,6 @@ $green2: #98971a;
 
 $purple1: #d3869b;
 $purple2: #b16286;
-$purple2faded: #b1628680;
 
 $bg0: #1d2021;
 $bg1: #282828;
@@ -28,6 +27,7 @@ $txt4: #a89984;
 }
 
 @mixin btn($bg, $fg, $border-color) {
+    cursor: pointer;
     display: flex;
     gap: 5px;
     border: 3px solid $border-color;
@@ -45,6 +45,7 @@ $txt4: #a89984;
 }
 
 @mixin icon_btn($fg, $fg_hover) {
+    cursor: pointer;
     border: none;
     color: $fg;
     background: transparent;
@@ -56,6 +57,7 @@ $txt4: #a89984;
 }
 
 @mixin underline_btn($fg) {
+    cursor: pointer;
     border: none;
     color: $fg;
     background: transparent;
@@ -79,10 +81,6 @@ body {
 
     a {
         color: $txt1;
-    }
-
-    button {
-        cursor: pointer;
     }
 
     .login-btn {
