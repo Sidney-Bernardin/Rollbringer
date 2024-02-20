@@ -322,7 +322,7 @@ func roller() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</span> <input type=\"text\" name=\"modifier_expression\" x-on:add-modifier.window=\"$el.value += ` + ${$event.detail.modifier}`\"></div><div class=\"roll-btn\" x-bind:class=\"rolling &amp;&amp; &#39;close-btn&#39;\" x-on:click=\"rolling = !rolling\"><iconify-icon icon=\"game-icons:dice-fire\" x-show=\"!rolling\"></iconify-icon> <iconify-icon icon=\"material-symbols:close\" x-show=\"rolling\"></iconify-icon></div></form>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</span> <input type=\"text\" name=\"modifier_expression\" x-on:add-modifier.window=\"$el.value += `${$el.value.trim().length &gt; 0 ? &#39; + &#39; : &#39;&#39;}${$event.detail.modifier}`\"></div><div class=\"roll-btn\" x-bind:class=\"rolling &amp;&amp; &#39;close-btn&#39;\" x-on:click=\"rolling = !rolling\"><iconify-icon icon=\"game-icons:dice-fire\" x-show=\"!rolling\"></iconify-icon> <iconify-icon icon=\"material-symbols:close\" x-show=\"rolling\"></iconify-icon></div></form>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

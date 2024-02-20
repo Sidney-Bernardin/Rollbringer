@@ -105,7 +105,7 @@ templ roller() {
 			<input
 				type="text"
 				name="modifier_expression"
-				x-on:add-modifier.window="$el.value += ` + ${$event.detail.modifier}`"
+				x-on:add-modifier.window="$el.value += `${$el.value.trim().length > 0 ? ' + ' : ''}${$event.detail.modifier}`"
 			/>
 		</div>
 		<div

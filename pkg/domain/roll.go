@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"fmt"
 	"math/rand"
 
 	"github.com/Knetic/govaluate"
@@ -42,9 +41,8 @@ func (r *Roll) CalculateRoll() error {
 	}
 
 	r.DieResults = []int{}
-	fmt.Println(r.DieExpressions == nil, r.DieResults == nil)
 	for _, dieExpr := range r.DieExpressions {
-		r.DieResults = append(r.DieResults, rand.Intn(dieExpr))
+		r.DieResults = append(r.DieResults, rand.Intn(dieExpr)+1)
 	}
 
 	return nil
