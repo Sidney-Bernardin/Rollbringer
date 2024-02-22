@@ -19,6 +19,31 @@ type Service struct {
 	Logger *zerolog.Logger
 }
 
+func (svc *Service) GetPlayPage(ctx context.Context, session *domain.Session, gameID string) (page *domain.PlayPage, err error) {
+
+	page = &domain.PlayPage{
+		LoggedIn: false,
+	}
+
+	// Get the game.
+	page.Game, err = svc.GetGame(ctx, gameID)
+	if err != nil && errors.Cause(err) != domain.ErrGameNotFound {
+		return nil, errors.Wrap(err, "cannot get game")
+	}
+
+	if session != nil {
+		page.LoggedIn = true
+
+		// Get the user.
+		page.User, err = svc.DB.GetUser(ctx, session.UserID)
+		if err != nil {
+			return nil, errors.Wrap(err, "cannot get user")
+		}
+	}
+
+	return page, nil
+}
+
 // DoEvents processes events. outgoingChan closes before returning.
 func (svc *Service) DoEvents(
 	ctx context.Context,

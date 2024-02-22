@@ -1,5 +1,12 @@
 package domain
 
+type PlayPage struct {
+	LoggedIn bool `json:"logged_in,omitempty"`
+
+	User *User `json:"user,omitempty"`
+	Game *Game `json:"game,omitempty"`
+}
+
 type User struct {
 	ID       string `db:"id,omitempty"`
 	GoogleID string `db:"google_id,omitempty"`

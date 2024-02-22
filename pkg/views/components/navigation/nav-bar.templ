@@ -1,58 +1,59 @@
 package navigation
 
 import (
+	"rollbringer/pkg/domain"
 	. "rollbringer/pkg/views"
 )
 
 templ NavBar(class string) {
 	<div class={ "nav-bar", class }>
 		<div class="games">
-			@menuButton()
-			<ul>
-				if GetSession(ctx) == nil {
-					<a href="/users/login">
-						<button class="login-btn">
-							<iconify-icon icon="devicon:google"></iconify-icon>
-							Login with Google
-						</button>
-					</a>
-				} else {
-					for _, game := range GetGames(ctx) {
-						@GameButton(game.ID, game.Title)
-					}
-				}
-			</ul>
+			<button class="main-btn">
+				<iconify-icon class="menu" icon="ic:baseline-meeting-room"></iconify-icon>
+			</button>
+			if !GetPlayPage(ctx).LoggedIn {
+				<a href="/users/login">
+					<button class="login-btn">
+						<iconify-icon icon="devicon:google"></iconify-icon>
+						Login with Google
+					</button>
+				</a>
+			} else {
+				<ul hx-get="/games" hx-trigger="load"></ul>
+			}
 		</div>
+		<ul
+			class="rolls"
+			if game := GetPlayPage(ctx).Game; game != nil {
+				hx-get={ F("/games/%s/rolls", game.ID) }
+				hx-trigger="load"
+			}
+		></ul>
 	</div>
 }
 
-templ menuButton() {
-	if GetSession(ctx) != nil {
-		<button
-			class="main-btn"
-			hx-post="/games"
-			hx-target="next ul"
-			hx-swap="beforeend"
-		>
-			<iconify-icon class="menu" icon="ic:baseline-meeting-room"></iconify-icon>
-			<iconify-icon class="create" icon="material-symbols:add"></iconify-icon>
-		</button>
-	} else {
-		<button class="main-btn">
-			<iconify-icon class="menu" icon="ic:baseline-meeting-room"></iconify-icon>
-			<iconify-icon class="create" icon="ic:baseline-meeting-room"></iconify-icon>
-		</button>
+templ GameButtons(games []*domain.Game) {
+	for _, game := range games {
+		@GameButton(game)
 	}
 }
 
-templ GameButton(gameID string, title string) {
+templ GameButton(game *domain.Game) {
 	<li>
-		<button>
-			<iconify-icon icon="material-symbols:edit"></iconify-icon>
-		</button>
-		<a href={ templ.URL(F("/play?g=%s", gameID)) }>{ title }</a>
-		<button hx-delete={ F("/games/%s", gameID) } hx-target="closest li" hx-swap="outerHTML">
-			<iconify-icon icon="material-symbols:delete"></iconify-icon>
-		</button>
+		<a href={ templ.URL(F("/play?g=%s", game.ID)) }>
+			{ game.Title }
+		</a>
+	</li>
+}
+
+templ Rolls(rolls []*domain.Roll) {
+	for _, roll := range rolls {
+		@Roll(roll)
+	}
+}
+
+templ Roll(roll *domain.Roll) {
+	<li>
+		{ roll.ID }
 	</li>
 }

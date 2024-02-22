@@ -8,9 +8,25 @@ import (
 	"rollbringer/pkg/domain"
 )
 
-func (svc *Service) CreateGame(ctx context.Context, userID string) (string, string, error) {
-	gameID, title, err := svc.DB.InsertGame(ctx, userID)
-	return gameID, title, errors.Wrap(err, "cannot insert game")
+func (svc *Service) CreateGame(ctx context.Context, session *domain.Session) (*domain.Game, error) {
+
+	// Create a game.
+	game := &domain.Game{
+		HostID: session.UserID,
+		Title:  "New Game %d",
+	}
+
+	// Insert the game.
+	if err := svc.DB.InsertGame(ctx, game); err != nil {
+		return nil, errors.Wrap(err, "cannot insert game")
+	}
+
+	return game, nil
+}
+
+func (svc *Service) GetGames(ctx context.Context, userID string) ([]*domain.Game, error) {
+	games, err := svc.DB.GetGames(ctx, userID)
+	return games, errors.Wrap(err, "cannot get games from user")
 }
 
 func (svc *Service) GetGame(ctx context.Context, gameID string) (*domain.Game, error) {
@@ -18,9 +34,9 @@ func (svc *Service) GetGame(ctx context.Context, gameID string) (*domain.Game, e
 	return game, errors.Wrap(err, "cannot get game")
 }
 
-func (svc *Service) GetGamesFromUser(ctx context.Context, userID string) ([]*domain.Game, error) {
-	games, err := svc.DB.GetGamesFromUser(ctx, userID)
-	return games, errors.Wrap(err, "cannot get games from user")
+func (svc *Service) GetRolls(ctx context.Context, gameID string) ([]*domain.Roll, error) {
+	rolls, err := svc.DB.GetRolls(ctx, gameID)
+	return rolls, errors.Wrap(err, "cannot get rolls")
 }
 
 func (svc *Service) DeleteGame(ctx context.Context, gameID, userID string) error {

@@ -9,27 +9,16 @@ import (
 
 var F = fmt.Sprintf
 
-func GetUser(ctx context.Context) *domain.User {
-	user, _ := ctx.Value("user").(*domain.User)
-	return user
+func GetPlayPage(ctx context.Context) (page *domain.PlayPage) {
+	if page, _ = ctx.Value("play_page").(*domain.PlayPage); page == nil {
+		panic("bad play page")
+	}
+	return page
 }
 
-func GetSession(ctx context.Context) *domain.Session {
-	session, _ := ctx.Value("session").(*domain.Session)
+func GetSession(ctx context.Context) (session *domain.Session) {
+	if session, _ = ctx.Value("session").(*domain.Session); session == nil {
+		panic("bad session")
+	}
 	return session
-}
-
-func GetGame(ctx context.Context) *domain.Game {
-	game, _ := ctx.Value("game").(*domain.Game)
-	return game
-}
-
-func GetGames(ctx context.Context) []*domain.Game {
-	games, _ := ctx.Value("games").([]*domain.Game)
-	return games
-}
-
-func GetPDFs(ctx context.Context) []*domain.PDF {
-	pdfs, _ := ctx.Value("pdfs").([]*domain.PDF)
-	return pdfs
 }

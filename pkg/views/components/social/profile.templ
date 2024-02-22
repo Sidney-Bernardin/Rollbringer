@@ -6,7 +6,7 @@ import (
 
 templ Profile() {
 	<div class="profile">
-		if GetSession(ctx) == nil {
+		if !GetPlayPage(ctx).LoggedIn {
 			<a href="/users/login">
 				<button class="login-btn">
 					<iconify-icon icon="devicon:google"></iconify-icon>

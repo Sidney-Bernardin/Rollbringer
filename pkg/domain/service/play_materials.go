@@ -8,9 +8,21 @@ import (
 	"rollbringer/pkg/domain"
 )
 
-func (svc *Service) CreatePDF(ctx context.Context, userID, schema string) (string, string, error) {
-	pdfID, title, err := svc.DB.InsertPDF(ctx, userID, schema)
-	return pdfID, title, errors.Wrap(err, "cannot insert PDF")
+func (svc *Service) CreatePDF(ctx context.Context, userID, schema string) (*domain.PDF, error) {
+
+	// Create a PDF.
+	pdf := &domain.PDF{
+		OwnerID: userID,
+		Schema:  schema,
+		Name:   "New PDF",
+	}
+
+	// Insert the PDF.
+	if err := svc.DB.InsertPDF(ctx, pdf); err != nil {
+		return nil, errors.Wrap(err, "cannot insert PDF")
+	}
+
+	return pdf, nil
 }
 
 func (svc *Service) GetPDF(ctx context.Context, pdfID string) (*domain.PDF, error) {

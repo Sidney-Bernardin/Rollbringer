@@ -31,7 +31,7 @@ func Profile() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if GetSession(ctx) == nil {
+		if !GetPlayPage(ctx).LoggedIn {
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<a href=\"/users/login\"><button class=\"login-btn\"><iconify-icon icon=\"devicon:google\"></iconify-icon> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

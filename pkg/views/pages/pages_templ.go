@@ -120,7 +120,7 @@ func Play() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			if game := GetGame(ctx); game != nil {
+			if game := GetPlayPage(ctx).Game; game != nil {
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" ws-connect=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
@@ -139,12 +139,12 @@ func Play() templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			if session := GetSession(ctx); session != nil {
+			if page := GetPlayPage(ctx); page.LoggedIn {
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" hx-headers=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(F(`{"CSRF-Token": "%s"}`, session.CSRFToken)))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(F(`{"CSRF-Token": "%s"}`, GetSession(ctx).CSRFToken)))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

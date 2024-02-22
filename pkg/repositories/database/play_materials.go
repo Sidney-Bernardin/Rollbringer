@@ -3,7 +3,6 @@ package database
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"rollbringer/pkg/domain"
 
 	"github.com/google/uuid"
@@ -11,27 +10,22 @@ import (
 	"github.com/pkg/errors"
 )
 
-// InsertPDF inserts a new PDF for the owner.
-func (db *Database) InsertPDF(ctx context.Context, ownerID string, schema string) (string, string, error) {
+// InsertPDF inserts the PDF.
+func (db *Database) InsertPDF(ctx context.Context, pdf *domain.PDF) error {
 
-	ownerUUID, _ := uuid.Parse(ownerID)
-	pdfID := uuid.New().String()
-	name := fmt.Sprintf("Unnamed %s", schema)
+	ownerUUID, _ := uuid.Parse(pdf.OwnerID)
+	pdf.ID = uuid.New().String()
 
-	// Insert a new PDF for the owner.
+	// Insert a new PDF.
 	_, err := db.conn.Exec(ctx,
 		`INSERT INTO pdfs (id, owner_id, name, schema, pages) VALUES ($1, $2, $3, $4, $5)`,
-		pdfID, ownerUUID, name, schema, []string{"{}", "{}", "{}"})
+		pdf.ID, ownerUUID, pdf.Name, pdf.Schema, []string{"{}", "{}", "{}"})
 
-	if err != nil {
-		return "", "", errors.Wrap(err, "cannot insert pdf")
-	}
-
-	return pdfID, name, nil
+	return errors.Wrap(err, "cannot insert pdf")
 }
 
-// GetPDF returns the PDF with the PDF-ID from the database. If the PDF doesn't
-// exist, returns domain.ErrPlayMaterialNotFound.
+// GetPDF returns the PDF with the PDF-ID. If the PDF doesn't exist,
+// returns domain.ErrPlayMaterialNotFound.
 func (db *Database) GetPDF(ctx context.Context, pdfID string) (*domain.PDF, error) {
 
 	pdfUUID, _ := uuid.Parse(pdfID)
@@ -56,7 +50,7 @@ func (db *Database) GetPDF(ctx context.Context, pdfID string) (*domain.PDF, erro
 	return pdf, nil
 }
 
-// GetPDFs return the PDFs with the owner-ID from the database.
+// GetPDFs return the PDFs with the owner-ID.
 func (db *Database) GetPDFs(ctx context.Context, ownerID string) ([]*domain.PDF, error) {
 
 	ownerUUID, _ := uuid.Parse(ownerID)
@@ -66,7 +60,6 @@ func (db *Database) GetPDFs(ctx context.Context, ownerID string) ([]*domain.PDF,
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot select pdfs")
 	}
-
 	defer rows.Close()
 
 	// Scan into a slice of PDF models.
@@ -74,8 +67,8 @@ func (db *Database) GetPDFs(ctx context.Context, ownerID string) ([]*domain.PDF,
 	return pdfs, errors.Wrap(err, "cannot scan pdfs")
 }
 
-// UpdatePDFPage updates the PDF with the PDF-ID in the database. If the PDF
-// doesn't exist, returns domain.ErrPlayMaterialNotFound.
+// UpdatePDFPage updates the PDF with the PDF-ID. If the PDF doesn't exist,
+// returns domain.ErrPlayMaterialNotFound.
 func (db *Database) UpdatePDFPage(ctx context.Context, pdfID string, pageNum int, pdfPage any) error {
 
 	pdfUUID, _ := uuid.Parse(pdfID)
@@ -102,8 +95,8 @@ func (db *Database) UpdatePDFPage(ctx context.Context, pdfID string, pageNum int
 	return nil
 }
 
-// DeletePDF deletes the PDF with the PDF-ID and owner-ID from the database.
-// If the PDF doesn't exist, returns domain.ErrPlayMaterialNotFound.
+// DeletePDF deletes the PDF with the PDF-ID and owner-ID. If the PDF doesn't
+// exist, returns domain.ErrPlayMaterialNotFound.
 func (db *Database) DeletePDF(ctx context.Context, pdfID, ownerID string) error {
 
 	pdfUUID, _ := uuid.Parse(pdfID)

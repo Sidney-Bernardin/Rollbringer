@@ -17,14 +17,29 @@ func (h *Handler) HandleCreatePDF(w http.ResponseWriter, r *http.Request) {
 	session, _ := r.Context().Value("session").(*domain.Session)
 
 	// Create a PDF.
-	pdfID, name, err := h.Service.CreatePDF(r.Context(), session.UserID, r.FormValue("schame"))
+	pdf, err := h.Service.CreatePDF(r.Context(), session.UserID, r.FormValue("schame"))
 	if err != nil {
 		h.domainErr(w, errors.Wrap(err, "cannot create pdf"))
 		return
 	}
 
 	// Respond with a PDFRow component.
-	h.render(w, r, play_materials.PDFRow(pdfID, name, "foo bar"), http.StatusOK)
+	h.render(w, r, play_materials.PDFRow(pdf), http.StatusOK)
+}
+
+func (h *Handler) HandleGetPDFs(w http.ResponseWriter, r *http.Request) {
+
+	session, _ := r.Context().Value("session").(*domain.Session)
+
+	// Get the PDFs.
+	pdfs, err := h.Service.GetPDFs(r.Context(), session.UserID)
+	if err != nil {
+		h.domainErr(w, errors.Wrap(err, "cannot get pdfs"))
+		return
+	}
+
+	// Respond with a PDFs component.
+	h.render(w, r, play_materials.PDFRows(pdfs), http.StatusOK)
 }
 
 func (h *Handler) HandleGetPDF(w http.ResponseWriter, r *http.Request) {

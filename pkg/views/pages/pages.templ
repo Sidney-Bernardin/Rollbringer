@@ -25,13 +25,13 @@ templ Play() {
 	@page("Play", "play.js") {
 		<body
 			hx-ext="ws"
-			if game := GetGame(ctx); game != nil {
+			if game := GetPlayPage(ctx).Game; game != nil {
 				ws-connect={ F("/ws?g=%s", game.ID) }
 			} else {
 				ws-connect="/ws"
 			}
-			if session := GetSession(ctx); session != nil {
-				hx-headers={ F(`{"CSRF-Token": "%s"}`, session.CSRFToken) }
+			if page := GetPlayPage(ctx); page.LoggedIn {
+				hx-headers={ F(`{"CSRF-Token": "%s"}`, GetSession(ctx).CSRFToken) }
 			}
 		>
 			<div class="play-layout" x-data="{ rolling: false }">

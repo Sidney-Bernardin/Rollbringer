@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"net/http"
 	"rollbringer/pkg/domain"
 
@@ -49,7 +50,7 @@ func (h *Handler) Auth(next http.Handler) http.Handler {
 			return
 		}
 
-		giveToRequest(r, "session", session)
+		r = r.WithContext(context.WithValue(r.Context(), "session", session))
 		next.ServeHTTP(w, r)
 	})
 }
@@ -78,7 +79,7 @@ func (h *Handler) LightAuth(next http.Handler) http.Handler {
 			return
 		}
 
-		giveToRequest(r, "session", session)
+		r = r.WithContext(context.WithValue(r.Context(), "session", session))
 		next.ServeHTTP(w, r)
 	})
 }

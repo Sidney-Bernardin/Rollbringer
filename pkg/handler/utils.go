@@ -1,10 +1,8 @@
 package handler
 
 import (
-	"context"
 	"crypto/rand"
 	"encoding/hex"
-	"net/http"
 
 	jwt "github.com/golang-jwt/jwt/v5"
 )
@@ -22,9 +20,4 @@ func mustGetRandHexStr() string {
 		panic(err)
 	}
 	return hex.EncodeToString(b)
-}
-
-// giveToRequest sets the given value to the request's context.
-func giveToRequest(r *http.Request, key string, value any) {
-	*r = *r.WithContext(context.WithValue(r.Context(), key, value))
 }

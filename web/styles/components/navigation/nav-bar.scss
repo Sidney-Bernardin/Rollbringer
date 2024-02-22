@@ -1,79 +1,132 @@
 @use "../../global.scss" as *;
 
 .nav-bar {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-
-  .games {
     display: flex;
     gap: 5px;
+    align-items: center;
 
-    &:hover {
-      .main-btn iconify-icon {
-        &.menu {
-          display: none;
-        }
-
-        &.create {
-          display: block;
-        }
-      }
-
-      ul {
-        width: 100%;
-      }
-    }
-
-    .main-btn {
-      @include icon_btn($txt4, $txt1);
-
-      font-size: 1.5rem;
-      padding: 5px;
-
-      iconify-icon.create {
-        display: none;
-      }
-    }
-
-    ul {
-      display: flex;
-      width: 0;
-      margin: 0;
-      padding: 0;
-      list-style-type: none;
-      overflow: hidden;
-      align-self: center;
-      transition: width 0.2s;
-
-      .login-btn {
-        text-wrap: nowrap;
-      }
-
-      li {
+    .games {
         display: flex;
-        gap: 10px;
-        border-left: 1px solid $txt4;
-        padding: 0 10px;
-        text-wrap: nowrap;
-        align-items: center;
+        flex: 0;
+        transition: 0.2s;
 
         &:hover {
-          button {
-            opacity: 1;
-          }
+            ul {
+                display: flex;
+            }
+
+            .main-btn iconify-icon {
+                &.menu {
+                    display: none;
+                }
+
+                &.create {
+                    display: block;
+                }
+            }
         }
 
-        button {
-          @include icon_btn($txt4, $txt1);
+        .main-btn {
+            @include icon_btn($txt4, $txt1);
 
-          opacity: 0;
+            font-size: 1.5rem;
+            padding: 5px;
+
+            iconify-icon.create {
+                display: none;
+            }
         }
 
-        a {
-          @include underline_btn($txt1);
+        ul {
+            display: none;
+            margin: 0;
+            padding: 0;
+            list-style-type: none;
+            overflow: hidden;
+            align-self: center;
+
+            .login-btn {
+                text-wrap: nowrap;
+            }
+
+            li {
+                display: flex;
+                gap: 10px;
+                text-wrap: nowrap;
+                align-items: center;
+
+                &:hover {
+                    button {
+                        opacity: 1;
+                    }
+                }
+
+                button {
+                    @include icon_btn($txt4, $txt1);
+
+                    opacity: 0;
+                }
+
+                a {
+                    @include underline_btn($txt1);
+                }
+            }
         }
-      }
     }
-  }
+
+    .rolls {
+        display: flex;
+        gap: 5px;
+        margin: 0;
+        padding: 0;
+        align-items: center;
+        list-style-type: none;
+        flex: 2;
+
+        li {
+            display: flex;
+            gap: 10px;
+            border: 2px solid $bg0;
+            background: $bg2;
+            padding: 5px;
+            align-items: center;
+
+            p {
+                margin: 0;
+            }
+
+            span {
+                color: $bg4;
+                font-size: 1.5rem;
+            }
+
+            .result {
+                color: $yellow;
+                font-size: 1.5rem;
+                font-weight: bolder;
+            }
+
+            .die,
+            .modifier {
+                display: flex;
+                align-items: center;
+
+                span {
+                    font-size: 1rem;
+                }
+
+                .result {
+                    font-size: 1rem;
+                }
+
+                .expression {
+                    color: $purple1;
+                }
+            }
+
+            .die .expression {
+                font-size: 1.5rem
+            }
+        }
+    }
 }

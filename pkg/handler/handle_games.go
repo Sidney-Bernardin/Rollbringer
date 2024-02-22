@@ -15,16 +15,43 @@ func (h *Handler) HandleCreateGame(w http.ResponseWriter, r *http.Request) {
 	session, _ := r.Context().Value("session").(*domain.Session)
 
 	// Create a game.
-	gameID, title, err := h.Service.CreateGame(r.Context(), session.UserID)
+	game, err := h.Service.CreateGame(r.Context(), session)
 	if err != nil {
 		h.domainErr(w, errors.Wrap(err, "cannot create game"))
 		return
 	}
 
 	// Respond with a GameButton component.
-	h.render(w, r, navigation.GameButton(gameID, title), http.StatusOK)
+	h.render(w, r, navigation.GameButton(game), http.StatusOK)
 }
 
+func (h *Handler) HandleGetGames(w http.ResponseWriter, r *http.Request) {
+
+	session, _ := r.Context().Value("session").(*domain.Session)
+
+	// Get the games.
+	games, err := h.Service.GetGames(r.Context(), session.UserID)
+	if err != nil {
+		h.domainErr(w, errors.Wrap(err, "cannot get games"))
+		return
+	}
+
+	// Respond with a Games component.
+	h.render(w, r, navigation.GameButtons(games), http.StatusOK)
+}
+
+func (h *Handler) HandleGetRolls(w http.ResponseWriter, r *http.Request) {
+
+	// Get the rolls.
+	rolls, err := h.Service.GetRolls(r.Context(), chi.URLParam(r, "game_id"))
+	if err != nil {
+		h.domainErr(w, errors.Wrap(err, "cannot get rolls"))
+		return
+	}
+
+	// Respond with a Roll component.
+	h.render(w, r, navigation.Rolls(rolls), http.StatusOK)
+}
 func (h *Handler) HandleDeleteGame(w http.ResponseWriter, r *http.Request) {
 
 	session, _ := r.Context().Value("session").(*domain.Session)

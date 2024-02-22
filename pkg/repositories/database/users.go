@@ -10,59 +10,62 @@ import (
 	"rollbringer/pkg/domain"
 )
 
-// Login inserts a new session for the user with the google-ID. If the user
-// doesn't exist, a new one will be inserted.
-func (db *Database) Login(ctx context.Context, googleID string) (string, error) {
+// InsertUser inserts the user. If the username is takan, returns
+// domain.ErrUsernameTaken.
+func (db *Database) InsertUser(ctx context.Context, user *domain.User) error {
 
-	// Get a user with the google-ID.
-	rows, err := db.conn.Query(ctx, `SELECT id FROM users WHERE google_id = $1`, googleID)
+	user.ID = uuid.New().String()
+
+	// Insert the user.
+	cmdTag, err := db.conn.Exec(ctx,
+		`
+			INSERT INTO users (id, username, google_id) VALUES ($1, $2, $3)
+			ON CONFLICT (google_id) DO NOTHING
+		`,
+		user.ID, user.Username, user.GoogleID)
+
 	if err != nil {
-		return "", errors.Wrap(err, "cannot select user")
-	}
-	defer rows.Close()
-
-	// Scan first row into a user model.
-	user, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[domain.User])
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		return "", errors.Wrap(err, "cannot scan user")
+		return errors.Wrap(err, "cannot insert user")
 	}
 
-	rows.Close()
+	if cmdTag.RowsAffected() == 0 {
 
-	if user == nil {
-		user = &domain.User{ID: uuid.New().String()}
-
-		// Insert a new user.
-		_, err = db.conn.Exec(ctx,
-			`INSERT INTO users (id, username, google_id) VALUES ($1, $2, $3)`,
-			user.ID, "abc123", googleID)
-
+		// Get the user-ID of the user with the google-ID.
+		rows, err := db.conn.Query(ctx, `SELECT id FROM users WHERE google_id = $1`, user.GoogleID)
 		if err != nil {
-			return "", errors.Wrap(err, "cannot insert user")
+			return errors.Wrap(err, "cannot select user")
+		}
+		defer rows.Close()
+
+		// Scan into the user's ID.
+		rows.Next()
+		if err := rows.Scan(&user.ID); err != nil {
+			return errors.Wrap(err, "cannot scan user ID")
 		}
 	}
 
-	sessionID := uuid.New().String()
+	return nil
+}
 
-	// Insert a new session for the user.
-	_, err = db.conn.Exec(ctx,
+// UpsertSession upserts the session.
+func (db *Database) UpsertSession(ctx context.Context, session *domain.Session) error {
+
+	session.ID = uuid.New().String()
+
+	// Upsert the session.
+	_, err := db.conn.Exec(ctx,
 		`
-			INSERT INTO sessions (id, csrf_token, user_id) 
-				VALUES ($1, $2, $3)
+			INSERT INTO sessions (id, csrf_token, user_id) VALUES ($1, $2, $3)
 			ON CONFLICT (user_id) DO 
 				UPDATE SET id=EXCLUDED.id, csrf_token=EXCLUDED.csrf_token, user_id=EXCLUDED.user_id
 		`,
-		sessionID, uuid.New(), user.ID)
+		session.ID, session.CSRFToken, session.UserID)
 
-	if err != nil {
-		return "", errors.Wrap(err, "cannot insert session")
-	}
-
-	return sessionID, nil
+	return errors.Wrap(err, "cannot upsert session")
 }
 
-// GetUser returns the user with the user-ID from the database. If the user
-// doesn't exist, returns domain.ErrUserNotFound.
+// GetUser returns the user with the user-ID. If the user doesn't exist,
+// returns domain.ErrUserNotFound.
 func (db *Database) GetUser(ctx context.Context, userID string) (*domain.User, error) {
 
 	userUUID, _ := uuid.Parse(userID)
@@ -87,8 +90,8 @@ func (db *Database) GetUser(ctx context.Context, userID string) (*domain.User, e
 	return user, nil
 }
 
-// GetSession returns the session with the session-ID from the database. If the
-// session doesn't exist, returns domain.ErrUnauthorized.
+// GetSession returns the session with the session-ID. If the session doesn't
+// exist, returns domain.ErrUnauthorized.
 func (db *Database) GetSession(ctx context.Context, sessionID string) (*domain.Session, error) {
 
 	sessionUUID, _ := uuid.Parse(sessionID)

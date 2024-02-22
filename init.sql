@@ -15,7 +15,8 @@ CREATE TABLE sessions (
     csrf_token UUID NOT NULL,
 
     UNIQUE(id),
-    UNIQUE(user_id)
+    UNIQUE(user_id),
+    UNIQUE(csrf_token)
 );
 
 CREATE TABLE games (

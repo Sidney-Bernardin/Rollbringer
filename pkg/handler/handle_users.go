@@ -82,7 +82,7 @@ func (h *Handler) HandleConsentCallback(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// Login the user.
-	sessionID, err := h.Service.LoginUser(r.Context(), idToken.Claims.(*openIDConnectClaims).Subject)
+	session, err := h.Service.Login(r.Context(), idToken.Claims.(*openIDConnectClaims).Subject)
 	if err != nil {
 		h.domainErr(w, errors.Wrap(err, "cannot login user"))
 		return
@@ -91,7 +91,7 @@ func (h *Handler) HandleConsentCallback(w http.ResponseWriter, r *http.Request) 
 	// Store the session-ID in a cookie.
 	http.SetCookie(w, &http.Cookie{
 		Name:     "SESSION_ID",
-		Value:    sessionID,
+		Value:    session.ID,
 		Path:     "/",
 		Expires:  time.Now().Add(15 * time.Minute),
 		HttpOnly: true,
