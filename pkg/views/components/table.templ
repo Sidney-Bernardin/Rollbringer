@@ -1,0 +1,29 @@
+package components
+
+templ Table(class, headerTitle, headerBtnIcon string, headerBtnAttrs templ.Attributes) {
+	<div class={ class, "table" }>
+		<div class="header">
+			<p>{ headerTitle }</p>
+			<button { headerBtnAttrs... }>
+				<iconify-icon icon="material-symbols:add"></iconify-icon>
+			</button>
+		</div>
+		<table>
+			<tbody></tbody>
+		</table>
+	</div>
+}
+
+templ TableRow(info, mainBtnTitle string, mainBtnAttrs templ.Attributes) {
+	<tr>
+		<td class="main">
+			<button { mainBtnAttrs... }>
+				{ mainBtnTitle }
+			</button>
+		</td>
+		<td class="info">{ info }</td>
+		<td class="controls">
+			{ children... }
+		</td>
+	</tr>
+}

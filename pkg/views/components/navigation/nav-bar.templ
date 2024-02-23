@@ -11,16 +11,21 @@ templ NavBar(class string) {
 			<button class="main-btn">
 				<iconify-icon class="menu" icon="ic:baseline-meeting-room"></iconify-icon>
 			</button>
-			if !GetPlayPage(ctx).LoggedIn {
-				<a href="/users/login">
-					<button class="login-btn">
-						<iconify-icon icon="devicon:google"></iconify-icon>
-						Login with Google
-					</button>
-				</a>
-			} else {
-				<ul hx-get="/games" hx-trigger="load"></ul>
-			}
+			<ul
+				if GetPlayPage(ctx).LoggedIn {
+					hx-get="/games"
+					hx-trigger="load"
+				}
+			>
+				if !GetPlayPage(ctx).LoggedIn {
+					<a href="/users/login">
+						<button class="login-btn">
+							<iconify-icon icon="devicon:google"></iconify-icon>
+							Login with Google
+						</button>
+					</a>
+				}
+			</ul>
 		</div>
 		<ul
 			class="rolls"

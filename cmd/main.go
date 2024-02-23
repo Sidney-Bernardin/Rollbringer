@@ -95,7 +95,7 @@ func main() {
 
 	h.Router.With(h.Auth).Post("/games", h.HandleCreateGame)
 	h.Router.With(h.Auth).Get("/games", h.HandleGetGames)
-	h.Router.With(h.Auth).Get("/games/{game_id}/rolls", h.HandleGetRolls)
+	h.Router.With(h.LightAuth).Get("/games/{game_id}/rolls", h.HandleGetRolls)
 	h.Router.With(h.Auth).Delete("/games/{game_id}", h.HandleDeleteGame)
 
 	h.Router.With(h.Auth).Post("/play-materials/pdfs", h.HandleCreatePDF)

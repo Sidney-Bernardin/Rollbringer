@@ -24,7 +24,7 @@ func (h *Handler) HandleCreatePDF(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Respond with a PDFRow component.
-	h.render(w, r, play_materials.PDFRow(pdf), http.StatusOK)
+	h.render(w, r, play_materials.PDFTableRow(pdf), http.StatusOK)
 }
 
 func (h *Handler) HandleGetPDFs(w http.ResponseWriter, r *http.Request) {
@@ -39,7 +39,7 @@ func (h *Handler) HandleGetPDFs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Respond with a PDFs component.
-	h.render(w, r, play_materials.PDFRows(pdfs), http.StatusOK)
+	h.render(w, r, play_materials.PDFTableRows(pdfs), http.StatusOK)
 }
 
 func (h *Handler) HandleGetPDF(w http.ResponseWriter, r *http.Request) {

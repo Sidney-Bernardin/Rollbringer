@@ -12,17 +12,9 @@
 
         &:hover {
             ul {
-                display: flex;
-            }
-
-            .main-btn iconify-icon {
-                &.menu {
-                    display: none;
-                }
-
-                &.create {
-                    display: block;
-                }
+                width: auto;
+                height: auto;
+                padding: 10px;
             }
         }
 
@@ -38,16 +30,18 @@
         }
 
         ul {
-            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            background: $txt1;
             margin: 0;
             padding: 0;
             list-style-type: none;
             overflow: hidden;
             align-self: center;
-
-            .login-btn {
-                text-wrap: nowrap;
-            }
+            transition: 0.2s;
 
             li {
                 display: flex;
@@ -125,7 +119,7 @@
             }
 
             .die .expression {
-                font-size: 1.5rem
+                font-size: 1.5rem;
             }
         }
     }
