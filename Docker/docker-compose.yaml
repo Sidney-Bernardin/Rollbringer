@@ -4,8 +4,8 @@ services:
   database:
     container_name: database
     build:
-      context: .
-      dockerfile: postgres.dockerfile
+      context: ../
+      dockerfile: Docker/postgres.dockerfile
     ports:
       - 5432:5432
 
