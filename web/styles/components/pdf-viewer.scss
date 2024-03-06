@@ -1,4 +1,5 @@
 @use "../global.scss" as *;
+@use "../mixins/index.scss" as *;
 @import "~pdfjs-dist/web/pdf_viewer.css";
 
 .pdf-viewer {
@@ -39,7 +40,7 @@
                 @include btn($purple1, $bg3, $purple2);
 
                 &.close-btn {
-                    @include icon_btn($txt4, $txt1);
+                    @include icon_btn($txt1, $txt4);
                     padding: 3px;
                 }
 
@@ -59,7 +60,7 @@
                     padding: 5px;
 
                     li button {
-                        @include icon_btn($purple1, $purple2);
+                        @include icon_btn($purple2, $purple1);
                     }
                 }
 
@@ -96,6 +97,7 @@
             }
 
             .annotationLayer {
+
                 input,
                 textarea {
                     border: 2px solid transparent;

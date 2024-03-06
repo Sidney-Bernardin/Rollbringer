@@ -19,52 +19,6 @@ $bg4: #7c6f64;
 $txt1: #ebdbb2;
 $txt4: #a89984;
 
-@mixin panel {
-    outline: 2px solid $bg0;
-    border: 5px solid $bg2;
-    background: $bg1;
-}
-
-@mixin btn($bg, $fg, $border-color) {
-    cursor: pointer;
-    display: flex;
-    gap: 5px;
-    border: 3px solid $border-color;
-    color: $fg;
-    background: $bg;
-    font-weight: bolder;
-    padding: 5px;
-    text-decoration: none;
-    align-items: center;
-    justify-content: center;
-
-    span {
-        @include icon_btn($border-color, $fg);
-    }
-}
-
-@mixin icon_btn($fg, $fg_hover) {
-    cursor: pointer;
-    border: none;
-    color: $fg;
-    background: transparent;
-    padding: 0;
-
-    &:hover {
-        color: $fg_hover;
-    }
-}
-
-@mixin underline_btn($fg) {
-    cursor: pointer;
-    border: none;
-    color: $fg;
-    background: transparent;
-    font-weight: bolder;
-    padding: 0;
-    text-decoration: underline;
-}
-
 * {
     box-sizing: border-box;
 }
@@ -80,9 +34,5 @@ body {
 
     a {
         color: $txt1;
-    }
-
-    .login-btn {
-        @include btn($txt1, $bg3, $txt4);
     }
 }

@@ -1,49 +1,50 @@
 @use "../../global.scss" as *;
+@use "../../mixins/index.scss" as *;
 
 .dynamic-tab-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-
-  &__wrapper {
-    @include panel;
-
-    flex: 5;
-  }
-
-  &__list {
-    z-index: 1;
     display: flex;
-    gap: 2px;
-    margin: 0;
-    padding: 0;
-    list-style-type: none;
-    translate: -2px 0;
+    flex-direction: column;
+    height: 100%;
 
-    li {
-      cursor: pointer;
-      display: flex;
-      gap: 5px;
-      border: 2px solid $bg1;
-      border-bottom: none;
-      opacity: 0.5;
-      background: $bg2;
-      padding: 5px;
-      text-transform: capitalize;
-      align-items: center;
+    &__wrapper {
+        @include panel;
 
-      &.active {
-        border: 2px solid $bg0;
-        border-bottom: none;
-        opacity: 1;
-      }
-
-      button {
-        @include icon_btn($txt4, $txt1);
-
-        padding: 3;
-        opacity: 1;
-      }
+        flex: 5;
     }
-  }
+
+    &__list {
+        z-index: 1;
+        display: flex;
+        gap: 2px;
+        margin: 0;
+        padding: 0;
+        list-style-type: none;
+        translate: -2px 0;
+
+        li {
+            cursor: pointer;
+            display: flex;
+            gap: 5px;
+            border: 2px solid $bg1;
+            border-bottom: none;
+            opacity: 0.5;
+            background: $bg2;
+            padding: 5px;
+            text-transform: capitalize;
+            align-items: center;
+
+            &.active {
+                border: 2px solid $bg0;
+                border-bottom: none;
+                opacity: 1;
+            }
+
+            button {
+                @include icon_btn($txt1, $txt4);
+
+                padding: 3;
+                opacity: 1;
+            }
+        }
+    }
 }

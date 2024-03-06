@@ -1,72 +1,19 @@
 @use "../../global.scss" as *;
+@use "../../mixins/index.scss" as *;
 
 .nav-bar {
     display: flex;
     gap: 5px;
     align-items: center;
 
-    .games {
-        display: flex;
-        flex: 0;
-        transition: 0.2s;
+    .games-btn {
+        @include icon_btn($txt1, $txt4);
 
-        &:hover {
-            ul {
-                width: auto;
-                height: auto;
-                padding: 10px;
-            }
-        }
-
-        .main-btn {
-            @include icon_btn($txt4, $txt1);
-
-            font-size: 1.5rem;
-            padding: 5px;
-
-            iconify-icon.create {
-                display: none;
-            }
-        }
-
-        ul {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 0;
-            height: 0;
-            background: $txt1;
-            margin: 0;
-            padding: 0;
-            list-style-type: none;
-            overflow: hidden;
-            align-self: center;
-            transition: 0.2s;
-
-            li {
-                display: flex;
-                gap: 10px;
-                text-wrap: nowrap;
-                align-items: center;
-
-                &:hover {
-                    button {
-                        opacity: 1;
-                    }
-                }
-
-                button {
-                    @include icon_btn($txt4, $txt1);
-
-                    opacity: 0;
-                }
-
-                a {
-                    @include underline_btn($txt1);
-                }
-            }
-        }
+        font-size: 1.5rem;
+        padding: 5px;
     }
+
+    .games-modal {}
 
     .rolls {
         display: flex;

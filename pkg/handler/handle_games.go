@@ -22,7 +22,7 @@ func (h *Handler) HandleCreateGame(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Respond with a GameButton component.
-	h.render(w, r, navigation.GameButton(game), http.StatusOK)
+	h.render(w, r, navigation.GameRow(game), http.StatusOK)
 }
 
 func (h *Handler) HandleGetGames(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +37,7 @@ func (h *Handler) HandleGetGames(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Respond with a Games component.
-	h.render(w, r, navigation.GameButtons(games), http.StatusOK)
+	h.render(w, r, navigation.GameRows(games), http.StatusOK)
 }
 
 func (h *Handler) HandleGetRolls(w http.ResponseWriter, r *http.Request) {

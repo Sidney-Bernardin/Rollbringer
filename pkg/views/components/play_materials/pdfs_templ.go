@@ -43,7 +43,7 @@ func PDFs() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = Table("dnd-character-sheets", "Character Sheets", "material-symbols:add", templ.Attributes{
+		templ_7745c5c3_Err = Table("Character Sheets", "material-symbols:add", templ.Attributes{
 			"hx-post":   "/play-materials/pdfs",
 			"hx-target": "next table",
 			"hx-swap":   "beforeend",
@@ -126,7 +126,11 @@ func PDFTableRow(pdf *domain.PDF) templ.Component {
 			}
 			return templ_7745c5c3_Err
 		})
-		templ_7745c5c3_Err = TableRow("foobarbazz", pdf.Name, templ.Attributes{"hx-get": "/play-materials/pdfs/" + pdf.ID, "hx-swap": "none"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var4), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = TableRow("foobarbazz", pdf.Name, templ.Attributes{
+			"hx-get":    "/play-materials/pdfs/" + pdf.ID,
+			"hx-target": "this",
+			"hx-swap":   "none",
+		}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var4), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

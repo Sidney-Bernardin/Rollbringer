@@ -1,3 +1,6 @@
+@use "../../global.scss" as *;
+@use "../../mixins/index.scss" as *;
+
 .pdfs {
     .table {
         &:first-child {

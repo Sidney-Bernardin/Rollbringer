@@ -1,11 +1,11 @@
 package components
 
-templ Table(class, headerTitle, headerBtnIcon string, headerBtnAttrs templ.Attributes) {
-	<div class={ class, "table" }>
+templ Table(headerTitle, headerBtnIcon string, headerBtnAttrs templ.Attributes) {
+	<div class="table">
 		<div class="header">
 			<p>{ headerTitle }</p>
 			<button { headerBtnAttrs... }>
-				<iconify-icon icon="material-symbols:add"></iconify-icon>
+				<iconify-icon icon={ headerBtnIcon }></iconify-icon>
 			</button>
 		</div>
 		<table>

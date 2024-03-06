@@ -1,7 +1,7 @@
 import Split from "split-grid";
 
 require.context("./assets", false, /\.(png|jpg|gif|pdf)$/);
-import "./styles/layouts/play.scss";
+import "./styles/play.scss";
 
 import "./window";
 import "./alpine";

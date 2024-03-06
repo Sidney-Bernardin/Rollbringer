@@ -15,7 +15,7 @@ templ PDFs() {
 			hx-target="find tbody"
 		}
 	>
-		@Table("dnd-character-sheets", "Character Sheets", "material-symbols:add", templ.Attributes{
+		@Table("Character Sheets", "material-symbols:add", templ.Attributes{
             "hx-post": "/play-materials/pdfs",
             "hx-target": "next table",
             "hx-swap": "beforeend",
@@ -32,7 +32,11 @@ templ PDFTableRows(pdfs []*domain.PDF) {
 }
 
 templ PDFTableRow(pdf *domain.PDF) {
-	@TableRow("foobarbazz", pdf.Name, templ.Attributes{"hx-get": "/play-materials/pdfs/" + pdf.ID, "hx-swap": "none" }) {
+	@TableRow("foobarbazz", pdf.Name, templ.Attributes{
+        "hx-get": "/play-materials/pdfs/" + pdf.ID,
+        "hx-target": "this",
+        "hx-swap": "none",
+    }) {
 		<button>
 			<iconify-icon icon="material-symbols:edit"></iconify-icon>
 		</button>

@@ -3,52 +3,54 @@ package navigation
 import (
 	"rollbringer/pkg/domain"
 	. "rollbringer/pkg/views"
+	. "rollbringer/pkg/views/components"
 )
 
 templ NavBar(class string) {
-	<div class={ "nav-bar", class }>
-		<div class="games">
-			<button class="main-btn">
-				<iconify-icon class="menu" icon="ic:baseline-meeting-room"></iconify-icon>
-			</button>
-			<ul
-				if GetPlayPage(ctx).LoggedIn {
-					hx-get="/games"
-					hx-trigger="load"
-				}
-			>
-				if !GetPlayPage(ctx).LoggedIn {
-					<a href="/users/login">
-						<button class="login-btn">
-							<iconify-icon icon="devicon:google"></iconify-icon>
-							Login with Google
-						</button>
-					</a>
-				}
-			</ul>
-		</div>
-		<ul
-			class="rolls"
-			if game := GetPlayPage(ctx).Game; game != nil {
-				hx-get={ F("/games/%s/rolls", game.ID) }
-				hx-trigger="load"
-			}
-		></ul>
+	<div
+        class={ "nav-bar", class }
+        x-data
+        if GetPlayPage(ctx).LoggedIn {
+            hx-get="/games"
+            hx-trigger="load"
+            hx-target="find tbody"
+        }
+    >
+		<button class="games-btn" x-on:click="$root.querySelector('.games-modal').showModal()">
+			<iconify-icon class="menu" icon="ic:baseline-meeting-room"></iconify-icon>
+		</button>
+		@Modal("games-modal") {
+			@Table("Your Games", "material-symbols:add", templ.Attributes{
+                "hx-post": "/games",
+                "hx-target": "next table",
+                "hx-swap": "beforeend",
+            })
+			@Table("Other Games", "", nil)
+		}
 	</div>
 }
 
-templ GameButtons(games []*domain.Game) {
+templ GameRows(games []*domain.Game) {
 	for _, game := range games {
-		@GameButton(game)
+		@GameRow(game)
 	}
 }
 
-templ GameButton(game *domain.Game) {
-	<li>
-		<a href={ templ.URL(F("/play?g=%s", game.ID)) }>
-			{ game.Title }
-		</a>
-	</li>
+templ GameRow(game *domain.Game) {
+	@TableRow("foobarbazz", game.Title, templ.Attributes{
+    	"x-on:click": F("window.location.href = '/play?g={%s}'", game.ID),
+	}) {
+		<button>
+			<iconify-icon icon="material-symbols:edit"></iconify-icon>
+		</button>
+		<button
+			hx-delete={ F("/games/%s", game.ID) }
+			hx-target="closest tr"
+			hx-swap="outerHTML"
+		>
+			<iconify-icon icon="material-symbols:delete"></iconify-icon>
+		</button>
+	}
 }
 
 templ Rolls(rolls []*domain.Roll) {
