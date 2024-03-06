@@ -1,5 +1,12 @@
 window.alpine.data("modal", () => ({
-    close() {
-        this.$el.close();
+    close(e) {
+        const dimentions: DOMRect = this.$el.getBoundingClientRect();
+
+        if (
+            e.clientX < dimentions.left ||
+            e.clientX > dimentions.right ||
+            e.clientY < dimentions.top ||
+            e.clientY > dimentions.bottom
+        ) this.$el.close();
     },
 }));

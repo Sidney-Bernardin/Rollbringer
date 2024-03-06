@@ -36,7 +36,7 @@ func Modal(class string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" id=\"modal\" x-data=\"modal\"><div class=\"wrapper\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" id=\"modal\" x-data=\"modal\" x-on:click=\"close\"><div class=\"wrapper\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

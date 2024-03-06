@@ -13,7 +13,13 @@
         padding: 5px;
     }
 
-    .games-modal {}
+    .games-modal {
+        .table:first-child {
+            border-top: none;
+            margin-top: 0;
+            padding-top: 0;
+        }
+    }
 
     .rolls {
         display: flex;
