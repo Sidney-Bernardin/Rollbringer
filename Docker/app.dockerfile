@@ -9,7 +9,7 @@ RUN go mod download
 # Copy the rest and build the binary.
 COPY . .
 RUN --mount=type=cache,target=/root/.cache/go-build \
-    go build -o app cmd/*
+    go build -tags prod -o app cmd/main.go cmd/static_prod.go
 
 # ============================================================================
 
