@@ -5,7 +5,6 @@ package main
 
 import (
 	"embed"
-	"fmt"
 	"net/http"
 )
 
@@ -13,6 +12,5 @@ import (
 var staticFS embed.FS
 
 func handleStaticDir() http.Handler {
-	fmt.Println("prod")
 	return http.FileServerFS(staticFS)
 }

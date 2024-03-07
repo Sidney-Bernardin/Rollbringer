@@ -1,3 +1,17 @@
+FROM node:latest AS webpack
+
+WORKDIR /app
+
+# Copy package.json and install packages.
+COPY package.json .
+RUN npm install
+
+# Copy the rest and build into a static directory.
+COPY . .
+RUN npm run build
+
+# ============================================================================
+
 FROM golang:alpine AS build
 
 WORKDIR /app
@@ -5,6 +19,9 @@ WORKDIR /app
 # Copy and download go module dependencies.
 COPY go.* .
 RUN go mod download 
+
+# Copy the the static directory from the webpack stage.
+COPY --from=webpack /app/cmd/static ./cmd/static
 
 # Copy the rest and build the binary.
 COPY . .
