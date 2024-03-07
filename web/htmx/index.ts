@@ -1,5 +1,5 @@
 window.htmx = require("htmx.org");
-import "/static/ws.js";
+import "htmx.org/dist/ext/ws.js";
 
 // TODO: Improve error handling.
 document.body.addEventListener("htmx:responseError", (e: CustomEvent) => {

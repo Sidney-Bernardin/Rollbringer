@@ -1,6 +1,29 @@
 version: "3.7"
 
 services:
+  app:
+    container_name: app
+    build:
+      context: ../
+      dockerfile: Docker/app.dockerfile
+    environment:
+      APP_ADDRESS: ":3000"
+
+      APP_GOOGLE_CLIENT_ID: ${APP_GOOGLE_CLIENT_ID}
+      APP_GOOGLE_CLIENT_SECRET: ${APP_GOOGLE_CLIENT_SECRET}
+      APP_REDIRECT_URL: ${APP_REDIRECT_URL}
+
+      APP_USER_SESSION_TIMEOUT: ${APP_USER_SESSION_TIMEOUT}
+
+      APP_POSTGRES_ADDRESS: "postgresql://postgres:abc123@database:5432?sslmode=disable"
+      APP_REDIS_ADDRESS: "pubsub:6379"
+      APP_REDIS_PASSWORD: ""
+    ports:
+      - 3000:3000
+    depends_on:
+      - database
+      - pubsub
+
   database:
     container_name: database
     build:

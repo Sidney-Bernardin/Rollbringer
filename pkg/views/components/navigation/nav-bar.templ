@@ -38,7 +38,7 @@ templ GameRows(games []*domain.Game) {
 
 templ GameRow(game *domain.Game) {
 	@TableRow("foobarbazz", game.Title, templ.Attributes{
-    	"x-on:click": F("window.location.href = '/play?g={%s}'", game.ID),
+    	"x-on:click": F("window.location.href = '/play?g=%s'", game.ID),
 	}) {
 		<button>
 			<iconify-icon icon="material-symbols:edit"></iconify-icon>

@@ -83,8 +83,7 @@ func main() {
 	}
 
 	h.Router.Use(h.Log)
-	h.Router.Handle("/static/*",
-		http.StripPrefix("/static/", http.FileServer(http.FS(os.DirFS("static")))))
+	h.Router.Handle("/static/*", handleStaticDir())
 
 	h.Router.Get("/", h.HandleHomePage)
 	h.Router.With(h.LightAuth).Get("/play", h.HandlePlayPage)

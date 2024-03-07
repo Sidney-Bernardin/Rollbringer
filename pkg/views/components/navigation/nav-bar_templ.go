@@ -161,7 +161,7 @@ func GameRow(game *domain.Game) templ.Component {
 			return templ_7745c5c3_Err
 		})
 		templ_7745c5c3_Err = TableRow("foobarbazz", game.Title, templ.Attributes{
-			"x-on:click": F("window.location.href = '/play?g={%s}'", game.ID),
+			"x-on:click": F("window.location.href = '/play?g=%s'", game.ID),
 		}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var6), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
