@@ -1,0 +1,9 @@
+@use "../global.scss" as *;
+
+.icon-button {
+    border: none;
+    border-radius: 50%;
+    color: $txt1;
+    background: transparent;
+    padding: 3px;
+}

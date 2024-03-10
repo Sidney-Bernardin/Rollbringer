@@ -29,6 +29,10 @@
 
     &__left {
         grid-area: left;
+
+        .panel__body {
+            background: $bg0;
+        }
     }
 
     &__right {
@@ -37,6 +41,10 @@
 
     &__top {
         grid-area: top;
+
+        .panel__body {
+            background: $bg0;
+        }
     }
 
     &__bottom {

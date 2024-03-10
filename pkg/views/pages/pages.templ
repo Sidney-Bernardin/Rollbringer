@@ -36,12 +36,11 @@ templ Play() {
 		>
 			<div class="play-layout" x-data="{ rolling: false }">
 				@NavBar("play-layout__nav-bar")
-				@DynamicTabContainer("play-layout__top")
-				@DynamicTabContainer("play-layout__left")
+				@DynamicTabContainer("play-layout__top", "No scenes selected")
+				@DynamicTabContainer("play-layout__left", "No PDF selected")
 				@StaticTabContainer("play-layout__bottom", map[string]templ.Component{
                     "PDFs": PDFs(),
                     "Scenes": templ.NopComponent,
-                    "Assets": templ.NopComponent,
                     "Combat": templ.NopComponent,
                 })
 				@StaticTabContainer("play-layout__right", map[string]templ.Component{

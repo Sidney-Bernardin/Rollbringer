@@ -43,13 +43,13 @@ func PDFs() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = Table("Character Sheets", "material-symbols:add", templ.Attributes{
+		templ_7745c5c3_Err = Table("Character Sheets", IconButton("", "material-symbols:add", templ.Attributes{
 			"hx-post":   "/play-materials/pdfs",
 			"hx-target": "next table",
 			"hx-swap":   "beforeend",
 			"name":      "schema",
 			"value":     "DND_CHARACTER_SHEET",
-		}).Render(ctx, templ_7745c5c3_Buffer)
+		})).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -122,34 +122,24 @@ func PDFTableRow(pdf *domain.PDF) templ.Component {
 			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Var5 := templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
-			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
-			if !templ_7745c5c3_IsBuffer {
-				templ_7745c5c3_Buffer = templ.GetBuffer()
-				defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<button x-on:click=\"\"><iconify-icon icon=\"material-symbols:edit\"></iconify-icon></button> <button hx-delete=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(F("/play-materials/pdfs/%s", pdf.ID)))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" hx-target=\"closest tr\" hx-swap=\"outerHTML\"><iconify-icon icon=\"material-symbols:delete\"></iconify-icon></button>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			if !templ_7745c5c3_IsBuffer {
-				_, templ_7745c5c3_Err = io.Copy(templ_7745c5c3_W, templ_7745c5c3_Buffer)
-			}
-			return templ_7745c5c3_Err
-		})
-		templ_7745c5c3_Err = TableRow("foobarbazz", pdf.Name, templ.Attributes{
-			"hx-get":    "/play-materials/pdfs/" + pdf.ID,
-			"hx-target": "this",
-			"hx-swap":   "none",
-		}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var5), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = TableRow(
+			templ.Attributes{
+				"hx-get":    "/play-materials/pdfs/" + pdf.ID,
+				"hx-target": "this",
+				"hx-swap":   "none",
+			},
+			pdf.Name,
+			"foobarbazz",
+			IconButton("", "material-symbols:delete", templ.Attributes{
+				"x-on:click.stop": true,
+				"hx-delete":       F("/play-materials/pdfs/%s", pdf.ID),
+				"hx-target":       "closest tr",
+				"hx-swap":         "outerHTML",
+			}),
+			IconButton("", "material-symbols:edit", templ.Attributes{
+				"x-on:click.stop": true,
+			}),
+		).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

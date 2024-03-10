@@ -1,0 +1,13 @@
+package components
+
+templ Button(class string, msg string, attrs templ.Attributes) {
+	<button class={ "button", class } { attrs... }>
+		{ msg }
+	</button>
+}
+
+templ IconButton(class, icon string, attrs templ.Attributes) {
+	<button class={ "icon-button", class } { attrs... }>
+		<iconify-icon icon={ icon }></iconify-icon>
+	</button>
+}

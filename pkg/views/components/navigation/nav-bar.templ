@@ -8,24 +8,24 @@ import (
 
 templ NavBar(class string) {
 	<div
-        class={ "nav-bar", class }
-        x-data
-        if GetPlayPage(ctx).LoggedIn {
-            hx-get="/games"
-            hx-trigger="load"
-            hx-target="find tbody"
-        }
-    >
-		<button class="games-btn" x-on:click="$root.querySelector('.games-modal').showModal()">
-			<iconify-icon class="menu" icon="ic:baseline-meeting-room"></iconify-icon>
-		</button>
+		class={ "nav-bar", class }
+		x-data
+		if GetPlayPage(ctx).LoggedIn {
+			hx-get="/games"
+			hx-trigger="load"
+			hx-target="find tbody"
+		}
+	>
+		@IconButton("games-btn", "ic:baseline-meeting-room", templ.Attributes{
+             "x-on:click": "$root.querySelector('.games-modal').showModal()",
+        })
 		@Modal("games-modal", "Games") {
-			@Table("Your Games", "material-symbols:add", templ.Attributes{
+			@Table("Your Games", IconButton("", "material-symbols:add", templ.Attributes{
                 "hx-post": "/games",
                 "hx-target": "next table",
                 "hx-swap": "beforeend",
-            })
-			@Table("Other Games", "", nil)
+            }))
+			@Table("Other Games", nil)
 		}
 	</div>
 }
@@ -37,20 +37,22 @@ templ GameRows(games []*domain.Game) {
 }
 
 templ GameRow(game *domain.Game) {
-	@TableRow("foobarbazz", game.Title, templ.Attributes{
-    	"x-on:click": F("window.location.href = '/play?g=%s'", game.ID),
-	}) {
-		<button>
-			<iconify-icon icon="material-symbols:edit"></iconify-icon>
-		</button>
-		<button
-			hx-delete={ F("/games/%s", game.ID) }
-			hx-target="closest tr"
-			hx-swap="outerHTML"
-		>
-			<iconify-icon icon="material-symbols:delete"></iconify-icon>
-		</button>
-	}
+	@TableRow(
+        templ.Attributes{
+    	    "x-on:click": F("window.location.href = '/play?g=%s'", game.ID),
+        },
+        game.Title,
+        "foobarbazz",
+        IconButton("", "material-symbols:delete", templ.Attributes{
+            "x-on:click.stop": true,
+            "hx-delete": F("/games/%s", game.ID),
+            "hx-target": "closest tr",
+            "hx-swap": "outerHTML",
+        }),
+        IconButton("", "material-symbols:edit", templ.Attributes{
+            "x-on:click.stop": true,
+        }),
+	)
 }
 
 templ Rolls(rolls []*domain.Roll) {

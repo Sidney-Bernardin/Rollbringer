@@ -15,13 +15,13 @@ templ PDFs() {
 			hx-target="find tbody"
 		}
 	>
-		@Table("Character Sheets", "material-symbols:add", templ.Attributes{
+		@Table("Character Sheets", IconButton("", "material-symbols:add", templ.Attributes{
             "hx-post": "/play-materials/pdfs",
             "hx-target": "next table",
             "hx-swap": "beforeend",
             "name": "schema",
             "value": "DND_CHARACTER_SHEET",
-        })
+        }))
 		@Modal("edit-pdf-modal", "Edit PDF") {
 			<form>
 				<input type="text" name="name"/>
@@ -37,20 +37,22 @@ templ PDFTableRows(pdfs []*domain.PDF) {
 }
 
 templ PDFTableRow(pdf *domain.PDF) {
-	@TableRow("foobarbazz", pdf.Name, templ.Attributes{
-        "hx-get": "/play-materials/pdfs/" + pdf.ID,
-        "hx-target": "this",
-        "hx-swap": "none",
-    }) {
-		<button x-on:click="">
-			<iconify-icon icon="material-symbols:edit"></iconify-icon>
-		</button>
-		<button
-			hx-delete={ F("/play-materials/pdfs/%s", pdf.ID) }
-			hx-target="closest tr"
-			hx-swap="outerHTML"
-		>
-			<iconify-icon icon="material-symbols:delete"></iconify-icon>
-		</button>
-	}
+	@TableRow(
+        templ.Attributes{ 
+            "hx-get": "/play-materials/pdfs/" + pdf.ID,
+            "hx-target": "this",
+            "hx-swap": "none",
+        },
+	    pdf.Name,
+        "foobarbazz",
+        IconButton("", "material-symbols:delete", templ.Attributes{ 
+            "x-on:click.stop": true,
+			"hx-delete": F("/play-materials/pdfs/%s", pdf.ID),
+			"hx-target": "closest tr",
+			"hx-swap": "outerHTML",
+        }),
+        IconButton("", "material-symbols:edit", templ.Attributes{
+            "x-on:click.stop": true,
+        }),
+	)
 }

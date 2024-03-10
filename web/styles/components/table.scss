@@ -6,13 +6,12 @@
 
     .header {
         display: flex;
-        color: $bg4;
-        font-size: 1.5rem;
+        color: $txt4;
         padding-top: 5px;
         justify-content: space-between;
         align-items: center;
 
-        p {
+        h2 {
             margin: 0;
             font-weight: bolder;
         }
@@ -28,9 +27,9 @@
 
         tr {
             &:hover {
-                background: $bg2;
+                background: $bg3;
 
-                td.controls button {
+                td:nth-child(3) button {
                     opacity: 1;
                 }
             }
@@ -38,18 +37,13 @@
             td {
                 border: 5px solid transparent;
 
-                &.main {
-                    button {
-                    }
+                &:nth-child(2) {
+                    color: $txt4;
                 }
 
-                &.info {
-                    color: $bg4;
-                }
-
-                &.controls {
+                &:nth-child(3) {
                     display: flex;
-                    gap: 10px;
+                    gap: 5px;
                     flex-direction: row-reverse;
 
                     button {

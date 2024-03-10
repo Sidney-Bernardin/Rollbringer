@@ -11,9 +11,6 @@
     }
 
     .games-modal {
-        .panel__header h1 {
-        }
-
         .table:first-child {
             border-top: none;
             margin-top: 0;
@@ -21,6 +18,10 @@
             .header {
                 padding-top: 0;
             }
+        }
+
+        tr {
+            cursor: pointer;
         }
     }
 

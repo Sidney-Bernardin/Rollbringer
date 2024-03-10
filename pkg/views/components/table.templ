@@ -1,13 +1,11 @@
 package components
 
-templ Table(headerTitle, headerBtnIcon string, headerBtnAttrs templ.Attributes) {
+templ Table(headerTitle string, headerButton templ.Component) {
 	<div class="table">
 		<div class="header">
-			<p>{ headerTitle }</p>
-			if headerBtnIcon != "" {
-				<button { headerBtnAttrs... }>
-					<iconify-icon icon={ headerBtnIcon }></iconify-icon>
-				</button>
+			<h2>{ headerTitle }</h2>
+			if headerButton != nil {
+				@headerButton
 			}
 		</div>
 		<table>
@@ -16,16 +14,14 @@ templ Table(headerTitle, headerBtnIcon string, headerBtnAttrs templ.Attributes) 
 	</div>
 }
 
-templ TableRow(info, mainBtnTitle string, mainBtnAttrs templ.Attributes) {
-	<tr>
-		<td class="main">
-			<button { mainBtnAttrs... }>
-				{ mainBtnTitle }
-			</button>
-		</td>
-		<td class="info">{ info }</td>
-		<td class="controls">
-			{ children... }
+templ TableRow(attrs templ.Attributes, col1, col2 string, col3 ...templ.Component) {
+	<tr { attrs... }>
+		<td>{ col1 }</td>
+		<td>{ col2 }</td>
+		<td>
+			for _, c := range col3 {
+				@c
+			}
 		</td>
 	</tr>
 }

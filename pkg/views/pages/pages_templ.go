@@ -161,18 +161,17 @@ func Play() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = DynamicTabContainer("play-layout__top").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = DynamicTabContainer("play-layout__top", "No scenes selected").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = DynamicTabContainer("play-layout__left").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = DynamicTabContainer("play-layout__left", "No PDF selected").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			templ_7745c5c3_Err = StaticTabContainer("play-layout__bottom", map[string]templ.Component{
 				"PDFs":   PDFs(),
 				"Scenes": templ.NopComponent,
-				"Assets": templ.NopComponent,
 				"Combat": templ.NopComponent,
 			}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
