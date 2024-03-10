@@ -58,11 +58,8 @@ func (h *Handler) HandleGetPDF(w http.ResponseWriter, r *http.Request) {
 		oob_swaps.AddPDFViewerTab(
 			pdf.ID,
 			pdf.Name,
-			components.PDFViewer(
-				pdf.ID,
-				components.DNDCharacterSheetFileLocation,
-				components.DNDCharacterSheetPageNames,
-			),
+			components.DNDCharacterSheetPageNames,
+			components.DNDCharacterSheetFileLocation,
 		),
 		http.StatusOK,
 	)

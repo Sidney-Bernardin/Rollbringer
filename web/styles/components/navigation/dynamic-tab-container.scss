@@ -1,37 +1,31 @@
 @use "../../global.scss" as *;
-@use "../../mixins/index.scss" as *;
 
 .dynamic-tab-container {
     display: flex;
     flex-direction: column;
-    height: 100%;
 
-    &__wrapper {
-        @include panel;
-
+    &__panel {
         flex: 5;
+        margin: 2px;
+
+        .panel__body {
+            padding: 0;
+        }
     }
 
-    &__list {
-        z-index: 1;
+    &__tab-buttons {
         display: flex;
         gap: 2px;
-        margin: 0;
-        padding: 0;
-        list-style-type: none;
-        translate: -2px 0;
+        transform: translateY(2px);
 
-        li {
+        p {
+            z-index: 10;
             cursor: pointer;
-            display: flex;
-            gap: 5px;
             border: 2px solid $bg1;
             border-bottom: none;
             opacity: 0.5;
             background: $bg2;
             padding: 5px;
-            text-transform: capitalize;
-            align-items: center;
 
             &.active {
                 border: 2px solid $bg0;
@@ -40,10 +34,16 @@
             }
 
             button {
-                @include icon_btn($txt1, $txt4);
-
+                border: none;
+                border-radius: 50%;
+                color: $txt4;
+                background: transparent;
                 padding: 3;
-                opacity: 1;
+
+                &:hover {
+                    color: $txt1;
+                    background: $bg3;
+                }
             }
         }
     }

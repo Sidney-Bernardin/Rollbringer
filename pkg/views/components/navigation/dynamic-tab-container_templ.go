@@ -12,6 +12,7 @@ import "bytes"
 
 import (
 	. "rollbringer/pkg/views"
+	. "rollbringer/pkg/views/components"
 )
 
 func DynamicTabContainer(class string) templ.Component {
@@ -40,7 +41,15 @@ func DynamicTabContainer(class string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" x-data=\"{ currentDynamicTab: &#39;&#39;}\"><ul class=\"dynamic-tab-container__list\"></ul><div class=\"dynamic-tab-container__wrapper\"></div></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" x-data=\"{ currentDynamicTab: &#39;&#39;}\"><div class=\"dynamic-tab-container__tab-buttons\"></div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Panel("dynamic-tab-container__panel", templ.NopComponent, nil).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -51,7 +60,7 @@ func DynamicTabContainer(class string) templ.Component {
 	})
 }
 
-func TabButton(tabID, name string) templ.Component {
+func DynamicTabButton(tabID, name string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -64,7 +73,7 @@ func TabButton(tabID, name string) templ.Component {
 			templ_7745c5c3_Var3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<li class=\"tab-button\" x-data=\"")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<p class=\"tab-button\" x-data=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -79,13 +88,13 @@ func TabButton(tabID, name string) templ.Component {
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/components/navigation/dynamic-tab-container.templ`, Line: 21, Col: 8}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/components/navigation/dynamic-tab-container.templ`, Line: 22, Col: 8}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" <button x-on:click=\"$dispatch(&#39;close-tab&#39;, { tabID })\"><iconify-icon icon=\"material-symbols:close\"></iconify-icon></button></li>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" <button x-on:click=\"$dispatch(&#39;close-tab&#39;, { tabID })\"><iconify-icon icon=\"material-symbols:close\"></iconify-icon></button></p>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -96,7 +105,7 @@ func TabButton(tabID, name string) templ.Component {
 	})
 }
 
-func TabItem(tabID string, content templ.Component) templ.Component {
+func DynamicTabCloak(tabID string, content templ.Component) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -109,15 +118,23 @@ func TabItem(tabID string, content templ.Component) templ.Component {
 			templ_7745c5c3_Var5 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div x-data=\"")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"dynamic-tab-cloak__tab-content\" x-show=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(F(`{ tabID: '%s' }`, tabID)))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(F("currentDynamicTab == '%s'", tabID)))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" x-show=\"currentDynamicTab == tabID\" x-on:close-tab.window=\"($event.detail.tabID == tabID) &amp;&amp; $el.remove()\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" x-on:close-tab.window=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(F("($event.detail.tabID == '%s') && $el.remove()", tabID)))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -1,9 +1,0 @@
-@use "../global.scss" as *;
-
-@forward "buttons.scss";
-
-@mixin panel {
-    outline: 2px solid $bg0;
-    border: 5px solid $bg2;
-    background: $bg1;
-}

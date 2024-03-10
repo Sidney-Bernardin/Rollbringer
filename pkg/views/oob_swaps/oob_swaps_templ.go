@@ -19,7 +19,7 @@ import (
 	. "rollbringer/pkg/views/components/navigation"
 )
 
-func AddPDFViewerTab(PDFID, name string, content templ.Component) templ.Component {
+func AddPDFViewerTab(pdfID, name string, pageNames []string, pdfFile string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -32,19 +32,27 @@ func AddPDFViewerTab(PDFID, name string, content templ.Component) templ.Componen
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div hx-swap-oob=\"beforeend:.play-layout__left .dynamic-tab-container__list\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div hx-swap-oob=\"beforeend:.play-layout__left .dynamic-tab-container__tab-buttons\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = TabButton(PDFID, name).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = DynamicTabButton(pdfID, name).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><div hx-swap-oob=\"beforeend:.play-layout__left .dynamic-tab-container__wrapper\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><div hx-swap-oob=\"beforeend:.play-layout__left .dynamic-tab-container__panel .panel__header\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = TabItem(PDFID, content).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = DynamicTabCloak(pdfID, PDFViewerPageButtons(pdfID, pageNames)).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><div hx-swap-oob=\"beforeend:.play-layout__left .dynamic-tab-container__panel .panel__body\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = DynamicTabCloak(pdfID, PDFViewer(pdfID, pdfFile)).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

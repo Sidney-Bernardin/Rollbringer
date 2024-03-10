@@ -19,7 +19,7 @@ templ NavBar(class string) {
 		<button class="games-btn" x-on:click="$root.querySelector('.games-modal').showModal()">
 			<iconify-icon class="menu" icon="ic:baseline-meeting-room"></iconify-icon>
 		</button>
-		@Modal("games-modal") {
+		@Modal("games-modal", "Games") {
 			@Table("Your Games", "material-symbols:add", templ.Attributes{
                 "hx-post": "/games",
                 "hx-target": "next table",

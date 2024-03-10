@@ -1,5 +1,4 @@
 @use "../../global.scss" as *;
-@use "../../mixins/index.scss" as *;
 
 .nav-bar {
     display: flex;
@@ -7,17 +6,21 @@
     align-items: center;
 
     .games-btn {
-        @include icon_btn($txt1, $txt4);
-
         font-size: 1.5rem;
         padding: 5px;
     }
 
     .games-modal {
+        .panel__header h1 {
+        }
+
         .table:first-child {
             border-top: none;
             margin-top: 0;
-            padding-top: 0;
+
+            .header {
+                padding-top: 0;
+            }
         }
     }
 

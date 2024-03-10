@@ -1,20 +1,16 @@
 @use "../global.scss" as *;
-@use "../mixins/index.scss" as *;
 
 .modal {
-    @include panel;
-
+    border: 2px solid $bg0;
     width: 400px;
+    margin: auto;
     padding: 0;
 
     &::backdrop {
         background: rgba(0, 0, 0, 0.25);
     }
 
-    .wrapper {
-        max-height: 50vh;
-        border: 2px solid $bg0;
-        padding: 5px;
-        overflow: auto;
+    .panel__header {
+        color: $txt1;
     }
 }

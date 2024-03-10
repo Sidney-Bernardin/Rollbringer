@@ -1,5 +1,4 @@
 @use "global.scss" as *;
-@use "mixins/index.scss" as *;
 @use "components/index.scss" as *;
 
 .play-layout {
@@ -7,7 +6,7 @@
     box-sizing: border-box;
     width: 100%;
     height: 100%;
-    grid-template-rows: auto 5px 2fr 10px 1fr;
+    grid-template-rows: auto 10px 2fr 10px 1fr;
     grid-template-columns: 3fr 10px 2fr 10px 1fr;
     grid-template-areas:
         "navb  navb navb navb navb"
@@ -15,7 +14,7 @@
         "left  g2   top  g3   right"
         "left  g2   g4   g3   right"
         "left  g2   bot  g3   right";
-    padding: 5px 10px 10px 10px;
+    padding: 10px;
 
     &__nav-bar {
         grid-area: navb;
@@ -33,8 +32,6 @@
     }
 
     &__right {
-        @include panel();
-
         grid-area: right;
     }
 
@@ -43,8 +40,6 @@
     }
 
     &__bottom {
-        @include panel();
-
         grid-area: bot;
     }
 

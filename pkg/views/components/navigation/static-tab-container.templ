@@ -3,30 +3,31 @@ package navigation
 import (
 	"golang.org/x/exp/maps"
 	. "rollbringer/pkg/views"
+	. "rollbringer/pkg/views/components"
 )
 
 templ StaticTabContainer(class string, tabs map[string]templ.Component) {
-	<div
-		class={ "static-tab-container", class }
-		x-data={ F("{ currentStaticTab: '%s' }", maps.Keys(tabs)[0]) }
-	>
-		<ul class="static-tab-container__list">
-			for name := range tabs {
-				<li
-					x-data={ F(`{ tabName: '%s' }`, name) }
-					x-bind:class="currentStaticTab == tabName && 'active'"
-					x-on:click="currentStaticTab = tabName"
-				>
-					{ name }
-				</li>
-			}
-		</ul>
-		<div class="static-tab-container__wrapper">
-			for name, content := range tabs {
-				<div x-show={ F("currentStaticTab == '%s'", name) }>
-					@content
-				</div>
-			}
-		</div>
+	@Panel("static-tab-container " + class, tabButtons(tabs), templ.Attributes{
+		"x-data": F("{ currentStaticTab: '%s' }", maps.Keys(tabs)[0]),
+	}) {
+		for name, content := range tabs {
+			<div x-show={ F("currentStaticTab == '%s'", name) }>
+				@content
+			</div>
+		}
+	}
+}
+
+templ tabButtons(tabs map[string]templ.Component) {
+	<div class="tab-buttons">
+		for name := range tabs {
+			<button
+				x-data={ F(`{ tabName: '%s' }`, name) }
+				x-bind:class="currentStaticTab == tabName && 'active'"
+				x-on:click="currentStaticTab = tabName"
+			>
+				{ name }
+			</button>
+		}
 	</div>
 }

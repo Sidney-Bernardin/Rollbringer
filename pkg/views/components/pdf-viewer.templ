@@ -7,46 +7,33 @@ import (
 var DNDCharacterSheetFileLocation = "/static/DND_CharacterSheet.pdf"
 var DNDCharacterSheetPageNames = []string{"main", "info", "spells"}
 
-templ PDFViewer(pdfID, pdfFile string, pageNames []string) {
+templ PDFViewer(pdfID, pdfFile string) {
 	<div
 		class="pdf-viewer"
-		x-data={ F("pdfViewer('%s', '%s') ", pdfFile, pdfID) }
 		data-pdf-id={ pdfID }
+		x-data={ F("pdfViewer('%s', '%s')", pdfFile, pdfID) }
+		x-on:change-page.window="changePage"
 	>
-		<ul>
-			for i, name := range pageNames {
-				<li
-					x-data={ F(`{ pageNum: %v }`, i+1) }
-					x-on:click="currentPage = pageNum"
-					x-bind:class="currentPage == pageNum && 'active'"
-				>
-					{ name }
-				</li>
-			}
-		</ul>
-		<div class="wrapper">
-			@roller()
-			<form class="init-pdf-page" style="display: none" ws-send>
-				<input name="TYPE" value="INIT_PDF_PAGE"/>
-				<input name="sender_id" value={ GetSession(ctx).UserID }/>
-				<input name="pdf_id" value={ pdfID }/>
-				<input name="page_num" x-bind:value="currentPage"/>
-			</form>
-			<form
-				class="viewer-container"
-				x-bind:class="rolling && 'rolling'"
-				hx-trigger="change"
-				ws-send
+		<form class="pdf-viewer__viewer-container" ref="viewerContainer">
+			<div class="viewer"></div>
+		</form>
+	</div>
+}
+
+templ PDFViewerPageButtons(pdfID string, pageNames []string) {
+	<div class="pdf-viewer-page-buttons" x-data="{ lastClicked: 0 }">
+		for i, name := range pageNames {
+			<button
+				data-pdf-id={ pdfID }
+				x-on:click={ F(`
+                    $dispatch('change-page', %v);
+                    lastClicked = %v`,
+                i+1, i+1) }
+				x-bind:class={ F(`lastClicked == %v && 'active'`, i+1) }
 			>
-				<div style="display: none">
-					<input name="TYPE" value="UPDATE_PDF_PAGE"/>
-					<input name="sender_id" value={ GetSession(ctx).UserID }/>
-					<input name="pdf_id" value={ pdfID }/>
-					<input name="page_num" x-bind:value="currentPage"/>
-				</div>
-				<div class="viewer"></div>
-			</form>
-		</div>
+				{ name }
+			</button>
+		}
 	</div>
 }
 

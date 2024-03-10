@@ -22,6 +22,11 @@ templ PDFs() {
             "name": "schema",
             "value": "DND_CHARACTER_SHEET",
         })
+		@Modal("edit-pdf-modal", "Edit PDF") {
+			<form>
+				<input type="text" name="name"/>
+			</form>
+		}
 	</div>
 }
 
@@ -37,7 +42,7 @@ templ PDFTableRow(pdf *domain.PDF) {
         "hx-target": "this",
         "hx-swap": "none",
     }) {
-		<button>
+		<button x-on:click="">
 			<iconify-icon icon="material-symbols:edit"></iconify-icon>
 		</button>
 		<button

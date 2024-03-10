@@ -1,158 +1,60 @@
 @use "../global.scss" as *;
-@use "../mixins/index.scss" as *;
 @import "~pdfjs-dist/web/pdf_viewer.css";
 
-.pdf-viewer {
+.pdf-viewer-page-buttons {
     display: flex;
-    height: 100%;
-    flex-direction: column;
+    gap: 15px;
+    justify-content: space-around;
 
-    .wrapper {
-        position: relative;
-        width: 100%;
-        height: 100%;
-        border: 2px solid $bg0;
-        overflow: hidden;
-        flex: 5;
+    button {
+        border: none;
+        color: $txt4;
+        background: transparent;
+        font-weight: bolder;
 
-        .roller {
-            z-index: 5;
-            position: absolute;
-            display: flex;
-            top: 10px;
-            right: 10px;
-            gap: 10px;
-            border: 2px solid $bg0;
-            background: $bg2;
-            padding: 10px;
-
-            &.active {
-                .roll {
-                    display: flex;
-                }
-
-                input[type="submit"] {
-                    display: block;
-                }
-            }
-
-            .roll-btn {
-                @include btn($purple1, $bg3, $purple2);
-
-                &.close-btn {
-                    @include icon_btn($txt1, $txt4);
-                    padding: 3px;
-                }
-
-                padding: 0;
-                font-size: 2rem;
-            }
-
-            .roll {
-                display: none;
-                gap: 5px;
-                font-weight: bolder;
-                align-items: center;
-
-                ul {
-                    border: 2px solid $bg0;
-                    background: $bg1;
-                    padding: 5px;
-
-                    li button {
-                        @include icon_btn($purple2, $purple1);
-                    }
-                }
-
-                span {
-                    color: $bg4;
-                    font-size: 1.5rem;
-                    font-weight: normal;
-                }
-
-                input {
-                    width: 10rem;
-                    height: 100%;
-                    border: 2px solid $bg0;
-                    color: $purple1;
-                    background: $bg1;
-                    font-weight: bolder;
-                    padding: 0 5px;
-                }
-            }
-
-            input[type="submit"] {
-                @include btn($purple1, $bg3, $purple2);
-
-                display: none;
-                cursor: pointer;
-            }
-        }
-
-        .viewer-container {
-            position: absolute;
-
-            &.rolling {
-                cursor: crosshair;
-            }
-
-            .annotationLayer {
-
-                input,
-                textarea {
-                    border: 2px solid transparent;
-                    background: rgba(0, 0, 0, 0);
-                    font-weight: bolder;
-
-                    &:focus {
-                        border: 2px solid #000;
-                    }
-
-                    &:hover {
-                        border: 2px solid #000;
-                    }
-
-                    &.rolling {
-                        cursor: crosshair;
-                    }
-                }
-            }
-
-            .textLayer {
-                user-select: none;
-            }
+        &.active {
+            color: $yellow;
         }
     }
+}
 
-    ul {
-        display: flex;
-        gap: 10px;
-        width: 100%;
-        background: $bg2;
-        margin: 0;
-        padding: 0 0 5px 0;
-        list-style-type: none;
-        justify-content: space-around;
-        align-self: center;
+.pdf-viewer {
+    position: relative;
+    height: 100%;
+    padding: 0;
+    overflow: hidden;
 
-        li {
-            cursor: pointer;
-            display: flex;
-            gap: 5px;
-            border: none;
-            color: $txt4;
-            background: transparent;
-            font-weight: bolder;
-            text-transform: capitalize;
-            align-items: center;
+    &__viewer-container {
+        position: absolute;
 
-            &.active {
-                color: $yellow;
+        &.rolling {
+            cursor: crosshair;
+        }
+
+        .annotationLayer {
+
+            input,
+            textarea {
+                border: 2px solid transparent;
+                background: rgba(0, 0, 0, 0);
+                font-weight: bolder;
+
+                &:focus {
+                    border: 2px solid #000;
+                }
+
+                &:hover {
+                    border: 2px solid #000;
+                }
+
+                &.rolling {
+                    cursor: crosshair;
+                }
             }
+        }
 
-            iconify-icon {
-                font-size: 1.5rem;
-            }
+        .textLayer {
+            user-select: none;
         }
     }
 }

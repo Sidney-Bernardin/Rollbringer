@@ -6,15 +6,16 @@ import htmx from "htmx.org";
 GlobalWorkerOptions.workerSrc = "static/pdf.worker.js";
 
 window.alpine.data("pdfViewer", (pdfURL: string, pdfID: string) => ({
-    currentPage: 1,
-    pdfViewer: null,
+    pageViewer: null,
+    initForm: null,
 
     init() {
-        const initFormElem: HTMLFormElement = this.$root.querySelector("form.init-pdf-page");
-        const viewerContainerElem: HTMLDivElement =
-            this.$root.querySelector("form.viewer-container");
+        this.initForm = this.$el.querySelector(".pdf-viewer__init-form");
+        const viewerContainer: HTMLDivElement = this.$el.querySelector(
+            ".pdf-viewer__viewer-container",
+        );
 
-        panzoom(viewerContainerElem, {
+        panzoom(viewerContainer, {
             bounds: true,
             minZoom: 0.25,
             maxZoom: 2,
@@ -22,38 +23,27 @@ window.alpine.data("pdfViewer", (pdfURL: string, pdfID: string) => ({
             filterKey: () => true,
         });
 
-        // Create a PDFViewerController and have it initialize it's fields..
-        this.pdfViewer = new PDFViewerController(pdfURL, viewerContainerElem, async () => {
-            await this.pdfViewer.renderPage(1);
-            htmx.trigger(initFormElem, "submit", null);
-        });
+        this.pageViewer = new PDFPageViewer(pdfURL, viewerContainer);
+    },
 
-        // Reinitialize PDF fields when the current page changes.
-        this.$watch("currentPage", async (newVal: number) => {
-            await this.pdfViewer.renderPage(newVal);
-            htmx.trigger(initFormElem, "submit", null);
-        });
+    async changePage(e: CustomEvent<number>) {
+        if ((e.target as HTMLElement).dataset.pdfId !== pdfID) return;
 
-        // Reinitialize PDF fields when the current tab changes.
-        this.$watch("currentDynamicTab", (newVal: string) => {
-            if (newVal === pdfID) htmx.trigger(initFormElem, "submit", null);
-        });
+        await this.pageViewer.renderPage(e.detail);
+        // htmx.trigger(this.initForm, "submit", null);
     },
 }));
 
-// A wrapper for the PDF.js package.
-function PDFViewerController(pdfURL: string, viewerContainerElem: HTMLDivElement, cb?: () => void) {
+function PDFPageViewer(pdfURL: string, viewerContainer: HTMLDivElement) {
     getDocument(pdfURL).promise.then(async (res) => {
         this.doc = res;
         this.pageView = new PDFPageView({
             id: 1,
-            container: viewerContainerElem,
+            container: viewerContainer,
             eventBus: new EventBus(),
             defaultViewport: (await res.getPage(1)).getViewport({ scale: 1.0 }),
             scale: 1,
         });
-
-        cb();
     });
 
     this.renderPage = async (num: number) => {

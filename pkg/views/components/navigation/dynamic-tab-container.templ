@@ -2,17 +2,18 @@ package navigation
 
 import (
 	. "rollbringer/pkg/views"
+	. "rollbringer/pkg/views/components"
 )
 
 templ DynamicTabContainer(class string) {
 	<div class={ "dynamic-tab-container", class } x-data="{ currentDynamicTab: ''}">
-		<ul class="dynamic-tab-container__list"></ul>
-		<div class="dynamic-tab-container__wrapper"></div>
+		<div class="dynamic-tab-container__tab-buttons"></div>
+		@Panel("dynamic-tab-container__panel", templ.NopComponent, nil)
 	</div>
 }
 
-templ TabButton(tabID, name string) {
-	<li
+templ DynamicTabButton(tabID, name string) {
+	<p
 		class="tab-button"
 		x-data={ F(`{ tabID: '%s' }`, tabID) }
 		x-bind:class="currentDynamicTab == tabID && 'active'"
@@ -23,14 +24,14 @@ templ TabButton(tabID, name string) {
 		<button x-on:click="$dispatch('close-tab', { tabID })">
 			<iconify-icon icon="material-symbols:close"></iconify-icon>
 		</button>
-	</li>
+	</p>
 }
 
-templ TabItem(tabID string, content templ.Component) {
+templ DynamicTabCloak(tabID string, content templ.Component) {
 	<div
-		x-data={ F(`{ tabID: '%s' }`, tabID) }
-		x-show="currentDynamicTab == tabID"
-		x-on:close-tab.window="($event.detail.tabID == tabID) && $el.remove()"
+		class="dynamic-tab-cloak__tab-content"
+		x-show={ F("currentDynamicTab == '%s'", tabID) }
+		x-on:close-tab.window={ F("($event.detail.tabID == '%s') && $el.remove()", tabID) }
 	>
 		@content
 	</div>
