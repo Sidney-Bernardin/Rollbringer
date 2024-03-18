@@ -14,22 +14,29 @@ templ PDFViewer(pdfID, pdfFile string) {
 		x-data={ F("pdfViewer('%s', '%s')", pdfFile, pdfID) }
 		x-on:change-page.window="changePage"
 	>
-		<form class="pdf-viewer__viewer-container" ref="viewerContainer">
+		<input class="update-pdf-field-param" type="hidden" name="OPERATION" value="UPDATE_PDF_FIELD"/>
+		<input class="update-pdf-field-param" type="hidden" name="pdf_id" value={ pdfID }/>
+		<div class="pdf-viewer__viewer-container">
 			<div class="viewer"></div>
-		</form>
+		</div>
 	</div>
 }
 
 templ PDFViewerPageButtons(pdfID string, pageNames []string) {
-	<div class="pdf-viewer-page-buttons" x-data="{ lastClicked: 0 }">
+	<div
+		class="pdf-viewer-page-buttons"
+		data-pdf-id={ pdfID }
+		x-data="{ currentPage: 0 }"
+	>
+		<input class="update-pdf-field-param" type="hidden" name="page_num" x-bind:value="currentPage"/>
 		for i, name := range pageNames {
 			<button
 				data-pdf-id={ pdfID }
 				x-on:click={ F(`
                     $dispatch('change-page', %v);
-                    lastClicked = %v`,
+                    currentPage = %v`,
                 i+1, i+1) }
-				x-bind:class={ F(`lastClicked == %v && 'active'`, i+1) }
+				x-bind:class={ F(`currentPage == %v && 'active'`, i+1) }
 			>
 				{ name }
 			</button>
@@ -37,71 +44,21 @@ templ PDFViewerPageButtons(pdfID string, pageNames []string) {
 	</div>
 }
 
-templ PDFInputField(type_, k, v string) {
-	<input
-		type={ type_ }
-		name={ k }
-		value={ v }
-		if type_ == "checkbox" && v == "on" {
-			checked
-		}
-		if type_ != "checkbox" {
-			x-bind:class="rolling && 'rolling'"
-			x-on:click="rolling && $el.value !== '' && $dispatch('add-modifier', { modifier: $el.value })"
-		}
-	/>
+templ PDFFields(pdfID string, fields map[string]string) {
+	for k, v := range fields {
+		@PDFField(pdfID, k, v)
+	}
 }
 
-templ PDFTextAreaField(k, v string) {
-	<textarea
-		name={ k }
-		x-bind:class="rolling && 'rolling'"
-		x-on:click="rolling && $dispatch('add-modifier', { modifier: $el.value })"
-	>
-		{ v }
-	</textarea>
-}
-
-templ roller() {
-	<form class="roller" x-data="roller" x-bind:class="rolling && 'active'" ws-send>
-		<input type="submit" value="Roll!"/>
-		<input type="hidden" name="TYPE" value="ROLL"/>
-		<div class="roll">
-			<ul>
-				<template x-for="die in dice">
-					<li>
-						<button x-on:click.prevent="removeDie(die)">
-							<input type="hidden" name="die_expressions" x-bind:value="die"/>
-							<iconify-icon x-bind:icon="`mdi:dice-d${die}-outline`"></iconify-icon>
-						</button>
-					</li>
-				</template>
-				<li>
-					<select x-on:change="addDie">
-						<option value="default">Add Die</option>
-						<option value="20">d20</option>
-						<option value="12">d12</option>
-						<option value="10">d10</option>
-						<option value="8">d8</option>
-						<option value="6">d6</option>
-						<option value="4">d4</option>
-					</select>
-				</li>
-			</ul>
-			<span>+</span>
-			<input
-				type="text"
-				name="modifier_expression"
-				x-on:add-modifier.window="$el.value += `${$el.value.trim().length > 0 ? ' + ' : ''}${$event.detail.modifier}`"
-			/>
-		</div>
-		<div
-			class="roll-btn"
-			x-bind:class="rolling && 'close-btn'"
-			x-on:click="rolling = !rolling"
-		>
-			<iconify-icon icon="game-icons:dice-fire" x-show="!rolling"></iconify-icon>
-			<iconify-icon icon="material-symbols:close" x-show="rolling"></iconify-icon>
-		</div>
-	</form>
+templ PDFField(pdfID, name, value string) {
+	<div hx-swap-oob={ F(`outerHTML:.pdf-viewer__viewer-container[data-pdf-id="%s"] input[name="%s"]`, pdfID, name) }>
+		<input
+			type="text"
+			name={ name }
+			value={ value }
+			ws-send
+			hx-trigger="change"
+			hx-include={ F(`.dynamic-tab-container [data-pdf-id="%s"] input.update-pdf-field-param`, pdfID) }
+		/>
+	</div>
 }

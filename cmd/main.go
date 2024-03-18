@@ -94,12 +94,12 @@ func main() {
 
 	h.Router.With(h.Auth).Post("/games", h.HandleCreateGame)
 	h.Router.With(h.Auth).Get("/games", h.HandleGetGames)
-	h.Router.With(h.LightAuth).Get("/games/{game_id}/rolls", h.HandleGetRolls)
 	h.Router.With(h.Auth).Delete("/games/{game_id}", h.HandleDeleteGame)
 
 	h.Router.With(h.Auth).Post("/play-materials/pdfs", h.HandleCreatePDF)
 	h.Router.With(h.Auth).Get("/play-materials/pdfs", h.HandleGetPDFs)
 	h.Router.With(h.Auth).Get("/play-materials/pdfs/{pdf_id}", h.HandleGetPDF)
+	h.Router.With(h.Auth).Get("/play-materials/pdfs/{pdf_id}/{page_num}", h.HandleGetPDF)
 	h.Router.With(h.Auth).Delete("/play-materials/pdfs/{pdf_id}", h.HandleDeletePDF)
 
 	// Start server.

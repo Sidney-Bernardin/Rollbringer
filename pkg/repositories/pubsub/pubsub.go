@@ -20,24 +20,21 @@ type PubSub struct {
 func New(logger *zerolog.Logger, addr, passw string) (*PubSub, error) {
 
 	// Connect to the Redis server.
-	c := redis.NewClient(&redis.Options{
+	client := redis.NewClient(&redis.Options{
 		Addr:     addr,
 		Password: passw,
 	})
 
 	// Ping the Redis server.
-	if err := c.Ping(context.Background()).Err(); err != nil {
+	if err := client.Ping(context.Background()).Err(); err != nil {
 		return nil, errors.Wrap(err, "cannot ping redis server")
 	}
 
-	return &PubSub{
-		client: c,
-		logger: logger,
-	}, nil
+	return &PubSub{client, logger}, nil
 }
 
 // SubToGame receives events from the game's topic and sends them to subChan.
-func (ps *PubSub) SubToGame(ctx context.Context, gameID string, subChan chan *domain.Event) {
+func (ps *PubSub) SubToGame(ctx context.Context, gameID string, subChan chan domain.Event) {
 
 	// Subscribe to the game's Redis channel.
 	sub := ps.client.Subscribe(ctx, gameID)
@@ -59,12 +56,12 @@ func (ps *PubSub) SubToGame(ctx context.Context, gameID string, subChan chan *do
 			return
 		}
 
-		subChan <- &event
+		subChan <- event
 	}
 }
 
 // PubToGame sends the event to the game's topic.
-func (ps *PubSub) PubToGame(ctx context.Context, gameID string, event *domain.Event) error {
+func (ps *PubSub) PubToGame(ctx context.Context, gameID string, event domain.Event) error {
 	eventBytes, err := json.Marshal(event)
 	if err != nil {
 		return errors.Wrap(err, "cannot encode event")

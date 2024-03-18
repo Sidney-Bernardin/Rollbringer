@@ -2,10 +2,11 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
+	"github.com/lib/pq"
 	"github.com/pkg/errors"
 
 	"rollbringer/pkg/domain"
@@ -14,19 +15,16 @@ import (
 // InsertGame inserts the game. If the host has more than 5 games,
 // returns domain.ErrMaxGames
 func (db *Database) InsertGame(ctx context.Context, game *domain.Game) error {
-
-	hostUUID, _ := uuid.Parse(game.HostID)
+	db.parseUUIDs(&game.HostID)
 
 	// Get the number of games with the host-ID.
-	rows, err := db.conn.Query(ctx, `SELECT COUNT(*) FROM games WHERE host_id = $1`, hostUUID)
-	if err != nil {
-		return errors.Wrap(err, "cannot select games")
-	}
-	defer rows.Close()
+	var count int
+	err := db.conn.QueryRow(
+		`SELECT COUNT(*) FROM games WHERE host_id = $1`, game.HostID).
+		Scan(&count)
 
-	count, err := pgx.CollectOneRow(rows, pgx.RowTo[int])
 	if err != nil {
-		return errors.Wrap(err, "cannot scan count")
+		return errors.Wrap(err, "cannot select games count")
 	}
 
 	if count >= 5 {
@@ -35,108 +33,136 @@ func (db *Database) InsertGame(ctx context.Context, game *domain.Game) error {
 
 	game.ID = uuid.New().String()
 	game.Title = fmt.Sprintf(game.Title, count+1)
+	game.PDFs = []string{}
 
 	// Insert the game.
-	_, err = db.conn.Exec(ctx,
-		`INSERT INTO games (id, host_id, title) VALUES ($1, $2, $3)`,
-		game.ID, hostUUID, game.Title)
+	_, err = db.conn.Exec(
+		`INSERT INTO games (id, host_id, title, pdfs) VALUES ($1, $2, $3, $4)`,
+		game.ID, game.HostID, game.Title, pq.Array(game.PDFs))
 
 	return errors.Wrap(err, "cannot insert game")
 }
 
-// InsertRoll inserts the roll.
-func (db *Database) InsertRoll(ctx context.Context, roll *domain.Roll) error {
-
-	gameUUID, _ := uuid.Parse(roll.GameID)
-	roll.ID = uuid.New().String()
-
-	// Insert the roll.
-	_, err := db.conn.Exec(ctx,
-		`INSERT INTO rolls (id, game_id, die_expressions, die_results, modifier_expression, modifier_result)
-			VALUES ($1, $2, $3, $4, $5, $6)`,
-		roll.ID, gameUUID, roll.DieExpressions, roll.DieResults, roll.ModifierExpression, roll.ModifierResult,
-	)
-
-	return errors.Wrap(err, "cannot insert roll")
-}
-
 // GetGames return the games with the host-ID.
 func (db *Database) GetGames(ctx context.Context, hostID string) ([]*domain.Game, error) {
-
-	hostUUID, _ := uuid.Parse(hostID)
+	db.parseUUIDs(&hostID)
 
 	// Get the games with the host-ID.
-	rows, err := db.conn.Query(ctx, `SELECT * FROM games WHERE host_id = $1`, hostUUID)
+	rows, err := db.conn.Query(
+		`SELECT id, host_id, title, pdfs FROM games WHERE host_id = $1`, hostID)
+
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot select games")
 	}
 	defer rows.Close()
 
-	// Scan into a slice of game models.
-	games, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByNameLax[domain.Game])
-	return games, errors.Wrap(err, "cannot scan games")
+	// Scan the rows into a slice of games.
+	games := []*domain.Game{}
+	for rows.Next() {
+		var game domain.Game
+		if err := rows.Scan(&game.ID, &game.HostID, &game.Title, pq.Array(&game.PDFs)); err != nil {
+			return nil, errors.Wrap(err, "cannot scan game")
+		}
+		games = append(games, &game)
+	}
+
+	return games, nil
 }
 
 // GetGame returns the game with the game-ID. If the game doesn't exist,
 // returns domain.ErrGameNotFound.
 func (db *Database) GetGame(ctx context.Context, gameID string) (*domain.Game, error) {
-
-	gameUUID, _ := uuid.Parse(gameID)
+	db.parseUUIDs(&gameID)
 
 	// Get the game with the game-ID.
-	rows, err := db.conn.Query(ctx, `SELECT * FROM games WHERE id = $1`, gameUUID)
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot select game")
-	}
-	defer rows.Close()
+	var game domain.Game
+	err := db.conn.QueryRow(
+		`SELECT id, host_id, title, pdfs FROM games WHERE id = $1`, gameID).
+		Scan(&game.ID, &game.HostID, &game.Title, pq.Array(&game.PDFs))
 
-	// Scan into a game model.
-	game, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[domain.Game])
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		if err == sql.ErrNoRows {
 			return nil, domain.ErrGameNotFound
 		}
 
-		return nil, errors.Wrap(err, "cannot scan game")
+		return nil, errors.Wrap(err, "cannot select game")
 	}
 
-	return game, nil
+	return &game, nil
 }
 
-// GetRolls returns the rolls with the game-ID.
-func (db *Database) GetRolls(ctx context.Context, gameID string) ([]*domain.Roll, error) {
+// AppendGamePDF appends the PDF-ID to the game with the game-ID.
+func (db *Database) AppendGamePDF(ctx context.Context, gameID, pdfID string) error {
+	db.parseUUIDs(&gameID, &pdfID)
 
-	gameUUID, _ := uuid.Parse(gameID)
+	// Append the PDF to the game.
+	result, err := db.conn.Exec(
+		`UPDATE games SET pdfs = array_append(pdfs, $1) WHERE id = $2`,
+		pdfID, gameID)
 
-	// Get the rolls with the game-ID.
-	rows, err := db.conn.Query(ctx, `SELECT * FROM rolls WHERE game_id = $1`, gameUUID)
 	if err != nil {
-		return nil, errors.Wrap(err, "cannot select rolls")
+		return errors.Wrap(err, "cannot append pdf to game")
 	}
-	defer rows.Close()
 
-	// Scan into a slice of roll models.
-	rolls, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByNameLax[domain.Roll])
-	return rolls, errors.Wrap(err, "cannot scan rolls")
+	// Get the number of rows affected.
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "cannot get rows affected")
+	}
+
+	if rowsAffected == 0 {
+		return domain.ErrGameNotFound
+	}
+
+	return nil
+}
+
+func (db *Database) RemoveGamePDF(ctx context.Context, gameID, pdfID string) error {
+	db.parseUUIDs(&gameID, &pdfID)
+
+	// Remove the PDF from the game.
+	result, err := db.conn.Exec(
+		`UPDATE games SET pdfs = array_remove(pdfs, $1) WHERE id = $2`,
+		pdfID, gameID)
+
+	if err != nil {
+		return errors.Wrap(err, "cannot remove pdf from game")
+	}
+
+	// Get the number of rows affected.
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "cannot get rows affected")
+	}
+
+	if rowsAffected == 0 {
+		return domain.ErrGameNotFound
+	}
+
+	return nil
 }
 
 // DeleteGame deletes the game with the game-ID and host-ID. If the game doesn't
 // exist, returns domain.ErrGameNotFound.
 func (db *Database) DeleteGame(ctx context.Context, gameID, hostID string) error {
-
-	gameUUID, _ := uuid.Parse(gameID)
-	hostUUID, _ := uuid.Parse(hostID)
+	db.parseUUIDs(&gameID, &hostID)
 
 	// Delete the game with the game-ID and host-ID.
-	cmdTag, err := db.conn.Exec(ctx,
+	result, err := db.conn.Exec(
 		`DELETE FROM games WHERE id = $1 AND host_id = $2`,
-		gameUUID, hostUUID)
+		gameID, hostID)
 
 	if err != nil {
 		return errors.Wrap(err, "cannot delete game")
 	}
 
-	if cmdTag.RowsAffected() == 0 {
+	// Get the number of rows affected.
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "cannot get rows affected")
+	}
+
+	if rowsAffected == 0 {
 		return domain.ErrGameNotFound
 	}
 

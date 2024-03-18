@@ -34,11 +34,6 @@ func (svc *Service) GetGame(ctx context.Context, gameID string) (*domain.Game, e
 	return game, errors.Wrap(err, "cannot get game")
 }
 
-func (svc *Service) GetRolls(ctx context.Context, gameID string) ([]*domain.Roll, error) {
-	rolls, err := svc.DB.GetRolls(ctx, gameID)
-	return rolls, errors.Wrap(err, "cannot get rolls")
-}
-
 func (svc *Service) DeleteGame(ctx context.Context, gameID, userID string) error {
 	err := svc.DB.DeleteGame(ctx, gameID, userID)
 	return errors.Wrap(err, "cannot delete game")

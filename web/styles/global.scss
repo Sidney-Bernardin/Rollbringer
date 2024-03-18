@@ -12,7 +12,7 @@ $purple2: #b16286;
 
 $bg0: #1d2021;
 $bg1: #282828;
-$bg2: #2d2d2d;
+$bg2: #303030;
 $bg3: #3c3836;
 $bg4: #504945;
 $bg5: #7c6f64;
@@ -42,4 +42,10 @@ body {
 
 button {
     cursor: pointer;
+}
+
+input {
+    border: 2px solid $bg0;
+    color: $txt1;
+    background: $bg1;
 }

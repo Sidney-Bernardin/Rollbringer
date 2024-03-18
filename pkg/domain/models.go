@@ -1,50 +1,39 @@
 package domain
 
 type PlayPage struct {
-	LoggedIn bool `json:"logged_in,omitempty"`
+	LoggedIn bool
 
-	User *User `json:"user,omitempty"`
-	Game *Game `json:"game,omitempty"`
+	User *User
+	Game *Game
 }
 
 type User struct {
-	ID       string `db:"id,omitempty"`
-	GoogleID string `db:"google_id,omitempty"`
+	ID       string
+	GoogleID string
 
-	Username string `db:"username,omitempty"`
+	Username string
 }
 
 type Session struct {
-	ID        string `db:"id,omitempty"`
-	CSRFToken string `db:"csrf_token,omitempty"`
-	UserID    string `db:"user_id,omitempty"`
+	ID        string
+	CSRFToken string
+	UserID    string
 }
 
 type Game struct {
-	ID     string `db:"id,omitempty"`
-	HostID string `db:"host_id,omitempty"`
+	ID     string
+	HostID string
 
-	Title string   `db:"title,omitempty"`
-	Rolls []string `db:"rolls,omitempty"`
+	Title string
+	PDFs  []string
 }
 
 type PDF struct {
-	ID      string `db:"id,omitempty"`
-	OwnerID string `db:"owner_id,omitempty"`
+	ID      string
+	OwnerID string
+	GameID  string
 
-	Name   string   `db:"name,omitempty"`
-	Schema string   `db:"schema,omitempty"`
-	Pages  []string `db:"pages,omitempty"`
-}
-
-type Event struct {
-	Headers map[string]any `json:"HEADERS"`
-	Type    string         `json:"TYPE"`
-
-	PDFID     string            `json:"pdf_id,omitempty"`
-	SenderID  string            `json:"sender_ID,omitempty"`
-	PageNum   int               `json:"page_num,string,omitempty"`
-	PDFFields map[string]string `json:"pdf_fields"`
-
-	Roll
+	Name   string
+	Schema string
+	Pages  []map[string]string
 }

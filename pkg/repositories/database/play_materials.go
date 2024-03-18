@@ -2,24 +2,40 @@ package database
 
 import (
 	"context"
-	"encoding/json"
+	"database/sql"
 	"rollbringer/pkg/domain"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
+	"github.com/lib/pq"
+	"github.com/lib/pq/hstore"
 	"github.com/pkg/errors"
 )
+
+type pdfModel struct {
+	domain.PDF
+	hstorePages []hstore.Hstore
+}
 
 // InsertPDF inserts the PDF.
 func (db *Database) InsertPDF(ctx context.Context, pdf *domain.PDF) error {
 
-	ownerUUID, _ := uuid.Parse(pdf.OwnerID)
 	pdf.ID = uuid.New().String()
 
+	var (
+		ownerUUID, _ = uuid.Parse(pdf.OwnerID)
+		gameUUID, _  = uuid.Parse(pdf.GameID)
+		pages        = make([]hstore.Hstore, len(pdf.Pages))
+	)
+
+	for i := range pages {
+		pages[i].Map = map[string]sql.NullString{}
+	}
+
 	// Insert a new PDF.
-	_, err := db.conn.Exec(ctx,
-		`INSERT INTO pdfs (id, owner_id, name, schema, pages) VALUES ($1, $2, $3, $4, $5)`,
-		pdf.ID, ownerUUID, pdf.Name, pdf.Schema, []string{"{}", "{}", "{}"})
+	_, err := db.conn.Exec(
+		`INSERT INTO pdfs (id, owner_id, game_id, name, schema, pages) 
+			VALUES ($1, $2, $3, $4, $5, $6)`,
+		pdf.ID, ownerUUID, gameUUID, pdf.Name, pdf.Schema, pq.Array(pages))
 
 	return errors.Wrap(err, "cannot insert pdf")
 }
@@ -27,68 +43,87 @@ func (db *Database) InsertPDF(ctx context.Context, pdf *domain.PDF) error {
 // GetPDF returns the PDF with the PDF-ID. If the PDF doesn't exist,
 // returns domain.ErrPlayMaterialNotFound.
 func (db *Database) GetPDF(ctx context.Context, pdfID string) (*domain.PDF, error) {
+	db.parseUUIDs(&pdfID)
 
-	pdfUUID, _ := uuid.Parse(pdfID)
+	var (
+		pdf         domain.PDF
+		hstorePages []hstore.Hstore
+	)
 
 	// Get the PDF with the PDF-ID.
-	rows, err := db.conn.Query(ctx, `SELECT * FROM pdfs WHERE id = $1`, pdfUUID)
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot select pdf")
-	}
-	defer rows.Close()
+	err := db.conn.QueryRow(
+		`SELECT id, owner_id, game_id, name, schema, pages FROM pdfs WHERE id = $1`, pdfID).
+		Scan(&pdf.ID, &pdf.OwnerID, &pdf.GameID, &pdf.Name, &pdf.Schema, pq.Array(&hstorePages))
 
-	// Scan into a PDF model.
-	pdf, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByNameLax[domain.PDF])
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		if err == sql.ErrNoRows {
 			return nil, domain.ErrPlayMaterialNotFound
 		}
 
-		return nil, errors.Wrap(err, "cannot scan pdf")
+		return nil, errors.Wrap(err, "cannot select pdf")
 	}
 
-	return pdf, nil
+	decodeHstorePages(hstorePages, &pdf)
+	return &pdf, nil
 }
 
 // GetPDFs return the PDFs with the owner-ID.
 func (db *Database) GetPDFs(ctx context.Context, ownerID string) ([]*domain.PDF, error) {
-
-	ownerUUID, _ := uuid.Parse(ownerID)
+	db.parseUUIDs(&ownerID)
 
 	// Get the PDFs with the owner-ID.
-	rows, err := db.conn.Query(ctx, `SELECT * FROM pdfs WHERE owner_id = $1`, ownerUUID)
+	rows, err := db.conn.Query(
+		`SELECT id, owner_id, game_id, name, schema, pages FROM pdfs WHERE owner_id = $1`,
+		ownerID)
+
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot select pdfs")
 	}
 	defer rows.Close()
 
-	// Scan into a slice of PDF models.
-	pdfs, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByNameLax[domain.PDF])
-	return pdfs, errors.Wrap(err, "cannot scan pdfs")
-}
+	// Scan the rows into a slice of PDFs.
+	pdfs := []*domain.PDF{}
+	for rows.Next() {
 
-// UpdatePDFPage updates the PDF with the PDF-ID. If the PDF doesn't exist,
-// returns domain.ErrPlayMaterialNotFound.
-func (db *Database) UpdatePDFPage(ctx context.Context, pdfID string, pageNum int, pdfPage any) error {
+		var (
+			pdf         domain.PDF
+			hstorePages []hstore.Hstore
+		)
 
-	pdfUUID, _ := uuid.Parse(pdfID)
+		// Scan the row.
+		err := rows.Scan(&pdf.ID, &pdf.OwnerID, &pdf.GameID, &pdf.Name, &pdf.Schema, pq.Array(&hstorePages))
+		if err != nil {
+			return nil, errors.Wrap(err, "cannot scan pdf")
+		}
 
-	// Encode the PDF page.
-	pdfFieldsJSON, err := json.Marshal(pdfPage)
-	if err != nil {
-		return errors.Wrap(err, "cannot encode pdf page")
+		decodeHstorePages(hstorePages, &pdf)
+		pdfs = append(pdfs, &pdf)
 	}
 
-	// Update the PDF with the PDF-ID.
-	cmdTag, err := db.conn.Exec(ctx,
-		`UPDATE pdfs SET pages[$1] = $2 WHERE id = $3`,
-		pageNum-1, string(pdfFieldsJSON), pdfUUID)
+	return pdfs, nil
+}
+
+// UpdatePDFField updates the page field of the PDF with the PDF-ID. If the PDF
+// doesn't exist, returns domain.ErrPlayMaterialNotFound.
+func (db *Database) UpdatePDFField(ctx context.Context, pdfID string, pageIdx int, fieldName, fieldValue string) error {
+	db.parseUUIDs(&pdfID)
+
+	// Update the page field of the PDF with the PDF-ID.
+	result, err := db.conn.Exec(
+		`UPDATE pdfs SET pages[$1] = pages[$1] || hstore($2, $3) WHERE id = $4`,
+		pageIdx+1, fieldName, fieldValue, pdfID)
 
 	if err != nil {
 		return errors.Wrap(err, "cannot update pdf")
 	}
 
-	if cmdTag.RowsAffected() == 0 {
+	// Get the number of rows affected.
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "cannot get rows affected")
+	}
+
+	if rowsAffected == 0 {
 		return domain.ErrPlayMaterialNotFound
 	}
 
@@ -98,20 +133,24 @@ func (db *Database) UpdatePDFPage(ctx context.Context, pdfID string, pageNum int
 // DeletePDF deletes the PDF with the PDF-ID and owner-ID. If the PDF doesn't
 // exist, returns domain.ErrPlayMaterialNotFound.
 func (db *Database) DeletePDF(ctx context.Context, pdfID, ownerID string) error {
-
-	pdfUUID, _ := uuid.Parse(pdfID)
-	ownerUUID, _ := uuid.Parse(ownerID)
+	db.parseUUIDs(&pdfID, &ownerID)
 
 	// Delete the pdf with the pdf-ID and owner-ID.
-	cmdTag, err := db.conn.Exec(ctx,
+	result, err := db.conn.Exec(
 		`DELETE FROM pdfs WHERE id = $1 AND owner_id = $2`,
-		pdfUUID, ownerUUID)
+		pdfID, ownerID)
 
 	if err != nil {
 		return errors.Wrap(err, "cannot delete pdf")
 	}
 
-	if cmdTag.RowsAffected() == 0 {
+	// Get the number of rows affected.
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "cannot get rows affected")
+	}
+
+	if rowsAffected == 0 {
 		return domain.ErrPlayMaterialNotFound
 	}
 

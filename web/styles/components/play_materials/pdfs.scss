@@ -15,4 +15,26 @@
             cursor: pointer;
         }
     }
+
+    .create-pdf-modal {
+        .panel__body form {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+
+            label {
+                display: flex;
+                justify-content: space-between;
+
+                p {
+                    color: $txt1;
+                }
+            }
+
+            input[type="submit"] {
+                cursor: pointer;
+                width: 100%;
+            }
+        }
+    }
 }

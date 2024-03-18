@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/pkg/errors"
@@ -9,7 +10,7 @@ import (
 	"rollbringer/pkg/domain"
 	"rollbringer/pkg/views/components"
 	"rollbringer/pkg/views/components/play_materials"
-	"rollbringer/pkg/views/oob_swaps"
+	"rollbringer/pkg/views/pages"
 )
 
 func (h *Handler) HandleCreatePDF(w http.ResponseWriter, r *http.Request) {
@@ -17,7 +18,13 @@ func (h *Handler) HandleCreatePDF(w http.ResponseWriter, r *http.Request) {
 	session, _ := r.Context().Value("session").(*domain.Session)
 
 	// Create a PDF.
-	pdf, err := h.Service.CreatePDF(r.Context(), session.UserID, r.FormValue("schame"))
+	pdf, err := h.Service.CreatePDF(r.Context(), &domain.PDF{
+		OwnerID: session.UserID,
+		GameID:  r.FormValue("game_id"),
+		Name:    r.FormValue("name"),
+		Schema:  r.FormValue("schema"),
+	})
+
 	if err != nil {
 		h.domainErr(w, errors.Wrap(err, "cannot create pdf"))
 		return
@@ -53,9 +60,26 @@ func (h *Handler) HandleGetPDF(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if chi.URLParam(r, "page_num") != "" {
+
+		pageNum, err := strconv.Atoi(chi.URLParam(r, "page_num"))
+		if err != nil {
+			h.err(w, errors.New("page number must resemble a positive integer"), http.StatusUnprocessableEntity, 0)
+			return
+		}
+
+		if pageNum-1 < 0 {
+			h.err(w, errors.New("page number must resemble a positive integer"), http.StatusUnprocessableEntity, 0)
+			return
+		}
+
+		h.render(w, r, components.PDFFields(pdf.ID, pdf.Pages[pageNum-1]), http.StatusOK)
+		return
+	}
+
 	// Respond with a PDF-viewer tab.
 	h.render(w, r,
-		oob_swaps.AddPDFViewerTab(
+		pages.PDFViewerTab(
 			pdf.ID,
 			pdf.Name,
 			components.DNDCharacterSheetPageNames,

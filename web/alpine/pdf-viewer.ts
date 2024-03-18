@@ -7,10 +7,8 @@ GlobalWorkerOptions.workerSrc = "static/pdf.worker.js";
 
 window.alpine.data("pdfViewer", (pdfURL: string, pdfID: string) => ({
     pageViewer: null,
-    initForm: null,
 
     init() {
-        this.initForm = this.$el.querySelector(".pdf-viewer__init-form");
         const viewerContainer: HTMLDivElement = this.$el.querySelector(
             ".pdf-viewer__viewer-container",
         );
@@ -30,7 +28,21 @@ window.alpine.data("pdfViewer", (pdfURL: string, pdfID: string) => ({
         if ((e.target as HTMLElement).dataset.pdfId !== pdfID) return;
 
         await this.pageViewer.renderPage(e.detail);
-        // htmx.trigger(this.initForm, "submit", null);
+
+        Array.from(this.$el.querySelectorAll(".annotationLayer input")).forEach(
+            (elem: HTMLInputElement) => {
+                elem.setAttribute("ws-send", "");
+                elem.setAttribute("hx-trigger", "change");
+                elem.setAttribute(
+                    "hx-include",
+                    `.dynamic-tab-container [data-pdf-id="${pdfID}"] input.update-pdf-field-param`,
+                );
+
+                htmx.process(elem);
+            },
+        );
+
+        htmx.ajax("GET", `/play-materials/pdfs/${pdfID}/${e.detail}`, { swap: "none" });
     },
 }));
 

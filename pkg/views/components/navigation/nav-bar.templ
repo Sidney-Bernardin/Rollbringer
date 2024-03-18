@@ -54,15 +54,3 @@ templ GameRow(game *domain.Game) {
         }),
 	)
 }
-
-templ Rolls(rolls []*domain.Roll) {
-	for _, roll := range rolls {
-		@Roll(roll)
-	}
-}
-
-templ Roll(roll *domain.Roll) {
-	<li>
-		{ roll.ID }
-	</li>
-}

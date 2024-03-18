@@ -2,6 +2,7 @@ package pages
 
 import (
 	. "rollbringer/pkg/views"
+	. "rollbringer/pkg/views/components"
 	. "rollbringer/pkg/views/components/navigation"
 	. "rollbringer/pkg/views/components/play_materials"
 	. "rollbringer/pkg/views/components/social"
@@ -54,4 +55,16 @@ templ Play() {
 			</div>
 		</body>
 	}
+}
+
+templ PDFViewerTab(pdfID, name string, pageNames []string, pdfFile string) {
+	<div hx-swap-oob="beforeend:.play-layout__left .dynamic-tab-container__tab-buttons">
+		@DynamicTabButton(pdfID, name)
+	</div>
+	<div hx-swap-oob="beforeend:.play-layout__left .dynamic-tab-container__panel .panel__header">
+		@DynamicTabCloak(pdfID, PDFViewerPageButtons(pdfID, pageNames))
+	</div>
+	<div hx-swap-oob="beforeend:.play-layout__left .dynamic-tab-container__panel .panel__body">
+		@DynamicTabCloak(pdfID, PDFViewer(pdfID, pdfFile))
+	</div>
 }

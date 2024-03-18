@@ -16,15 +16,23 @@ templ PDFs() {
 		}
 	>
 		@Table("Character Sheets", IconButton("", "material-symbols:add", templ.Attributes{
-            "hx-post": "/play-materials/pdfs",
-            "hx-target": "next table",
-            "hx-swap": "beforeend",
-            "name": "schema",
-            "value": "DND_CHARACTER_SHEET",
+            "x-on:click": "$root.querySelector('.create-pdf-modal').showModal()",
         }))
-		@Modal("edit-pdf-modal", "Edit PDF") {
-			<form>
-				<input type="text" name="name"/>
+		@Modal("create-pdf-modal", "Create PDF") {
+			<form
+				hx-post="/play-materials/pdfs"
+				hx-target="previous .table tbody"
+				hx-swap="beforeend"
+			>
+				<input type="hidden" name="schema" value="DND_CHARACTER_SHEET"/>
+                if GetPlayPage(ctx).Game != nil {
+				    <input type="hidden" name="game_id" value={ GetPlayPage(ctx).Game.ID }/>
+                }
+				<label for="name">
+					<p>Name:</p>
+					<input type="text" name="name"/>
+				</label>
+				<input type="submit" value="Create"/>
 			</form>
 		}
 	</div>

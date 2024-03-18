@@ -46,7 +46,15 @@ func PDFViewer(pdfID, pdfFile string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" x-on:change-page.window=\"changePage\"><form class=\"pdf-viewer__viewer-container\" ref=\"viewerContainer\"><div class=\"viewer\"></div></form></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" x-on:change-page.window=\"changePage\"><input class=\"update-pdf-field-param\" type=\"hidden\" name=\"OPERATION\" value=\"UPDATE_PDF_FIELD\"> <input class=\"update-pdf-field-param\" type=\"hidden\" name=\"pdf_id\" value=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(pdfID))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><div class=\"pdf-viewer__viewer-container\"><div class=\"viewer\"></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -70,7 +78,15 @@ func PDFViewerPageButtons(pdfID string, pageNames []string) templ.Component {
 			templ_7745c5c3_Var2 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"pdf-viewer-page-buttons\" x-data=\"{ lastClicked: 0 }\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"pdf-viewer-page-buttons\" data-pdf-id=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(pdfID))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" x-data=\"{ currentPage: 0 }\"><input class=\"update-pdf-field-param\" type=\"hidden\" name=\"page_num\" x-bind:value=\"currentPage\"> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -89,7 +105,7 @@ func PDFViewerPageButtons(pdfID string, pageNames []string) templ.Component {
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(F(`
                     $dispatch('change-page', %v);
-                    lastClicked = %v`,
+                    currentPage = %v`,
 				i+1, i+1)))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -98,7 +114,7 @@ func PDFViewerPageButtons(pdfID string, pageNames []string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(F(`lastClicked == %v && 'active'`, i+1)))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(F(`currentPage == %v && 'active'`, i+1)))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -109,7 +125,7 @@ func PDFViewerPageButtons(pdfID string, pageNames []string) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/components/pdf-viewer.templ`, Line: 33, Col: 10}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/components/pdf-viewer.templ`, Line: 40, Col: 10}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -131,7 +147,7 @@ func PDFViewerPageButtons(pdfID string, pageNames []string) templ.Component {
 	})
 }
 
-func PDFInputField(type_, k, v string) templ.Component {
+func PDFFields(pdfID string, fields map[string]string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -144,49 +160,11 @@ func PDFInputField(type_, k, v string) templ.Component {
 			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<input type=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(type_))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" name=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(k))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" value=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(v))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		if type_ == "checkbox" && v == "on" {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" checked")
+		for k, v := range fields {
+			templ_7745c5c3_Err = PDFField(pdfID, k, v).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-		}
-		if type_ != "checkbox" {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" x-bind:class=\"rolling &amp;&amp; &#39;rolling&#39;\" x-on:click=\"rolling &amp;&amp; $el.value !== &#39;&#39; &amp;&amp; $dispatch(&#39;add-modifier&#39;, { modifier: $el.value })\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
 		}
 		if !templ_7745c5c3_IsBuffer {
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteTo(templ_7745c5c3_W)
@@ -195,7 +173,7 @@ func PDFInputField(type_, k, v string) templ.Component {
 	})
 }
 
-func PDFTextAreaField(k, v string) templ.Component {
+func PDFField(pdfID, name, value string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -208,124 +186,39 @@ func PDFTextAreaField(k, v string) templ.Component {
 			templ_7745c5c3_Var5 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<textarea name=\"")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div hx-swap-oob=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(k))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(F(`outerHTML:.pdf-viewer__viewer-container[data-pdf-id="%s"] input[name="%s"]`, pdfID, name)))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" x-bind:class=\"rolling &amp;&amp; &#39;rolling&#39;\" x-on:click=\"rolling &amp;&amp; $dispatch(&#39;add-modifier&#39;, { modifier: $el.value })\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><input type=\"text\" name=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var6 string
-		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(v)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/components/pdf-viewer.templ`, Line: 60, Col: 5}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(name))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</textarea>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if !templ_7745c5c3_IsBuffer {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteTo(templ_7745c5c3_W)
-		}
-		return templ_7745c5c3_Err
-	})
-}
-
-func roller() templ.Component {
-	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
-		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
-		if !templ_7745c5c3_IsBuffer {
-			templ_7745c5c3_Buffer = templ.GetBuffer()
-			defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
-		}
-		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var7 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var7 == nil {
-			templ_7745c5c3_Var7 = templ.NopComponent
-		}
-		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form class=\"roller\" x-data=\"roller\" x-bind:class=\"rolling &amp;&amp; &#39;active&#39;\" ws-send><input type=\"submit\" value=\"Roll!\"> <input type=\"hidden\" name=\"TYPE\" value=\"ROLL\"><div class=\"roll\"><ul><template x-for=\"die in dice\"><li><button x-on:click.prevent=\"removeDie(die)\"><input type=\"hidden\" name=\"die_expressions\" x-bind:value=\"die\"> <iconify-icon x-bind:icon=\"`mdi:dice-d${die}-outline`\"></iconify-icon></button></li></template><li><select x-on:change=\"addDie\"><option value=\"default\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(value))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Var8 := `Add Die`
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" ws-send hx-trigger=\"change\" hx-include=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</option> <option value=\"20\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(F(`.dynamic-tab-container [data-pdf-id="%s"] input.update-pdf-field-param`, pdfID)))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Var9 := `d20`
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var9)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</option> <option value=\"12\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Var10 := `d12`
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</option> <option value=\"10\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Var11 := `d10`
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</option> <option value=\"8\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Var12 := `d8`
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</option> <option value=\"6\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Var13 := `d6`
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var13)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</option> <option value=\"4\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Var14 := `d4`
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var14)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</option></select></li></ul><span>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Var15 := `+`
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var15)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</span> <input type=\"text\" name=\"modifier_expression\" x-on:add-modifier.window=\"$el.value += `${$el.value.trim().length &gt; 0 ? &#39; + &#39; : &#39;&#39;}${$event.detail.modifier}`\"></div><div class=\"roll-btn\" x-bind:class=\"rolling &amp;&amp; &#39;close-btn&#39;\" x-on:click=\"rolling = !rolling\"><iconify-icon icon=\"game-icons:dice-fire\" x-show=\"!rolling\"></iconify-icon> <iconify-icon icon=\"material-symbols:close\" x-show=\"rolling\"></iconify-icon></div></form>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -12,7 +12,7 @@ import (
 	"golang.org/x/net/websocket"
 
 	"rollbringer/pkg/domain"
-	"rollbringer/pkg/views/oob_swaps"
+	"rollbringer/pkg/views/components"
 	"rollbringer/pkg/views/pages"
 )
 
@@ -40,8 +40,8 @@ func (h *Handler) HandleWebSocket(conn *websocket.Conn) {
 	var (
 		r = conn.Request()
 
-		incomingChan = make(chan *domain.Event)
-		outgoingChan = make(chan *domain.Event)
+		incomingChan = make(chan domain.Event)
+		outgoingChan = make(chan domain.Event)
 	)
 
 	// Process events in another go-routine.
@@ -62,15 +62,13 @@ func (h *Handler) HandleWebSocket(conn *websocket.Conn) {
 					return
 				}
 
-				switch event.Type {
-
-				// Respond with a new roll.
-				case "ROLL":
-					h.render(conn, r, oob_swaps.AddRoll(event), 0)
-
-				// Respond with updated PDF fields.
-				case "UPDATE_PDF_PAGE", "INIT_PDF_PAGE":
-					h.render(conn, r, oob_swaps.UpdatePDFFields(event), 0)
+				switch event["OPERATION"] {
+				case "UPDATE_PDF_FIELD":
+					h.render(conn, r, components.PDFField(
+						event["pdf_id"].(string),
+						event["field_name"].(string),
+						event["field_value"].(string),
+					), 0)
 				}
 			}
 		}
@@ -96,6 +94,6 @@ func (h *Handler) HandleWebSocket(conn *websocket.Conn) {
 			return
 		}
 
-		incomingChan <- &event
+		incomingChan <- event
 	}
 }

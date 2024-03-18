@@ -6,20 +6,47 @@ import (
 	"github.com/pkg/errors"
 
 	"rollbringer/pkg/domain"
+	"rollbringer/pkg/repositories/database"
 )
 
-func (svc *Service) CreatePDF(ctx context.Context, userID, schema string) (*domain.PDF, error) {
+var PDFSchemaToPageCount = map[string]int{
+	"DND_CHARACTER_SHEET": 3,
+	"DND_LEVELING_GUIDE":  1,
+}
 
-	// Create a PDF.
-	pdf := &domain.PDF{
-		OwnerID: userID,
-		Schema:  schema,
-		Name:   "New PDF",
+func (svc *Service) CreatePDF(ctx context.Context, pdf *domain.PDF) (*domain.PDF, error) {
+
+	if len(pdf.Name) < 1 || 30 < len(pdf.Name) {
+		return nil, domain.ErrInvalidPDFName
 	}
 
-	// Insert the PDF.
-	if err := svc.DB.InsertPDF(ctx, pdf); err != nil {
-		return nil, errors.Wrap(err, "cannot insert PDF")
+	pdf.Pages = make([]map[string]string, PDFSchemaToPageCount[pdf.Schema])
+
+	err := svc.DB.Transaction(ctx, func(db *database.Database) error {
+
+		// Insert the PDF.
+		if err := db.InsertPDF(ctx, pdf); err != nil {
+			return errors.Wrap(err, "cannot insert PDF")
+		}
+
+		if pdf.GameID == "" {
+			return nil
+		}
+
+		// Append the PDF to the game.
+		if err := db.AppendGamePDF(ctx, pdf.GameID, pdf.ID); err != nil {
+			if err == domain.ErrGameNotFound {
+				return errors.New("cannot add pdf to game because the game was not found")
+			}
+
+			return errors.Wrap(err, "cannot add pdf to game")
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, errors.Wrap(err, "transaction failed")
 	}
 
 	return pdf, nil
@@ -36,6 +63,23 @@ func (svc *Service) GetPDFs(ctx context.Context, ownerID string) ([]*domain.PDF,
 }
 
 func (svc *Service) DeletePDF(ctx context.Context, pdfID, userID string) error {
-	err := svc.DB.DeletePDF(ctx, pdfID, userID)
-	return errors.Wrap(err, "cannot delete pdf")
+	err := svc.DB.Transaction(ctx, func(db *database.Database) error {
+
+		pdf, err := db.GetPDF(ctx, pdfID)
+		if err != nil {
+			return errors.Wrap(err, "cannot get pdf")
+		}
+
+		if pdf.GameID != "" {
+			err := db.RemoveGamePDF(ctx, pdf.GameID, pdfID)
+			if err != nil && err != domain.ErrGameNotFound {
+				return errors.Wrap(err, "cannot remove pdf from game")
+			}
+		}
+
+		err = db.DeletePDF(ctx, pdfID, userID)
+		return errors.Wrap(err, "cannot delete pdf")
+	})
+
+	return errors.Wrap(err, "transaction failed")
 }

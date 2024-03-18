@@ -74,6 +74,9 @@ func (h *Handler) domainErr(writer io.Writer, err error) {
 	case domain.ErrPlayMaterialNotFound:
 		httpStatus = http.StatusNotFound
 		wsStatus = wsStatusNormalClosure
+	case domain.ErrInvalidPDFName:
+		httpStatus = http.StatusBadRequest
+		wsStatus = wsStatusPolicyViolation
 
 	default:
 		httpStatus = http.StatusInternalServerError

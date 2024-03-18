@@ -40,18 +40,6 @@ func (h *Handler) HandleGetGames(w http.ResponseWriter, r *http.Request) {
 	h.render(w, r, navigation.GameRows(games), http.StatusOK)
 }
 
-func (h *Handler) HandleGetRolls(w http.ResponseWriter, r *http.Request) {
-
-	// Get the rolls.
-	rolls, err := h.Service.GetRolls(r.Context(), chi.URLParam(r, "game_id"))
-	if err != nil {
-		h.domainErr(w, errors.Wrap(err, "cannot get rolls"))
-		return
-	}
-
-	// Respond with a Roll component.
-	h.render(w, r, navigation.Rolls(rolls), http.StatusOK)
-}
 func (h *Handler) HandleDeleteGame(w http.ResponseWriter, r *http.Request) {
 
 	session, _ := r.Context().Value("session").(*domain.Session)

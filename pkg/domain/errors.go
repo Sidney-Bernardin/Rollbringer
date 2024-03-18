@@ -11,4 +11,5 @@ var (
 	ErrGameNotFound = errors.New("game was not found")
 
 	ErrPlayMaterialNotFound = errors.New("play material was not found")
+	ErrInvalidPDFName       = errors.New("invalid pdf name")
 )
