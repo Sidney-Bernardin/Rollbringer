@@ -28,25 +28,28 @@ func (h *Handler) Auth(next http.Handler) http.Handler {
 		stCookie, err := r.Cookie("SESSION_ID")
 		if err != nil {
 			if err == http.ErrNoCookie {
-				h.err(w, domain.ErrUnauthorized, http.StatusUnauthorized, 0)
+				h.renderErr(w, r, http.StatusUnauthorized, &domain.ProblemDetail{
+					Type: domain.PDTypeUnauthorized,
+				})
 				return
 			}
 
-			err = errors.Wrap(err, "cannot get CSRF_Token cookie")
-			h.err(w, err, http.StatusInternalServerError, 0)
+			h.renderErr(w, r, http.StatusInternalServerError, errors.Wrap(err, "cannot get CSRF_Token cookie"))
 			return
 		}
 
 		// Get the session.
 		session, err := h.Service.GetSession(r.Context(), stCookie.Value)
 		if err != nil {
-			h.domainErr(w, errors.Wrap(err, "cannot get session"))
+			h.err(w, r, errors.Wrap(err, "cannot get session"))
 			return
 		}
 
 		// Verify the CSRF-Token.
 		if session.CSRFToken != r.Header.Get("CSRF-Token") {
-			h.err(w, domain.ErrUnauthorized, http.StatusUnauthorized, 0)
+			h.renderErr(w, r, http.StatusUnauthorized, &domain.ProblemDetail{
+				Type: domain.PDTypeUnauthorized,
+			})
 			return
 		}
 
@@ -66,16 +69,14 @@ func (h *Handler) LightAuth(next http.Handler) http.Handler {
 				return
 			}
 
-			err = errors.Wrap(err, "cannot get CSRF_Token cookie")
-			h.err(w, err, http.StatusInternalServerError, 0)
+			h.renderErr(w, r, http.StatusInternalServerError, errors.Wrap(err, "cannot get CSRF_Token cookie"))
 			return
 		}
 
 		// Get the session.
 		session, err := h.Service.GetSession(r.Context(), stCookie.Value)
-		if err != nil && errors.Cause(err) != domain.ErrUnauthorized {
-			err = errors.Wrap(err, "cannot get session")
-			h.err(w, err, http.StatusInternalServerError, 0)
+		if err != nil && domain.IsProblemDetail(err, domain.PDTypeUnauthorized) {
+			h.err(w, r, errors.Wrap(err, "cannot get session"))
 			return
 		}
 

@@ -12,41 +12,41 @@ import (
 
 func (h *Handler) HandleCreateGame(w http.ResponseWriter, r *http.Request) {
 
-	session, _ := r.Context().Value("session").(*domain.Session)
+	var session, _ = r.Context().Value("session").(*domain.Session)
 
 	// Create a game.
 	game, err := h.Service.CreateGame(r.Context(), session)
 	if err != nil {
-		h.domainErr(w, errors.Wrap(err, "cannot create game"))
+		h.err(w, r, errors.Wrap(err, "cannot create game"))
 		return
 	}
 
 	// Respond with a GameButton component.
-	h.render(w, r, navigation.GameRow(game), http.StatusOK)
+	h.render(w, r, http.StatusOK, navigation.GameRow(game))
 }
 
 func (h *Handler) HandleGetGames(w http.ResponseWriter, r *http.Request) {
 
-	session, _ := r.Context().Value("session").(*domain.Session)
+	var session, _ = r.Context().Value("session").(*domain.Session)
 
 	// Get the games.
 	games, err := h.Service.GetGames(r.Context(), session.UserID)
 	if err != nil {
-		h.domainErr(w, errors.Wrap(err, "cannot get games"))
+		h.err(w, r, errors.Wrap(err, "cannot get games"))
 		return
 	}
 
 	// Respond with a Games component.
-	h.render(w, r, navigation.GameRows(games), http.StatusOK)
+	h.render(w, r, http.StatusOK, navigation.GameRows(games))
 }
 
 func (h *Handler) HandleDeleteGame(w http.ResponseWriter, r *http.Request) {
 
-	session, _ := r.Context().Value("session").(*domain.Session)
+	var session, _ = r.Context().Value("session").(*domain.Session)
 
 	// Delete the game.
 	if err := h.Service.DeleteGame(r.Context(), chi.URLParam(r, "game_id"), session.UserID); err != nil {
-		h.domainErr(w, errors.Wrap(err, "cannot delete game"))
+		h.err(w, r, errors.Wrap(err, "cannot delete game"))
 		return
 	}
 

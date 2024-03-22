@@ -1,15 +1,14 @@
 package handler
 
 import (
-	"io"
 	"net/http"
 
-	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
 	"golang.org/x/oauth2"
 
+	"rollbringer/pkg/domain"
 	"rollbringer/pkg/domain/service"
 )
 
@@ -25,15 +24,20 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.Router.ServeHTTP(w, r)
 }
 
-// render writes the Templ component to the io.Writer.
-func (h *Handler) render(w io.Writer, r *http.Request, component templ.Component, httpStatus int) {
-
-	if rw, ok := w.(http.ResponseWriter); ok {
-		rw.WriteHeader(httpStatus)
+func (h *Handler) processServerError(err error) {
+	if _, ok := errors.Cause(err).(*domain.ProblemDetail); ok {
+		return
 	}
 
-	if err := component.Render(r.Context(), w); err != nil {
-		err = errors.Wrap(err, "cannot render component")
-		h.err(w, err, http.StatusInternalServerError, wsStatusInternalError)
+	h.Logger.Error().Stack().Err(err).Msg("Server error")
+
+	dest := &err
+
+	if event, ok := err.(*domain.EventError); ok {
+		dest = &event.Err
+	}
+
+	*dest = &domain.ProblemDetail{
+		Type: domain.PDTypeServerError,
 	}
 }

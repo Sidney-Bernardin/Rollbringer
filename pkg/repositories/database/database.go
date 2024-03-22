@@ -3,7 +3,6 @@ package database
 import (
 	"context"
 	"database/sql"
-	"rollbringer/pkg/domain"
 
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
@@ -64,13 +63,10 @@ func (db *Database) parseUUIDs(ids ...*string) {
 	}
 }
 
-// decodeHstorePages copies the hstore pages into the PDF.
-func decodeHstorePages(hstorePages []hstore.Hstore, pdf *domain.PDF) {
-	pdf.Pages = make([]map[string]string, len(hstorePages))
-	for i, page := range hstorePages {
-		pdf.Pages[i] = map[string]string{}
-		for k, v := range page.Map {
-			pdf.Pages[i][k] = v.String
-		}
+func hstoreToMap(hs hstore.Hstore) map[string]string {
+	ret := make(map[string]string, len(hs.Map))
+	for k, v := range hs.Map {
+		ret[k] = v.String
 	}
+	return ret
 }

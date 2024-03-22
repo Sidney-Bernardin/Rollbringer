@@ -17,7 +17,10 @@ var PDFSchemaToPageCount = map[string]int{
 func (svc *Service) CreatePDF(ctx context.Context, pdf *domain.PDF) (*domain.PDF, error) {
 
 	if len(pdf.Name) < 1 || 30 < len(pdf.Name) {
-		return nil, domain.ErrInvalidPDFName
+		return nil, &domain.ProblemDetail{
+			Type:   domain.PDTypeInvalidPDFName,
+			Detail: "PDF name must be between 1 and 30 characters long.",
+		}
 	}
 
 	pdf.Pages = make([]map[string]string, PDFSchemaToPageCount[pdf.Schema])
@@ -35,7 +38,7 @@ func (svc *Service) CreatePDF(ctx context.Context, pdf *domain.PDF) (*domain.PDF
 
 		// Append the PDF to the game.
 		if err := db.AppendGamePDF(ctx, pdf.GameID, pdf.ID); err != nil {
-			if err == domain.ErrGameNotFound {
+			if domain.IsProblemDetail(err, domain.PDTypeGameNotFound) {
 				return errors.New("cannot add pdf to game because the game was not found")
 			}
 
@@ -72,7 +75,7 @@ func (svc *Service) DeletePDF(ctx context.Context, pdfID, userID string) error {
 
 		if pdf.GameID != "" {
 			err := db.RemoveGamePDF(ctx, pdf.GameID, pdfID)
-			if err != nil && err != domain.ErrGameNotFound {
+			if err != nil && !domain.IsProblemDetail(err, domain.PDTypeGameNotFound) {
 				return errors.Wrap(err, "cannot remove pdf from game")
 			}
 		}

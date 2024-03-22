@@ -50,11 +50,12 @@ templ PDFFields(pdfID string, fields map[string]string) {
 	}
 }
 
-templ PDFField(pdfID, name, value string) {
-	<div hx-swap-oob={ F(`outerHTML:.pdf-viewer__viewer-container[data-pdf-id="%s"] input[name="%s"]`, pdfID, name) }>
+templ PDFField(pdfID, key, value string) {
+	<div hx-swap-oob={ F(`outerHTML:.pdf-viewer__viewer-container[data-pdf-id="%s"] #%s`, pdfID, key) }>
 		<input
 			type="text"
-			name={ name }
+			id={ key }
+			name="field_value"
 			value={ value }
 			ws-send
 			hx-trigger="change"

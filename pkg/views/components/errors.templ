@@ -1,0 +1,12 @@
+package components
+
+import (
+	"rollbringer/pkg/domain"
+)
+
+templ Error(err *domain.ProblemDetail) {
+	<div hx-swap-oob="body">
+		<h1>{ string(err.Type) }</h1>
+		<p>{ err.Detail }</p>
+	</div>
+}

@@ -12,8 +12,7 @@ import (
 	"rollbringer/pkg/domain"
 )
 
-// InsertGame inserts the game. If the host has more than 5 games,
-// returns domain.ErrMaxGames
+// InsertGame inserts the game.
 func (db *Database) InsertGame(ctx context.Context, game *domain.Game) error {
 	db.parseUUIDs(&game.HostID)
 
@@ -28,7 +27,10 @@ func (db *Database) InsertGame(ctx context.Context, game *domain.Game) error {
 	}
 
 	if count >= 5 {
-		return domain.ErrMaxGames
+		return &domain.ProblemDetail{
+			Type:   domain.PDTypeMaxGames,
+			Detail: "You cannot host more than 5 games at a time.",
+		}
 	}
 
 	game.ID = uuid.New().String()
@@ -69,8 +71,7 @@ func (db *Database) GetGames(ctx context.Context, hostID string) ([]*domain.Game
 	return games, nil
 }
 
-// GetGame returns the game with the game-ID. If the game doesn't exist,
-// returns domain.ErrGameNotFound.
+// GetGame returns the game with the game-ID.
 func (db *Database) GetGame(ctx context.Context, gameID string) (*domain.Game, error) {
 	db.parseUUIDs(&gameID)
 
@@ -82,7 +83,10 @@ func (db *Database) GetGame(ctx context.Context, gameID string) (*domain.Game, e
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, domain.ErrGameNotFound
+			return nil, &domain.ProblemDetail{
+				Type:   domain.PDTypeGameNotFound,
+				Detail: "No game with the given game-ID was found.",
+			}
 		}
 
 		return nil, errors.Wrap(err, "cannot select game")
@@ -111,12 +115,16 @@ func (db *Database) AppendGamePDF(ctx context.Context, gameID, pdfID string) err
 	}
 
 	if rowsAffected == 0 {
-		return domain.ErrGameNotFound
+		return &domain.ProblemDetail{
+			Type:   domain.PDTypeGameNotFound,
+			Detail: "No game with the given game-ID was found.",
+		}
 	}
 
 	return nil
 }
 
+// RemoveGamePDF removes the PDF-ID from the game with the game-ID.
 func (db *Database) RemoveGamePDF(ctx context.Context, gameID, pdfID string) error {
 	db.parseUUIDs(&gameID, &pdfID)
 
@@ -136,14 +144,16 @@ func (db *Database) RemoveGamePDF(ctx context.Context, gameID, pdfID string) err
 	}
 
 	if rowsAffected == 0 {
-		return domain.ErrGameNotFound
+		return &domain.ProblemDetail{
+			Type:   domain.PDTypeGameNotFound,
+			Detail: "No game with the given game-ID was found.",
+		}
 	}
 
 	return nil
 }
 
-// DeleteGame deletes the game with the game-ID and host-ID. If the game doesn't
-// exist, returns domain.ErrGameNotFound.
+// DeleteGame deletes the game with the game-ID and host-ID.
 func (db *Database) DeleteGame(ctx context.Context, gameID, hostID string) error {
 	db.parseUUIDs(&gameID, &hostID)
 
@@ -163,7 +173,10 @@ func (db *Database) DeleteGame(ctx context.Context, gameID, hostID string) error
 	}
 
 	if rowsAffected == 0 {
-		return domain.ErrGameNotFound
+		return &domain.ProblemDetail{
+			Type:   domain.PDTypeGameNotFound,
+			Detail: "No game with the given game-ID and host-ID was found.",
+		}
 	}
 
 	return nil

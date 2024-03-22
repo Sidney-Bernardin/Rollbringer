@@ -2,14 +2,34 @@ package domain
 
 import "github.com/pkg/errors"
 
-var (
-	ErrUnauthorized = errors.New("unauthorized")
+type pdType string
 
-	ErrUserNotFound = errors.New("user was not found")
+const (
+	PDTypeServerError           pdType = "server error"
+	PDTypeCannotDecodeEvent     pdType = "cannot decode event"
+	PDTypeUnauthorized          pdType = "unauthorized"
+	PDTypeInvalidEventOperation pdType = "invalid event operation"
 
-	ErrMaxGames     = errors.New("max games reached")
-	ErrGameNotFound = errors.New("game was not found")
+	PDTypeUserNotFound pdType = "user not found"
 
-	ErrPlayMaterialNotFound = errors.New("play material was not found")
-	ErrInvalidPDFName       = errors.New("invalid pdf name")
+	PDTypeMaxGames     pdType = "max games reached"
+	PDTypeGameNotFound pdType = "game not found"
+
+	PDTypePDFNotFound    pdType = "pdf not found"
+	PDTypeInvalidPDFName pdType = "invalid pdf name"
 )
+
+type ProblemDetail struct {
+	Type   pdType `json:"type"`
+	Detail string `json:"detail,omitempty"`
+}
+
+func (pd *ProblemDetail) Error() string {
+	return string(pd.Type)
+}
+
+// IsProblemDetail checks if the error is a problem-detail with the pdType.
+func IsProblemDetail(err error, t pdType) bool {
+	pd, ok := errors.Cause(err).(*ProblemDetail)
+	return ok && pd.Type == t
+}

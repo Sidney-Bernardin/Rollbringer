@@ -33,23 +33,19 @@ func New(logger *zerolog.Logger, addr, passw string) (*PubSub, error) {
 	return &PubSub{client, logger}, nil
 }
 
-// SubToGame receives events from the game's topic and sends them to subChan.
-func (ps *PubSub) SubToGame(ctx context.Context, gameID string, subChan chan domain.Event) {
+func (ps *PubSub) Sub(ctx context.Context, topic string, subChan chan domain.Event) {
 
-	// Subscribe to the game's Redis channel.
-	sub := ps.client.Subscribe(ctx, gameID)
+	sub := ps.client.Subscribe(ctx, topic)
 	defer sub.Close()
 
 	for {
 
-		// Receive the next message.
 		msg, err := sub.ReceiveMessage(ctx)
 		if err != nil {
 			ps.logger.Error().Stack().Err(err).Msg("Cannot receive message")
 			return
 		}
 
-		// Decode the event.
 		var event domain.Event
 		if err = json.Unmarshal([]byte(msg.Payload), &event); err != nil {
 			ps.logger.Error().Stack().Err(err).Msg("Cannot decode event")
@@ -60,13 +56,13 @@ func (ps *PubSub) SubToGame(ctx context.Context, gameID string, subChan chan dom
 	}
 }
 
-// PubToGame sends the event to the game's topic.
-func (ps *PubSub) PubToGame(ctx context.Context, gameID string, event domain.Event) error {
-	eventBytes, err := json.Marshal(event)
+func (ps *PubSub) Pub(ctx context.Context, topic string, data domain.Event) error {
+
+	bytes, err := json.Marshal(data)
 	if err != nil {
 		return errors.Wrap(err, "cannot encode event")
 	}
 
-	err = ps.client.Publish(ctx, gameID, eventBytes).Err()
+	err = ps.client.Publish(ctx, topic, bytes).Err()
 	return errors.Wrap(err, "cannot publish event")
 }

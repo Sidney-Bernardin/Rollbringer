@@ -30,7 +30,9 @@ window.alpine.data("pdfViewer", (pdfURL: string, pdfID: string) => ({
         await this.pageViewer.renderPage(e.detail);
 
         Array.from(this.$el.querySelectorAll(".annotationLayer input")).forEach(
-            (elem: HTMLInputElement) => {
+            (elem: HTMLInputElement, idx: number) => {
+                elem.id = elem.name;
+                elem.name = "field_value_" + idx;
                 elem.setAttribute("ws-send", "");
                 elem.setAttribute("hx-trigger", "change");
                 elem.setAttribute(

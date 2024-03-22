@@ -20,28 +20,24 @@ type pdfModel struct {
 func (db *Database) InsertPDF(ctx context.Context, pdf *domain.PDF) error {
 
 	pdf.ID = uuid.New().String()
+	db.parseUUIDs(&pdf.OwnerID, &pdf.GameID)
 
-	var (
-		ownerUUID, _ = uuid.Parse(pdf.OwnerID)
-		gameUUID, _  = uuid.Parse(pdf.GameID)
-		pages        = make([]hstore.Hstore, len(pdf.Pages))
-	)
-
-	for i := range pages {
-		pages[i].Map = map[string]sql.NullString{}
+	// Create an HStore copy of the PDF's pages.
+	hstorePages := make([]hstore.Hstore, len(pdf.Pages))
+	for i := range hstorePages {
+		hstorePages[i].Map = map[string]sql.NullString{}
 	}
 
 	// Insert a new PDF.
 	_, err := db.conn.Exec(
 		`INSERT INTO pdfs (id, owner_id, game_id, name, schema, pages) 
 			VALUES ($1, $2, $3, $4, $5, $6)`,
-		pdf.ID, ownerUUID, gameUUID, pdf.Name, pdf.Schema, pq.Array(pages))
+		pdf.ID, pdf.OwnerID, pdf.GameID, pdf.Name, pdf.Schema, pq.Array(hstorePages))
 
 	return errors.Wrap(err, "cannot insert pdf")
 }
 
-// GetPDF returns the PDF with the PDF-ID. If the PDF doesn't exist,
-// returns domain.ErrPlayMaterialNotFound.
+// GetPDF returns the PDF with the PDF-ID.
 func (db *Database) GetPDF(ctx context.Context, pdfID string) (*domain.PDF, error) {
 	db.parseUUIDs(&pdfID)
 
@@ -57,13 +53,20 @@ func (db *Database) GetPDF(ctx context.Context, pdfID string) (*domain.PDF, erro
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, domain.ErrPlayMaterialNotFound
+			return nil, &domain.ProblemDetail{
+				Type:   domain.PDTypePDFNotFound,
+				Detail: "No PDF with the given PDF-ID exists was found.",
+			}
 		}
 
 		return nil, errors.Wrap(err, "cannot select pdf")
 	}
 
-	decodeHstorePages(hstorePages, &pdf)
+	// Set the PDF's pages to the HStore pages.
+	for i := range pdf.Pages {
+		pdf.Pages[i] = hstoreToMap(hstorePages[i])
+	}
+
 	return &pdf, nil
 }
 
@@ -96,15 +99,18 @@ func (db *Database) GetPDFs(ctx context.Context, ownerID string) ([]*domain.PDF,
 			return nil, errors.Wrap(err, "cannot scan pdf")
 		}
 
-		decodeHstorePages(hstorePages, &pdf)
+		// Set the PDF's pages to the HStore pages.
+		for i := range pdf.Pages {
+			pdf.Pages[i] = hstoreToMap(hstorePages[i])
+		}
+
 		pdfs = append(pdfs, &pdf)
 	}
 
 	return pdfs, nil
 }
 
-// UpdatePDFField updates the page field of the PDF with the PDF-ID. If the PDF
-// doesn't exist, returns domain.ErrPlayMaterialNotFound.
+// UpdatePDFField updates the page field of the PDF with the PDF-ID.
 func (db *Database) UpdatePDFField(ctx context.Context, pdfID string, pageIdx int, fieldName, fieldValue string) error {
 	db.parseUUIDs(&pdfID)
 
@@ -124,14 +130,16 @@ func (db *Database) UpdatePDFField(ctx context.Context, pdfID string, pageIdx in
 	}
 
 	if rowsAffected == 0 {
-		return domain.ErrPlayMaterialNotFound
+		return &domain.ProblemDetail{
+			Type:   domain.PDTypePDFNotFound,
+			Detail: "No PDF with the given PDF-ID was found.",
+		}
 	}
 
 	return nil
 }
 
-// DeletePDF deletes the PDF with the PDF-ID and owner-ID. If the PDF doesn't
-// exist, returns domain.ErrPlayMaterialNotFound.
+// DeletePDF deletes the PDF with the PDF-ID and owner-ID.
 func (db *Database) DeletePDF(ctx context.Context, pdfID, ownerID string) error {
 	db.parseUUIDs(&pdfID, &ownerID)
 
@@ -151,7 +159,10 @@ func (db *Database) DeletePDF(ctx context.Context, pdfID, ownerID string) error 
 	}
 
 	if rowsAffected == 0 {
-		return domain.ErrPlayMaterialNotFound
+		return &domain.ProblemDetail{
+			Type:   domain.PDTypePDFNotFound,
+			Detail: "No PDF with the given PDF-ID and owner-ID was found.",
+		}
 	}
 
 	return nil

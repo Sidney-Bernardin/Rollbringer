@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 
-	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
 
@@ -27,7 +26,7 @@ func (svc *Service) GetPlayPage(ctx context.Context, session *domain.Session, ga
 
 	// Get the game.
 	page.Game, err = svc.GetGame(ctx, gameID)
-	if err != nil && errors.Cause(err) != domain.ErrGameNotFound {
+	if err != nil && !domain.IsProblemDetail(err, domain.PDTypeGameNotFound) {
 		return nil, errors.Wrap(err, "cannot get game")
 	}
 
@@ -44,20 +43,20 @@ func (svc *Service) GetPlayPage(ctx context.Context, session *domain.Session, ga
 	return page, nil
 }
 
-// DoEvents processes events. outgoingChan closes before returning.
-func (svc *Service) DoEvents(ctx context.Context, gameID string, incomingChan, outgoingChan chan domain.Event) {
-	defer close(outgoingChan)
+// DoEvents processes events. errChan closes before returning.
+func (svc *Service) DoEvents(ctx context.Context, gameID string, errChan chan error, incomingChan, outgoingChan chan domain.Event) {
+	defer close(errChan)
 
 	// Get the game.
 	game, err := svc.GetGame(ctx, gameID)
-	if err != nil && errors.Cause(err) != domain.ErrGameNotFound {
+	if err != nil && !domain.IsProblemDetail(err, domain.PDTypeGameNotFound) {
 		svc.Logger.Error().Stack().Err(err).Msg("Cannot get game")
 		return
 	}
 
 	if game != nil {
-		// Subscribe to the game's events.
-		go svc.PS.SubToGame(ctx, game.ID, outgoingChan)
+		// Subscribe to the game's topic.
+		go svc.PS.Sub(ctx, game.ID, outgoingChan)
 	}
 
 	// Process incoming events.
@@ -67,48 +66,22 @@ func (svc *Service) DoEvents(ctx context.Context, gameID string, incomingChan, o
 			return
 
 		case e := <-incomingChan:
-			switch e["OPERATION"] {
-
-			case "UPDATE_PDF_FIELD":
-
-				var event domain.EventUpdatePDFField
-				decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-					Result:           &event,
-					WeaklyTypedInput: true,
-				})
-
-				if err != nil {
-					svc.Logger.Error().Stack().Err(err).Msg("Cannot create decoder")
-					return
-				}
-
-				if err := decoder.Decode(e); err != nil {
-					svc.Logger.Error().Stack().Err(err).Msg("Cannot decode event")
-					return
-				}
+			switch event := e.(type) {
+			case *domain.EventUpdatePDFField:
 
 				if event.PageNum-1 < 0 {
 					return
 				}
 
 				// Update the PDF page.
-				err = svc.DB.UpdatePDFField(ctx,
-					event.PDFID,
-					event.PageNum-1,
-					event.Headers["HX-Trigger-Name"],
-					e[event.Headers["HX-Trigger-Name"]].(string))
-
+				err = svc.DB.UpdatePDFField(ctx, event.PDFID, event.PageNum-1, event.Headers.HXTrigger, event.FieldValue)
 				if err != nil {
-					if errors.Cause(err) == domain.ErrPlayMaterialNotFound {
-						continue
-					}
-
-					svc.Logger.Error().Stack().Err(err).Msg("Cannot update PDF")
-					return
+					errChan <- errors.Wrap(err, "cannot update pdf field")
+					continue
 				}
 
-				// Publish the event.
-				if err := svc.PS.PubToGame(ctx, gameID, e); err != nil {
+				// Publish the event to the game's topic.
+				if err := svc.PS.Pub(ctx, gameID, e); err != nil {
 					svc.Logger.Error().Stack().Err(err).Msg("Cannot publish event")
 					return
 				}

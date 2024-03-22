@@ -3,9 +3,11 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
+	"reflect"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -22,17 +24,17 @@ func (h *Handler) HandleHomePage(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) HandlePlayPage(w http.ResponseWriter, r *http.Request) {
 
-	session, _ := r.Context().Value("session").(*domain.Session)
+	var session, _ = r.Context().Value("session").(*domain.Session)
 
 	// Get the play page.
 	page, err := h.Service.GetPlayPage(r.Context(), session, r.URL.Query().Get("g"))
 	if err != nil {
-		h.domainErr(w, errors.Wrap(err, "cannot get play page"))
+		h.err(w, r, errors.Wrap(err, "cannot get play page"))
 		return
 	}
 	r = r.WithContext(context.WithValue(r.Context(), "play_page", page))
 
-	h.render(w, r, pages.Play(), http.StatusOK)
+	h.render(w, r, http.StatusOK, pages.Play())
 }
 
 func (h *Handler) HandleWebSocket(conn *websocket.Conn) {
@@ -40,12 +42,13 @@ func (h *Handler) HandleWebSocket(conn *websocket.Conn) {
 	var (
 		r = conn.Request()
 
+		errChan      = make(chan error)
 		incomingChan = make(chan domain.Event)
 		outgoingChan = make(chan domain.Event)
 	)
 
 	// Process events in another go-routine.
-	go h.Service.DoEvents(r.Context(), r.URL.Query().Get("g"), incomingChan, outgoingChan)
+	go h.Service.DoEvents(r.Context(), r.URL.Query().Get("g"), errChan, incomingChan, outgoingChan)
 
 	// Prepare outoutgoing events in another go-routine.
 	go func() {
@@ -56,19 +59,26 @@ func (h *Handler) HandleWebSocket(conn *websocket.Conn) {
 			case <-r.Context().Done():
 				return
 
-			case event, ok := <-outgoingChan:
-
+			case err, ok := <-errChan:
 				if !ok {
 					return
 				}
 
-				switch event["OPERATION"] {
-				case "UPDATE_PDF_FIELD":
-					h.render(conn, r, components.PDFField(
-						event["pdf_id"].(string),
-						event["field_name"].(string),
-						event["field_value"].(string),
-					), 0)
+				h.renderErr(conn, r, 0, domain.NewEventError(err))
+
+			case e := <-outgoingChan:
+				switch event := e.(type) {
+				case *domain.EventUpdatePDFField:
+
+					// Render the PDF field.
+					h.render(conn, r, 0, components.PDFField(
+						event.PDFID,
+						event.Headers.HXTrigger,
+						event.FieldValue,
+					))
+
+				default:
+					h.Logger.Error().Any("event", e).Msg("Received event with unknown operation")
 				}
 			}
 		}
@@ -83,15 +93,36 @@ func (h *Handler) HandleWebSocket(conn *websocket.Conn) {
 				return
 			}
 
-			h.err(conn, err, 0, wsStatusInternalError)
+			h.renderErr(conn, r, 0, domain.NewEventError(errors.Wrap(err, "cannot receive websocket message")))
 			return
 		}
 
-		// Decode the event.
-		var event domain.Event
+		var e domain.BaseEvent
+		if err := json.Unmarshal(msg, &e); err != nil {
+			h.renderErr(conn, r, 0, domain.NewEventError(&domain.ProblemDetail{
+				Type:   domain.PDTypeCannotDecodeEvent,
+				Detail: err.Error(),
+			}))
+			continue
+		}
+
+		event, ok := domain.OperationTypes[e.Operation]
+		if !ok {
+			h.renderErr(conn, r, 0, domain.NewEventError(&domain.ProblemDetail{
+				Type:   domain.PDTypeInvalidEventOperation,
+				Detail: fmt.Sprintf(`"%s" is an invlid event operation`, e.Operation),
+			}))
+			continue
+		}
+		event = reflect.New(reflect.TypeOf(event)).Interface().(domain.Event)
+
 		if err := json.Unmarshal(msg, &event); err != nil {
-			h.err(conn, err, 0, wsStatusUnsupportedData)
-			return
+			fmt.Println(err)
+			h.renderErr(conn, r, 0, domain.NewEventError(&domain.ProblemDetail{
+				Type:   domain.PDTypeCannotDecodeEvent,
+				Detail: err.Error(),
+			}))
+			continue
 		}
 
 		incomingChan <- event

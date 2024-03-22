@@ -10,8 +10,7 @@ import (
 	"rollbringer/pkg/domain"
 )
 
-// InsertUser inserts the user. If the username is takan, returns
-// domain.ErrUsernameTaken.
+// InsertUser inserts the user.
 func (db *Database) InsertUser(ctx context.Context, user *domain.User) error {
 
 	user.ID = uuid.New().String()
@@ -63,8 +62,7 @@ func (db *Database) UpsertSession(ctx context.Context, session *domain.Session) 
 	return errors.Wrap(err, "cannot upsert session")
 }
 
-// GetUser returns the user with the user-ID. If the user doesn't exist,
-// returns domain.ErrUserNotFound.
+// GetUser returns the user with the user-ID.
 func (db *Database) GetUser(ctx context.Context, userID string) (*domain.User, error) {
 	db.parseUUIDs(&userID)
 
@@ -76,7 +74,10 @@ func (db *Database) GetUser(ctx context.Context, userID string) (*domain.User, e
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, domain.ErrUserNotFound
+			return nil, &domain.ProblemDetail{
+				Type:     domain.PDTypeUserNotFound,
+				Detail: "No user with the given user-ID was found.",
+			}
 		}
 
 		return nil, errors.Wrap(err, "cannot select user")
@@ -85,8 +86,7 @@ func (db *Database) GetUser(ctx context.Context, userID string) (*domain.User, e
 	return &user, nil
 }
 
-// GetSession returns the session with the session-ID. If the session doesn't
-// exist, returns domain.ErrUnauthorized.
+// GetSession returns the session with the session-ID.
 func (db *Database) GetSession(ctx context.Context, sessionID string) (*domain.Session, error) {
 	db.parseUUIDs(&sessionID)
 
@@ -98,7 +98,9 @@ func (db *Database) GetSession(ctx context.Context, sessionID string) (*domain.S
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, domain.ErrUnauthorized
+			return nil, &domain.ProblemDetail{
+				Type:     domain.PDTypeUnauthorized,
+			}
 		}
 
 		return nil, errors.Wrap(err, "cannot select session")

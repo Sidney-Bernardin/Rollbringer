@@ -37,20 +37,26 @@ func (h *Handler) HandleConsentCallback(w http.ResponseWriter, r *http.Request) 
 	// Get the state/code-verifier cookie.
 	cookie, err := r.Cookie("STATE_AND_VERIFIER")
 	if err != nil {
-		h.err(w, domain.ErrUnauthorized, http.StatusUnauthorized, 0)
+		h.renderErr(w, r, http.StatusUnauthorized, &domain.ProblemDetail{
+			Type: domain.PDTypeUnauthorized,
+		})
 		return
 	}
 
 	// Get the state and code-verifier from the cookie.
 	state_and_verifier := strings.Split(cookie.Value, ",")
 	if len(state_and_verifier) != 2 {
-		h.err(w, domain.ErrUnauthorized, http.StatusUnauthorized, 0)
+		h.renderErr(w, r, http.StatusUnauthorized, &domain.ProblemDetail{
+			Type: domain.PDTypeUnauthorized,
+		})
 		return
 	}
 
 	// Verify both state.
 	if r.FormValue("state") != state_and_verifier[0] {
-		h.err(w, domain.ErrUnauthorized, http.StatusUnauthorized, 0)
+		h.renderErr(w, r, http.StatusUnauthorized, &domain.ProblemDetail{
+			Type: domain.PDTypeUnauthorized,
+		})
 		return
 	}
 
@@ -61,30 +67,30 @@ func (h *Handler) HandleConsentCallback(w http.ResponseWriter, r *http.Request) 
 		oauth2.VerifierOption(state_and_verifier[1]))
 
 	if err != nil {
-		h.err(w, domain.ErrUnauthorized, http.StatusUnauthorized, 0)
+		h.renderErr(w, r, http.StatusUnauthorized, &domain.ProblemDetail{
+			Type: domain.PDTypeUnauthorized,
+		})
 		return
 	}
 
 	// Get the ID-token from the oauth token.
 	idTokenStr, ok := token.Extra("id_token").(string)
 	if !ok {
-		err = errors.New("id_token should be string, but is not")
-		h.err(w, err, http.StatusInternalServerError, 0)
+		h.renderErr(w, r, http.StatusInternalServerError, errors.New("id_token should be string, but is not"))
 		return
 	}
 
 	// Parse the ID-token.
 	idToken, _, err := jwt.NewParser().ParseUnverified(idTokenStr, &openIDConnectClaims{})
 	if err != nil {
-		err = errors.Wrap(err, "cannot parse ID token")
-		h.err(w, err, http.StatusInternalServerError, 0)
+		h.renderErr(w, r, http.StatusInternalServerError, errors.Wrap(err, "cannot parse ID token"))
 		return
 	}
 
 	// Login the user.
 	session, err := h.Service.Login(r.Context(), idToken.Claims.(*openIDConnectClaims).Subject)
 	if err != nil {
-		h.domainErr(w, errors.Wrap(err, "cannot login user"))
+		h.err(w, r, errors.Wrap(err, "cannot login user"))
 		return
 	}
 
