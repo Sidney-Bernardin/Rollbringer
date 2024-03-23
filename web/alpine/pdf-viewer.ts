@@ -29,7 +29,8 @@ window.alpine.data("pdfViewer", (pdfURL: string, pdfID: string) => ({
 
         await this.pageViewer.renderPage(e.detail);
 
-        Array.from(this.$el.querySelectorAll(".annotationLayer input")).forEach(
+        const fieldsSelector: string = ".annotationLayer input, .annotationLayer textarea";
+        Array.from(this.$el.querySelectorAll(fieldsSelector)).forEach(
             (elem: HTMLInputElement, idx: number) => {
                 elem.id = elem.name;
                 elem.name = "field_value_" + idx;

@@ -63,8 +63,8 @@ func (db *Database) GetPDF(ctx context.Context, pdfID string) (*domain.PDF, erro
 	}
 
 	// Set the PDF's pages to the HStore pages.
-	for i := range pdf.Pages {
-		pdf.Pages[i] = hstoreToMap(hstorePages[i])
+	for i := range hstorePages {
+		pdf.Pages = append(pdf.Pages, hstoreToMap(hstorePages[i]))
 	}
 
 	return &pdf, nil
@@ -100,8 +100,8 @@ func (db *Database) GetPDFs(ctx context.Context, ownerID string) ([]*domain.PDF,
 		}
 
 		// Set the PDF's pages to the HStore pages.
-		for i := range pdf.Pages {
-			pdf.Pages[i] = hstoreToMap(hstorePages[i])
+		for i := range hstorePages {
+			pdf.Pages = append(pdf.Pages, hstoreToMap(hstorePages[i]))
 		}
 
 		pdfs = append(pdfs, &pdf)

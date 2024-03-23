@@ -1,6 +1,7 @@
 package components
 
 import (
+	"strings"
 	. "rollbringer/pkg/views"
 )
 
@@ -52,14 +53,32 @@ templ PDFFields(pdfID string, fields map[string]string) {
 
 templ PDFField(pdfID, key, value string) {
 	<div hx-swap-oob={ F(`outerHTML:.pdf-viewer__viewer-container[data-pdf-id="%s"] #%s`, pdfID, key) }>
-		<input
-			type="text"
-			id={ key }
-			name="field_value"
-			value={ value }
-			ws-send
-			hx-trigger="change"
-			hx-include={ F(`.dynamic-tab-container [data-pdf-id="%s"] input.update-pdf-field-param`, pdfID) }
-		/>
+		if keyParts := strings.Split(key, "__"); len(keyParts) == 2 {
+			if keyParts[0] == "textarea" {
+				<textarea
+					id={ keyParts[1] }
+					name="field_value"
+					value={ value }
+					ws-send
+					hx-trigger="change"
+					hx-include={ F(`.dynamic-tab-container [data-pdf-id="%s"] input.update-pdf-field-param`, pdfID) }
+				>
+					{ value }
+				</textarea>
+			} else {
+				<input
+					type="text"
+					id={ keyParts[1] }
+					name="field_value"
+					value={ value }
+					if keyParts[0] == "checkbox" && keyParts[1] == "on" {
+						checked
+					}
+					ws-send
+					hx-trigger="change"
+					hx-include={ F(`.dynamic-tab-container [data-pdf-id="%s"] input.update-pdf-field-param`, pdfID) }
+				/>
+			}
+		}
 	</div>
 }
