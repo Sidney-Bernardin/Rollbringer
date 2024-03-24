@@ -50,7 +50,7 @@ func (h *Handler) HandleWebSocket(conn *websocket.Conn) {
 	// Process events in another go-routine.
 	go h.Service.DoEvents(r.Context(), r.URL.Query().Get("g"), errChan, incomingChan, outgoingChan)
 
-	// Prepare outoutgoing events in another go-routine.
+	// Respond with outoutgoing events in another go-routine.
 	go func() {
 		defer conn.Close()
 
@@ -70,10 +70,10 @@ func (h *Handler) HandleWebSocket(conn *websocket.Conn) {
 				switch event := e.(type) {
 				case *domain.EventUpdatePDFField:
 
-					// Render the PDF field.
+					// Respond with the PDF field.
 					h.render(conn, r, 0, components.PDFField(
 						event.PDFID,
-						event.Headers.HXTrigger,
+						event.FieldName,
 						event.FieldValue,
 					))
 

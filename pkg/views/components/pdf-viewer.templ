@@ -52,11 +52,11 @@ templ PDFFields(pdfID string, fields map[string]string) {
 }
 
 templ PDFField(pdfID, key, value string) {
-	<div hx-swap-oob={ F(`outerHTML:.pdf-viewer__viewer-container[data-pdf-id="%s"] #%s`, pdfID, key) }>
+	<div hx-swap-oob={ F(`outerHTML:.pdf-viewer[data-pdf-id='%s'] #%s`, pdfID, key) }>
 		if keyParts := strings.Split(key, "__"); len(keyParts) == 2 {
 			if keyParts[0] == "textarea" {
 				<textarea
-					id={ keyParts[1] }
+					id={ key }
 					name="field_value"
 					value={ value }
 					ws-send
@@ -67,11 +67,11 @@ templ PDFField(pdfID, key, value string) {
 				</textarea>
 			} else {
 				<input
-					type="text"
-					id={ keyParts[1] }
+					type={ keyParts[0] }
+					id={ key }
 					name="field_value"
 					value={ value }
-					if keyParts[0] == "checkbox" && keyParts[1] == "on" {
+					if keyParts[0] == "checkbox" && value == "on" {
 						checked
 					}
 					ws-send

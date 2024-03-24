@@ -15,8 +15,9 @@ const (
 	PDTypeMaxGames     pdType = "max games reached"
 	PDTypeGameNotFound pdType = "game not found"
 
-	PDTypePDFNotFound    pdType = "pdf not found"
-	PDTypeInvalidPDFName pdType = "invalid pdf name"
+	PDTypePDFNotFound          pdType = "pdf not found"
+	PDTypeInvalidPDFName       pdType = "invalid pdf name"
+	PDTypeInvalidPDFFieldValue pdType = "invalid pdf field value"
 )
 
 type ProblemDetail struct {

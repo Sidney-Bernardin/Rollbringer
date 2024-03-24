@@ -5,9 +5,6 @@ type Event interface {
 }
 
 type BaseEvent struct {
-	Headers struct {
-		HXTrigger string `json:"hx-trigger"`
-	} `json:"HEADERS"`
 	Operation string `json:"OPERATION"`
 }
 
@@ -25,6 +22,7 @@ type EventUpdatePDFField struct {
 
 	PDFID      string `json:"pdf_id"`
 	PageNum    int    `json:"page_num,string"`
+	FieldName  string `json:"field_name"`
 	FieldValue string `json:"field_value"`
 }
 

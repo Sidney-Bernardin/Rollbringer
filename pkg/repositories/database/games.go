@@ -14,7 +14,6 @@ import (
 
 // InsertGame inserts the game.
 func (db *Database) InsertGame(ctx context.Context, game *domain.Game) error {
-	db.parseUUIDs(&game.HostID)
 
 	// Get the number of games with the host-ID.
 	var count int
@@ -47,7 +46,6 @@ func (db *Database) InsertGame(ctx context.Context, game *domain.Game) error {
 
 // GetGames return the games with the host-ID.
 func (db *Database) GetGames(ctx context.Context, hostID string) ([]*domain.Game, error) {
-	db.parseUUIDs(&hostID)
 
 	// Get the games with the host-ID.
 	rows, err := db.conn.Query(
@@ -73,7 +71,6 @@ func (db *Database) GetGames(ctx context.Context, hostID string) ([]*domain.Game
 
 // GetGame returns the game with the game-ID.
 func (db *Database) GetGame(ctx context.Context, gameID string) (*domain.Game, error) {
-	db.parseUUIDs(&gameID)
 
 	// Get the game with the game-ID.
 	var game domain.Game
@@ -97,7 +94,6 @@ func (db *Database) GetGame(ctx context.Context, gameID string) (*domain.Game, e
 
 // AppendGamePDF appends the PDF-ID to the game with the game-ID.
 func (db *Database) AppendGamePDF(ctx context.Context, gameID, pdfID string) error {
-	db.parseUUIDs(&gameID, &pdfID)
 
 	// Append the PDF to the game.
 	result, err := db.conn.Exec(
@@ -126,7 +122,6 @@ func (db *Database) AppendGamePDF(ctx context.Context, gameID, pdfID string) err
 
 // RemoveGamePDF removes the PDF-ID from the game with the game-ID.
 func (db *Database) RemoveGamePDF(ctx context.Context, gameID, pdfID string) error {
-	db.parseUUIDs(&gameID, &pdfID)
 
 	// Remove the PDF from the game.
 	result, err := db.conn.Exec(
@@ -155,7 +150,6 @@ func (db *Database) RemoveGamePDF(ctx context.Context, gameID, pdfID string) err
 
 // DeleteGame deletes the game with the game-ID and host-ID.
 func (db *Database) DeleteGame(ctx context.Context, gameID, hostID string) error {
-	db.parseUUIDs(&gameID, &hostID)
 
 	// Delete the game with the game-ID and host-ID.
 	result, err := db.conn.Exec(

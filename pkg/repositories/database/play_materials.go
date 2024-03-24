@@ -18,9 +18,7 @@ type pdfModel struct {
 
 // InsertPDF inserts the PDF.
 func (db *Database) InsertPDF(ctx context.Context, pdf *domain.PDF) error {
-
 	pdf.ID = uuid.New().String()
-	db.parseUUIDs(&pdf.OwnerID, &pdf.GameID)
 
 	// Create an HStore copy of the PDF's pages.
 	hstorePages := make([]hstore.Hstore, len(pdf.Pages))
@@ -39,7 +37,6 @@ func (db *Database) InsertPDF(ctx context.Context, pdf *domain.PDF) error {
 
 // GetPDF returns the PDF with the PDF-ID.
 func (db *Database) GetPDF(ctx context.Context, pdfID string) (*domain.PDF, error) {
-	db.parseUUIDs(&pdfID)
 
 	var (
 		pdf         domain.PDF
@@ -72,7 +69,6 @@ func (db *Database) GetPDF(ctx context.Context, pdfID string) (*domain.PDF, erro
 
 // GetPDFs return the PDFs with the owner-ID.
 func (db *Database) GetPDFs(ctx context.Context, ownerID string) ([]*domain.PDF, error) {
-	db.parseUUIDs(&ownerID)
 
 	// Get the PDFs with the owner-ID.
 	rows, err := db.conn.Query(
@@ -112,7 +108,6 @@ func (db *Database) GetPDFs(ctx context.Context, ownerID string) ([]*domain.PDF,
 
 // UpdatePDFField updates the page field of the PDF with the PDF-ID.
 func (db *Database) UpdatePDFField(ctx context.Context, pdfID string, pageIdx int, fieldName, fieldValue string) error {
-	db.parseUUIDs(&pdfID)
 
 	// Update the page field of the PDF with the PDF-ID.
 	result, err := db.conn.Exec(
@@ -141,7 +136,6 @@ func (db *Database) UpdatePDFField(ctx context.Context, pdfID string, pageIdx in
 
 // DeletePDF deletes the PDF with the PDF-ID and owner-ID.
 func (db *Database) DeletePDF(ctx context.Context, pdfID, ownerID string) error {
-	db.parseUUIDs(&pdfID, &ownerID)
 
 	// Delete the pdf with the pdf-ID and owner-ID.
 	result, err := db.conn.Exec(

@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 	"github.com/lib/pq/hstore"
 	"github.com/pkg/errors"
@@ -54,13 +53,6 @@ func (db *Database) Transaction(ctx context.Context, txFunc func(db *Database) e
 	}
 
 	return errors.Wrap(tx.Commit(), "cannot commit transaction")
-}
-
-func (db *Database) parseUUIDs(ids ...*string) {
-	for _, id := range ids {
-		parsed, _ := uuid.Parse(*id)
-		*id = parsed.String()
-	}
 }
 
 func hstoreToMap(hs hstore.Hstore) map[string]string {

@@ -32,8 +32,14 @@ window.alpine.data("pdfViewer", (pdfURL: string, pdfID: string) => ({
         const fieldsSelector: string = ".annotationLayer input, .annotationLayer textarea";
         Array.from(this.$el.querySelectorAll(fieldsSelector)).forEach(
             (elem: HTMLInputElement, idx: number) => {
-                elem.id = elem.name;
+                // <temporary
+                const prefix: string = elem.tagName === "TEXTAREA" ? "textarea" : elem.type;
+                elem.name = `${prefix}__${elem.name}`;
+                // temporary>
+
+                elem.id = elem.name.replace(/\s/g, "");
                 elem.name = "field_value_" + idx;
+                elem.removeAttribute("style");
                 elem.setAttribute("ws-send", "");
                 elem.setAttribute("hx-trigger", "change");
                 elem.setAttribute(

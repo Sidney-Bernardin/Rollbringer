@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
@@ -19,6 +20,7 @@ type Service struct {
 }
 
 func (svc *Service) GetPlayPage(ctx context.Context, session *domain.Session, gameID string) (page *domain.PlayPage, err error) {
+	domain.ParseUUIDs(&gameID)
 
 	page = &domain.PlayPage{
 		LoggedIn: false,
@@ -31,6 +33,7 @@ func (svc *Service) GetPlayPage(ctx context.Context, session *domain.Session, ga
 	}
 
 	if session != nil {
+		domain.ParseUUIDs(&session.UserID)
 		page.LoggedIn = true
 
 		// Get the user.
@@ -46,6 +49,7 @@ func (svc *Service) GetPlayPage(ctx context.Context, session *domain.Session, ga
 // DoEvents processes events. errChan closes before returning.
 func (svc *Service) DoEvents(ctx context.Context, gameID string, errChan chan error, incomingChan, outgoingChan chan domain.Event) {
 	defer close(errChan)
+	domain.ParseUUIDs(&gameID)
 
 	// Get the game.
 	game, err := svc.GetGame(ctx, gameID)
@@ -73,8 +77,16 @@ func (svc *Service) DoEvents(ctx context.Context, gameID string, errChan chan er
 					return
 				}
 
+				if strings.Contains(event.FieldValue, " ") {
+					errChan <- &domain.ProblemDetail{
+						Type:   domain.PDTypeInvalidPDFFieldValue,
+						Detail: "Field value cannot contain spaces.",
+					}
+					return
+				}
+
 				// Update the PDF page.
-				err = svc.DB.UpdatePDFField(ctx, event.PDFID, event.PageNum-1, event.Headers.HXTrigger, event.FieldValue)
+				err = svc.DB.UpdatePDFField(ctx, event.PDFID, event.PageNum-1, event.FieldName, event.FieldValue)
 				if err != nil {
 					errChan <- errors.Wrap(err, "cannot update pdf field")
 					continue

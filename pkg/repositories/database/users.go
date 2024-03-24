@@ -12,7 +12,6 @@ import (
 
 // InsertUser inserts the user.
 func (db *Database) InsertUser(ctx context.Context, user *domain.User) error {
-
 	user.ID = uuid.New().String()
 
 	// Insert the user.
@@ -48,9 +47,7 @@ func (db *Database) InsertUser(ctx context.Context, user *domain.User) error {
 
 // UpsertSession upserts the session.
 func (db *Database) UpsertSession(ctx context.Context, session *domain.Session) error {
-
 	session.ID = uuid.New().String()
-	db.parseUUIDs(&session.UserID)
 
 	// Upsert the session.
 	_, err := db.conn.Exec(
@@ -64,7 +61,6 @@ func (db *Database) UpsertSession(ctx context.Context, session *domain.Session) 
 
 // GetUser returns the user with the user-ID.
 func (db *Database) GetUser(ctx context.Context, userID string) (*domain.User, error) {
-	db.parseUUIDs(&userID)
 
 	// Get the user with the user-ID.
 	var user domain.User
@@ -75,7 +71,7 @@ func (db *Database) GetUser(ctx context.Context, userID string) (*domain.User, e
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, &domain.ProblemDetail{
-				Type:     domain.PDTypeUserNotFound,
+				Type:   domain.PDTypeUserNotFound,
 				Detail: "No user with the given user-ID was found.",
 			}
 		}
@@ -88,7 +84,6 @@ func (db *Database) GetUser(ctx context.Context, userID string) (*domain.User, e
 
 // GetSession returns the session with the session-ID.
 func (db *Database) GetSession(ctx context.Context, sessionID string) (*domain.Session, error) {
-	db.parseUUIDs(&sessionID)
 
 	// Get the session with the session-ID.
 	var session domain.Session
@@ -99,7 +94,7 @@ func (db *Database) GetSession(ctx context.Context, sessionID string) (*domain.S
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, &domain.ProblemDetail{
-				Type:     domain.PDTypeUnauthorized,
+				Type: domain.PDTypeUnauthorized,
 			}
 		}
 

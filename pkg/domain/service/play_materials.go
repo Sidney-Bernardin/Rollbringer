@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 
 	"rollbringer/pkg/domain"
@@ -15,6 +16,7 @@ var PDFSchemaToPageCount = map[string]int{
 }
 
 func (svc *Service) CreatePDF(ctx context.Context, pdf *domain.PDF) (*domain.PDF, error) {
+	domain.ParseUUIDs(&pdf.OwnerID, &pdf.GameID)
 
 	if len(pdf.Name) < 1 || 30 < len(pdf.Name) {
 		return nil, &domain.ProblemDetail{
@@ -32,7 +34,7 @@ func (svc *Service) CreatePDF(ctx context.Context, pdf *domain.PDF) (*domain.PDF
 			return errors.Wrap(err, "cannot insert PDF")
 		}
 
-		if pdf.GameID == "" {
+		if pdf.GameID == uuid.Nil.String() {
 			return nil
 		}
 
@@ -56,16 +58,19 @@ func (svc *Service) CreatePDF(ctx context.Context, pdf *domain.PDF) (*domain.PDF
 }
 
 func (svc *Service) GetPDF(ctx context.Context, pdfID string) (*domain.PDF, error) {
+	domain.ParseUUIDs(&pdfID)
 	pdf, err := svc.DB.GetPDF(ctx, pdfID)
 	return pdf, errors.Wrap(err, "cannot get pdf")
 }
 
 func (svc *Service) GetPDFs(ctx context.Context, ownerID string) ([]*domain.PDF, error) {
+	domain.ParseUUIDs(&ownerID)
 	pdf, err := svc.DB.GetPDFs(ctx, ownerID)
 	return pdf, errors.Wrap(err, "cannot get pdfs")
 }
 
 func (svc *Service) DeletePDF(ctx context.Context, pdfID, userID string) error {
+	domain.ParseUUIDs(&pdfID, &userID)
 	err := svc.DB.Transaction(ctx, func(db *database.Database) error {
 
 		pdf, err := db.GetPDF(ctx, pdfID)
@@ -73,7 +78,7 @@ func (svc *Service) DeletePDF(ctx context.Context, pdfID, userID string) error {
 			return errors.Wrap(err, "cannot get pdf")
 		}
 
-		if pdf.GameID != "" {
+		if pdf.GameID != uuid.Nil.String() {
 			err := db.RemoveGamePDF(ctx, pdf.GameID, pdfID)
 			if err != nil && !domain.IsProblemDetail(err, domain.PDTypeGameNotFound) {
 				return errors.Wrap(err, "cannot remove pdf from game")

@@ -32,10 +32,10 @@
         }
 
         .annotationLayer {
-
             input,
             textarea {
                 border: 2px solid transparent;
+                color: green;
                 background: rgba(0, 0, 0, 0);
                 font-weight: bolder;
 
@@ -50,6 +50,10 @@
                 &.rolling {
                     cursor: crosshair;
                 }
+            }
+
+            input {
+                text-align: center;
             }
         }
 

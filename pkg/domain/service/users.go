@@ -36,11 +36,13 @@ func (svc *Service) Login(ctx context.Context, googleID string) (*domain.Session
 }
 
 func (svc *Service) GetUser(ctx context.Context, userID string) (*domain.User, error) {
+	domain.ParseUUIDs(&userID)
 	user, err := svc.DB.GetUser(ctx, userID)
 	return user, errors.Wrap(err, "cannot get user")
 }
 
 func (svc *Service) GetSession(ctx context.Context, sessionID string) (*domain.Session, error) {
+	domain.ParseUUIDs(&sessionID)
 	session, err := svc.DB.GetSession(ctx, sessionID)
 	return session, errors.Wrap(err, "cannot get session")
 }
