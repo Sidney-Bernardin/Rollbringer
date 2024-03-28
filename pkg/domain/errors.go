@@ -17,7 +17,9 @@ const (
 
 	PDTypePDFNotFound          pdType = "pdf not found"
 	PDTypeInvalidPDFName       pdType = "invalid pdf name"
-	PDTypeInvalidPDFFieldValue pdType = "invalid pdf field value"
+	PDTypeInvalidPDFFieldName  pdType = "invalid pdf field name"
+	PDTypeInvalidPDFPageNumber pdType = "invalid pdf page number"
+	PDTypeNotSubscribedToPDF   pdType = "invalid pdf field value"
 )
 
 type ProblemDetail struct {

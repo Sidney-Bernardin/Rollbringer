@@ -48,8 +48,9 @@ func (h *Handler) renderErr(w io.Writer, r *http.Request, statusCode int, err er
 	pd, ok := errors.Cause(err).(*domain.ProblemDetail)
 	if !ok {
 		h.Logger.Error().Stack().Err(err).Msg("Server error")
-		pd.Type = domain.PDTypeServerError
-		pd.Detail = ""
+		pd = &domain.ProblemDetail{
+			Type: domain.PDTypeServerError,
+		}
 	}
 
 	h.render(w, r, statusCode, components.Error(pd))

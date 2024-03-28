@@ -14,9 +14,16 @@ templ PDFViewer(pdfID, pdfFile string) {
 		data-pdf-id={ pdfID }
 		x-data={ F("pdfViewer('%s', '%s')", pdfFile, pdfID) }
 		x-on:change-page.window="changePage"
+		x-on:pdf-opened.window="subToPDF"
 	>
-		<input class="update-pdf-field-param" type="hidden" name="OPERATION" value="UPDATE_PDF_FIELD"/>
-		<input class="update-pdf-field-param" type="hidden" name="pdf_id" value={ pdfID }/>
+		<div id="UPDATE_PDF_FIELD-params">
+			<input type="hidden" name="OPERATION" value="UPDATE_PDF_FIELD"/>
+			<input type="hidden" name="page_num" x-bind:value="currentPage"/>
+		</div>
+		<form id="SUB_TO_PDF" ws-send>
+			<input type="hidden" name="OPERATION" value="SUB_TO_PDF"/>
+			<input type="hidden" name="pdf_id" value={ pdfID }/>
+		</form>
 		<div class="pdf-viewer__viewer-container">
 			<div class="viewer"></div>
 		</div>
@@ -29,7 +36,6 @@ templ PDFViewerPageButtons(pdfID string, pageNames []string) {
 		data-pdf-id={ pdfID }
 		x-data="{ currentPage: 0 }"
 	>
-		<input class="update-pdf-field-param" type="hidden" name="page_num" x-bind:value="currentPage"/>
 		for i, name := range pageNames {
 			<button
 				data-pdf-id={ pdfID }
@@ -61,7 +67,7 @@ templ PDFField(pdfID, key, value string) {
 					value={ value }
 					ws-send
 					hx-trigger="change"
-					hx-include={ F(`.dynamic-tab-container [data-pdf-id="%s"] input.update-pdf-field-param`, pdfID) }
+					hx-include={ F(`.pdf-viewer[data-pdf-id="%s"] #UPDATE_PDF_FIELD-params`, pdfID) }
 				>
 					{ value }
 				</textarea>
@@ -76,7 +82,7 @@ templ PDFField(pdfID, key, value string) {
 					}
 					ws-send
 					hx-trigger="change"
-					hx-include={ F(`.dynamic-tab-container [data-pdf-id="%s"] input.update-pdf-field-param`, pdfID) }
+					hx-include={ F(`.pdf-viewer[data-pdf-id="%s"] #UPDATE_PDF_FIELD-params`, pdfID) }
 				/>
 			}
 		}

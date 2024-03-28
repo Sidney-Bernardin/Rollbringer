@@ -222,7 +222,7 @@ func PDFViewerTab(pdfID, name string, pageNames []string, pdfFile string) templ.
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = DynamicTabButton(pdfID, name).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = DynamicTabButton(pdfID, name, F(`$dispatch('pdf-opened', '%s')`, pdfID)).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

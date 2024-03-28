@@ -59,7 +59,7 @@ templ Play() {
 
 templ PDFViewerTab(pdfID, name string, pageNames []string, pdfFile string) {
 	<div hx-swap-oob="beforeend:.play-layout__left .dynamic-tab-container__tab-buttons">
-		@DynamicTabButton(pdfID, name)
+		@DynamicTabButton(pdfID, name, F(`$dispatch('pdf-opened', '%s')`, pdfID))
 	</div>
 	<div hx-swap-oob="beforeend:.play-layout__left .dynamic-tab-container__panel .panel__header">
 		@DynamicTabCloak(pdfID, PDFViewerPageButtons(pdfID, pageNames))

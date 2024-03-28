@@ -62,12 +62,18 @@ func (h *Handler) HandleGetPDF(w http.ResponseWriter, r *http.Request) {
 
 		pageNum, err := strconv.Atoi(chi.URLParam(r, "page_num"))
 		if err != nil {
-			h.renderErr(w, r, http.StatusUnprocessableEntity, errors.New("page number must resemble a positive integer"))
+			h.renderErr(w, r, http.StatusUnprocessableEntity, &domain.ProblemDetail{
+				Type:   domain.PDTypeInvalidPDFPageNumber,
+				Detail: errors.Wrap(err, "cannot parse page number").Error(),
+			})
 			return
 		}
 
 		if pageNum-1 < 0 {
-			h.renderErr(w, r, http.StatusUnprocessableEntity, errors.New("page number must resemble a positive integer"))
+			h.renderErr(w, r, http.StatusUnprocessableEntity, &domain.ProblemDetail{
+				Type:   domain.PDTypeInvalidPDFPageNumber,
+				Detail: "Page number must resemble a positive integer.",
+			})
 			return
 		}
 

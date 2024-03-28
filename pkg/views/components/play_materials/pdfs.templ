@@ -25,9 +25,9 @@ templ PDFs() {
 				hx-swap="beforeend"
 			>
 				<input type="hidden" name="schema" value="DND_CHARACTER_SHEET"/>
-                if GetPlayPage(ctx).Game != nil {
-				    <input type="hidden" name="game_id" value={ GetPlayPage(ctx).Game.ID }/>
-                }
+				if GetPlayPage(ctx).Game != nil {
+					<input type="hidden" name="game_id" value={ GetPlayPage(ctx).Game.ID }/>
+				}
 				<label for="name">
 					<p>Name:</p>
 					<input type="text" name="name"/>

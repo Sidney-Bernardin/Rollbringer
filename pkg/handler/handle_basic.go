@@ -3,11 +3,9 @@ package handler
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net"
 	"net/http"
-	"reflect"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -48,7 +46,7 @@ func (h *Handler) HandleWebSocket(conn *websocket.Conn) {
 	)
 
 	// Process events in another go-routine.
-	go h.Service.DoEvents(r.Context(), r.URL.Query().Get("g"), errChan, incomingChan, outgoingChan)
+	go h.Service.DoEvents(r.Context(), r.URL.Query().Get("g"), incomingChan, outgoingChan, errChan)
 
 	// Respond with outoutgoing events in another go-routine.
 	go func() {
@@ -64,7 +62,12 @@ func (h *Handler) HandleWebSocket(conn *websocket.Conn) {
 					return
 				}
 
-				h.renderErr(conn, r, 0, domain.NewEventError(err))
+				h.renderErr(conn, r, 0, &domain.EventError{
+					BaseEvent: domain.BaseEvent{
+						Operation: "ERROR",
+					},
+					Err: err,
+				})
 
 			case e := <-outgoingChan:
 				switch event := e.(type) {
@@ -93,35 +96,30 @@ func (h *Handler) HandleWebSocket(conn *websocket.Conn) {
 				return
 			}
 
-			h.renderErr(conn, r, 0, domain.NewEventError(errors.Wrap(err, "cannot receive websocket message")))
+			errChan <- errors.Wrap(err, "cannot receive websocket message")
 			return
 		}
 
-		var e domain.BaseEvent
-		if err := json.Unmarshal(msg, &e); err != nil {
-			h.renderErr(conn, r, 0, domain.NewEventError(&domain.ProblemDetail{
+		var baseEvent domain.BaseEvent
+		if err := json.Unmarshal(msg, &baseEvent); err != nil {
+			errChan <- &domain.ProblemDetail{
 				Type:   domain.PDTypeCannotDecodeEvent,
 				Detail: err.Error(),
-			}))
+			}
 			continue
 		}
 
-		event, ok := domain.OperationTypes[e.Operation]
-		if !ok {
-			h.renderErr(conn, r, 0, domain.NewEventError(&domain.ProblemDetail{
-				Type:   domain.PDTypeInvalidEventOperation,
-				Detail: fmt.Sprintf(`"%s" is an invlid event operation`, e.Operation),
-			}))
+		event, err := baseEvent.GetOperationStruct()
+		if err != nil {
+			errChan <- errors.Wrap(err, "cannot get event operation struct")
 			continue
 		}
-		event = reflect.New(reflect.TypeOf(event)).Interface().(domain.Event)
 
 		if err := json.Unmarshal(msg, &event); err != nil {
-			fmt.Println(err)
-			h.renderErr(conn, r, 0, domain.NewEventError(&domain.ProblemDetail{
+			errChan <- &domain.ProblemDetail{
 				Type:   domain.PDTypeCannotDecodeEvent,
 				Detail: err.Error(),
-			}))
+			}
 			continue
 		}
 

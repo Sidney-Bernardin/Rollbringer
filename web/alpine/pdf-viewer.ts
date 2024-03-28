@@ -6,12 +6,13 @@ import htmx from "htmx.org";
 GlobalWorkerOptions.workerSrc = "static/pdf.worker.js";
 
 window.alpine.data("pdfViewer", (pdfURL: string, pdfID: string) => ({
+    currentPage: 0,
     pageViewer: null,
+    subscribeForm: null,
 
     init() {
-        const viewerContainer: HTMLDivElement = this.$el.querySelector(
-            ".pdf-viewer__viewer-container",
-        );
+        this.subscribeForm = this.$el.querySelector("form#SUB_TO_PDF");
+        const viewerContainer: HTMLDivElement = this.$el.querySelector(".pdf-viewer__viewer-container");
 
         panzoom(viewerContainer, {
             bounds: true,
@@ -27,31 +28,34 @@ window.alpine.data("pdfViewer", (pdfURL: string, pdfID: string) => ({
     async changePage(e: CustomEvent<number>) {
         if ((e.target as HTMLElement).dataset.pdfId !== pdfID) return;
 
+        this.currentPage = e.detail;
         await this.pageViewer.renderPage(e.detail);
 
-        const fieldsSelector: string = ".annotationLayer input, .annotationLayer textarea";
-        Array.from(this.$el.querySelectorAll(fieldsSelector)).forEach(
-            (elem: HTMLInputElement, idx: number) => {
-                // <temporary
-                const prefix: string = elem.tagName === "TEXTAREA" ? "textarea" : elem.type;
-                elem.name = `${prefix}__${elem.name}`;
-                // temporary>
+        Array.from(this.$el.querySelectorAll(".annotationLayer input, .annotationLayer textarea"))
+            .forEach(
+                (elem: HTMLInputElement, idx: number) => {
+                    // <temporary
+                    const prefix: string = elem.tagName === "TEXTAREA" ? "textarea" : elem.type;
+                    elem.name = `${prefix}__${elem.name}`;
+                    // temporary>
 
-                elem.id = elem.name.replace(/\s/g, "");
-                elem.name = "field_value_" + idx;
-                elem.removeAttribute("style");
-                elem.setAttribute("ws-send", "");
-                elem.setAttribute("hx-trigger", "change");
-                elem.setAttribute(
-                    "hx-include",
-                    `.dynamic-tab-container [data-pdf-id="${pdfID}"] input.update-pdf-field-param`,
-                );
+                    elem.id = elem.name.replace(/\s/g, "");
+                    elem.name = "field_value_" + idx;
+                    elem.removeAttribute("style");
+                    elem.setAttribute("ws-send", "");
+                    elem.setAttribute("hx-trigger", "change");
+                    elem.setAttribute("hx-include", `.pdf-viewer[data-pdf-id="${pdfID}"] #UPDATE_PDF_FIELD-params`);
 
-                htmx.process(elem);
-            },
-        );
+                    htmx.process(elem);
+                },
+            );
 
         htmx.ajax("GET", `/play-materials/pdfs/${pdfID}/${e.detail}`, { swap: "none" });
+    },
+
+    subToPDF(e: CustomEvent<string>) {
+        if (e.detail === pdfID)
+            htmx.trigger(this.subscribeForm, "submit", null)
     },
 }));
 

@@ -6,18 +6,16 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/redis/go-redis/v9"
-	"github.com/rs/zerolog"
 
 	"rollbringer/pkg/domain"
 )
 
 type PubSub struct {
 	client *redis.Client
-	logger *zerolog.Logger
 }
 
 // New returns a new PubSub that connects to a Redis server.
-func New(logger *zerolog.Logger, addr, passw string) (*PubSub, error) {
+func New(addr, passw string) (*PubSub, error) {
 
 	// Connect to the Redis server.
 	client := redis.NewClient(&redis.Options{
@@ -30,10 +28,10 @@ func New(logger *zerolog.Logger, addr, passw string) (*PubSub, error) {
 		return nil, errors.Wrap(err, "cannot ping redis server")
 	}
 
-	return &PubSub{client, logger}, nil
+	return &PubSub{client}, nil
 }
 
-func (ps *PubSub) Sub(ctx context.Context, topic string, subChan chan domain.Event) {
+func (ps *PubSub) Sub(ctx context.Context, topic string, subChan chan domain.Event, errChan chan error) {
 
 	sub := ps.client.Subscribe(ctx, topic)
 	defer sub.Close()
@@ -42,27 +40,44 @@ func (ps *PubSub) Sub(ctx context.Context, topic string, subChan chan domain.Eve
 
 		msg, err := sub.ReceiveMessage(ctx)
 		if err != nil {
-			ps.logger.Error().Stack().Err(err).Msg("Cannot receive message")
+			errChan <- errors.Wrap(err, "cannot receive message")
 			return
 		}
 
-		var event domain.Event
-		if err = json.Unmarshal([]byte(msg.Payload), &event); err != nil {
-			ps.logger.Error().Stack().Err(err).Msg("Cannot decode event")
-			return
+		var baseEvent domain.BaseEvent
+		if err := json.Unmarshal([]byte(msg.Payload), &baseEvent); err != nil {
+			errChan <- &domain.ProblemDetail{
+				Type:   domain.PDTypeCannotDecodeEvent,
+				Detail: err.Error(),
+			}
+			continue
+		}
+
+		event, err := baseEvent.GetOperationStruct()
+		if err != nil {
+			errChan <- errors.Wrap(err, "cannot get event operation struct")
+			continue
+		}
+
+		if err := json.Unmarshal([]byte(msg.Payload), &event); err != nil {
+			errChan <- &domain.ProblemDetail{
+				Type:   domain.PDTypeCannotDecodeEvent,
+				Detail: err.Error(),
+			}
+			continue
 		}
 
 		subChan <- event
 	}
 }
 
-func (ps *PubSub) Pub(ctx context.Context, topic string, data domain.Event) error {
+func (ps *PubSub) Pub(ctx context.Context, topic string, data any) error {
 
 	bytes, err := json.Marshal(data)
 	if err != nil {
 		return errors.Wrap(err, "cannot encode event")
 	}
 
-	err = ps.client.Publish(ctx, topic, bytes).Err()
+	err = ps.client.Publish(ctx, topic, string(bytes)).Err()
 	return errors.Wrap(err, "cannot publish event")
 }

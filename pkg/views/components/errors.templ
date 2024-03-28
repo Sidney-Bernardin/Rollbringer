@@ -5,7 +5,7 @@ import (
 )
 
 templ Error(err *domain.ProblemDetail) {
-	<div hx-swap-oob="body">
+	<div hx-swap-oob="body" hx-swap="innerHTML">
 		<h1>{ string(err.Type) }</h1>
 		<p>{ err.Detail }</p>
 	</div>

@@ -9,10 +9,6 @@
     },
     "author": "",
     "license": "ISC",
-    "prettier": {
-        "printWidth": 100,
-        "tabWidth": 4
-    },
     "devDependencies": {
         "@types/alpinejs": "^3.13.6",
         "@types/webpack-env": "^1.18.4",

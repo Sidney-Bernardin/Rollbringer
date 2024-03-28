@@ -1,6 +1,5 @@
 window.htmx = require("htmx.org");
 import "htmx.org/dist/ext/ws.js";
-import { XfaLayer } from "pdfjs-dist";
 
 document.body.addEventListener("htmx:wsConfigSend", (e: CustomEvent) => {
     if (e.detail.parameters["OPERATION"] !== "UPDATE_PDF_FIELD") return;

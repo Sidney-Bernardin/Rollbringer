@@ -9,21 +9,21 @@ templ DynamicTabContainer(class, defaultMsg string) {
 	<div class={ "dynamic-tab-container", class } x-data="{ currentDynamicTab: ''}">
 		<div class="dynamic-tab-container__tab-buttons"></div>
 		@Panel("dynamic-tab-container__panel", templ.NopComponent, nil) {
-            @DynamicTabCloak("", DefaultMsg(defaultMsg))
-        }
+			@DynamicTabCloak("", DefaultMsg(defaultMsg))
+		}
 	</div>
 }
 
-templ DynamicTabButton(tabID, name string) {
+templ DynamicTabButton(tabID, name, onClick string) {
 	<p
 		class="tab-button"
 		x-data={ F(`{ tabID: '%s' }`, tabID) }
 		x-bind:class="currentDynamicTab === tabID && 'active'"
-		x-on:click="currentDynamicTab = tabID"
+		x-on:click={ "currentDynamicTab = tabID; " + onClick }
 		x-on:close-tab="$el.remove()"
 	>
 		{ name }
-        @IconButton("", "material-symbols:close", templ.Attributes{
+		@IconButton("", "material-symbols:close", templ.Attributes{
             "x-on:click": "$dispatch('close-tab', { tabID })",        
         })
 	</p>

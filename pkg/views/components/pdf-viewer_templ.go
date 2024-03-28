@@ -47,7 +47,7 @@ func PDFViewer(pdfID, pdfFile string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" x-on:change-page.window=\"changePage\"><input class=\"update-pdf-field-param\" type=\"hidden\" name=\"OPERATION\" value=\"UPDATE_PDF_FIELD\"> <input class=\"update-pdf-field-param\" type=\"hidden\" name=\"pdf_id\" value=\"")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" x-on:change-page.window=\"changePage\" x-on:pdf-opened.window=\"subToPDF\"><div id=\"UPDATE_PDF_FIELD-params\"><input type=\"hidden\" name=\"OPERATION\" value=\"UPDATE_PDF_FIELD\"> <input type=\"hidden\" name=\"page_num\" x-bind:value=\"currentPage\"></div><form id=\"SUB_TO_PDF\" ws-send><input type=\"hidden\" name=\"OPERATION\" value=\"SUB_TO_PDF\"> <input type=\"hidden\" name=\"pdf_id\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -55,7 +55,7 @@ func PDFViewer(pdfID, pdfFile string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><div class=\"pdf-viewer__viewer-container\"><div class=\"viewer\"></div></div></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"></form><div class=\"pdf-viewer__viewer-container\"><div class=\"viewer\"></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -87,7 +87,7 @@ func PDFViewerPageButtons(pdfID string, pageNames []string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" x-data=\"{ currentPage: 0 }\"><input class=\"update-pdf-field-param\" type=\"hidden\" name=\"page_num\" x-bind:value=\"currentPage\"> ")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" x-data=\"{ currentPage: 0 }\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -126,7 +126,7 @@ func PDFViewerPageButtons(pdfID string, pageNames []string) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/components/pdf-viewer.templ`, Line: 41, Col: 10}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/components/pdf-viewer.templ`, Line: 47, Col: 10}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -221,7 +221,7 @@ func PDFField(pdfID, key, value string) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(F(`.dynamic-tab-container [data-pdf-id="%s"] input.update-pdf-field-param`, pdfID)))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(F(`.pdf-viewer[data-pdf-id="%s"] #UPDATE_PDF_FIELD-params`, pdfID)))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -232,7 +232,7 @@ func PDFField(pdfID, key, value string) templ.Component {
 				var templ_7745c5c3_Var6 string
 				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(value)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/components/pdf-viewer.templ`, Line: 65, Col: 12}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/components/pdf-viewer.templ`, Line: 71, Col: 12}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 				if templ_7745c5c3_Err != nil {
@@ -281,7 +281,7 @@ func PDFField(pdfID, key, value string) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(F(`.dynamic-tab-container [data-pdf-id="%s"] input.update-pdf-field-param`, pdfID)))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(F(`.pdf-viewer[data-pdf-id="%s"] #UPDATE_PDF_FIELD-params`, pdfID)))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

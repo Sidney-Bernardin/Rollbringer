@@ -56,7 +56,7 @@ func main() {
 	}
 
 	// Create a PubSub repository.
-	ps, err := pubsub.New(&logger, cfg.RedisAddress, cfg.RedisPassword)
+	ps, err := pubsub.New(cfg.RedisAddress, cfg.RedisPassword)
 	if err != nil {
 		logger.Fatal().Stack().Err(err).Msg("Cannot create pub-sub repository")
 	}
@@ -84,23 +84,32 @@ func main() {
 
 	h.Router.Use(h.Log)
 	h.Router.Handle("/static/*", handleStaticDir())
-
 	h.Router.Get("/", h.HandleHomePage)
-	h.Router.With(h.LightAuth).Get("/play", h.HandlePlayPage)
-	h.Router.With(h.LightAuth).Method("GET", "/ws", websocket.Handler(h.HandleWebSocket))
+
+	h.Router.Route("/", func(r chi.Router) {
+		r.Use(h.LightAuth)
+		r.Get("/play", h.HandlePlayPage)
+		r.Method("GET", "/ws", websocket.Handler(h.HandleWebSocket))
+	})
 
 	h.Router.Get("/users/login", h.HandleLogin)
 	h.Router.Get("/users/consent-callback", h.HandleConsentCallback)
 
-	h.Router.With(h.Auth).Post("/games", h.HandleCreateGame)
-	h.Router.With(h.Auth).Get("/games", h.HandleGetGames)
-	h.Router.With(h.Auth).Delete("/games/{game_id}", h.HandleDeleteGame)
+	h.Router.Route("/games", func(r chi.Router) {
+		r.Use(h.Auth)
+		r.Post("/", h.HandleCreateGame)
+		r.Get("/", h.HandleGetGames)
+		r.Delete("/{game_id}", h.HandleDeleteGame)
+	})
 
-	h.Router.With(h.Auth).Post("/play-materials/pdfs", h.HandleCreatePDF)
-	h.Router.With(h.Auth).Get("/play-materials/pdfs", h.HandleGetPDFs)
-	h.Router.With(h.Auth).Get("/play-materials/pdfs/{pdf_id}", h.HandleGetPDF)
-	h.Router.With(h.Auth).Get("/play-materials/pdfs/{pdf_id}/{page_num}", h.HandleGetPDF)
-	h.Router.With(h.Auth).Delete("/play-materials/pdfs/{pdf_id}", h.HandleDeletePDF)
+	h.Router.Route("/play-materials", func(r chi.Router) {
+		r.Use(h.Auth)
+		r.Post("/pdfs", h.HandleCreatePDF)
+		r.Get("/pdfs", h.HandleGetPDFs)
+		r.Get("/pdfs/{pdf_id}", h.HandleGetPDF)
+		r.Get("/pdfs/{pdf_id}/{page_num}", h.HandleGetPDF)
+		r.Delete("/pdfs/{pdf_id}", h.HandleDeletePDF)
+	})
 
 	// Start server.
 	logger.Info().Str("address", cfg.Address).Msg("Serving")
