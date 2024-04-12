@@ -1,6 +1,8 @@
 package pages
 
 import (
+	"rollbringer/pkg/domain"
+
 	. "rollbringer/pkg/views"
 	. "rollbringer/pkg/views/components"
 	. "rollbringer/pkg/views/components/navigation"
@@ -35,12 +37,13 @@ templ Play() {
 				hx-headers={ F(`{"CSRF-Token": "%s"}`, GetSession(ctx).CSRFToken) }
 			}
 		>
-			<div class="play-layout" x-data="{ rolling: false }">
+			<div class="play-layout">
 				@NavBar("play-layout__nav-bar")
 				@DynamicTabContainer("play-layout__top", "No scenes selected")
 				@DynamicTabContainer("play-layout__left", "No PDF selected")
 				@StaticTabContainer("play-layout__bottom", map[string]templ.Component{
-                    "PDFs": PDFs(),
+                    "Your PDFs": UserPDFs(),
+                    "All PDFs": GamePDFs(),
                     "Scenes": templ.NopComponent,
                     "Combat": templ.NopComponent,
                 })
@@ -57,14 +60,14 @@ templ Play() {
 	}
 }
 
-templ PDFViewerTab(pdfID, name string, pageNames []string, pdfFile string) {
+templ PDFViewerTab(pdf *domain.PDF) {
 	<div hx-swap-oob="beforeend:.play-layout__left .dynamic-tab-container__tab-buttons">
-		@DynamicTabButton(pdfID, name, F(`$dispatch('pdf-opened', '%s')`, pdfID))
+		@DynamicTabButton(pdf.ID.String(), pdf.Name, F(`$dispatch('pdf-opened', '%s')`, pdf.ID))
 	</div>
 	<div hx-swap-oob="beforeend:.play-layout__left .dynamic-tab-container__panel .panel__header">
-		@DynamicTabCloak(pdfID, PDFViewerPageButtons(pdfID, pageNames))
+		@DynamicTabCloak(pdf.ID.String(), PDFViewerPageButtons(pdf))
 	</div>
 	<div hx-swap-oob="beforeend:.play-layout__left .dynamic-tab-container__panel .panel__body">
-		@DynamicTabCloak(pdfID, PDFViewer(pdfID, pdfFile))
+		@DynamicTabCloak(pdf.ID.String(), PDFViewer(pdf))
 	</div>
 }

@@ -11,6 +11,8 @@ import "io"
 import "bytes"
 
 import (
+	"rollbringer/pkg/domain"
+
 	. "rollbringer/pkg/views"
 	. "rollbringer/pkg/views/components"
 	. "rollbringer/pkg/views/components/navigation"
@@ -38,7 +40,7 @@ func page(title, script string) templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pages.templ`, Line: 15, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pages.templ`, Line: 17, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -154,7 +156,7 @@ func Play() templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("><div class=\"play-layout\" x-data=\"{ rolling: false }\">")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("><div class=\"play-layout\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -171,9 +173,10 @@ func Play() templ.Component {
 				return templ_7745c5c3_Err
 			}
 			templ_7745c5c3_Err = StaticTabContainer("play-layout__bottom", map[string]templ.Component{
-				"PDFs":   PDFs(),
-				"Scenes": templ.NopComponent,
-				"Combat": templ.NopComponent,
+				"Your PDFs": UserPDFs(),
+				"All PDFs":  GamePDFs(),
+				"Scenes":    templ.NopComponent,
+				"Combat":    templ.NopComponent,
 			}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -205,7 +208,7 @@ func Play() templ.Component {
 	})
 }
 
-func PDFViewerTab(pdfID, name string, pageNames []string, pdfFile string) templ.Component {
+func PDFViewerTab(pdf *domain.PDF) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -222,7 +225,7 @@ func PDFViewerTab(pdfID, name string, pageNames []string, pdfFile string) templ.
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = DynamicTabButton(pdfID, name, F(`$dispatch('pdf-opened', '%s')`, pdfID)).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = DynamicTabButton(pdf.ID.String(), pdf.Name, F(`$dispatch('pdf-opened', '%s')`, pdf.ID)).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -230,7 +233,7 @@ func PDFViewerTab(pdfID, name string, pageNames []string, pdfFile string) templ.
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = DynamicTabCloak(pdfID, PDFViewerPageButtons(pdfID, pageNames)).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = DynamicTabCloak(pdf.ID.String(), PDFViewerPageButtons(pdf)).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -238,7 +241,7 @@ func PDFViewerTab(pdfID, name string, pageNames []string, pdfFile string) templ.
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = DynamicTabCloak(pdfID, PDFViewer(pdfID, pdfFile)).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = DynamicTabCloak(pdf.ID.String(), PDFViewer(pdf)).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -2,17 +2,17 @@ package components
 
 import (
 	"strings"
+	"github.com/google/uuid"
+
+	"rollbringer/pkg/domain"
 	. "rollbringer/pkg/views"
 )
 
-var DNDCharacterSheetFileLocation = "/static/DND_CharacterSheet.pdf"
-var DNDCharacterSheetPageNames = []string{"main", "info", "spells"}
-
-templ PDFViewer(pdfID, pdfFile string) {
+templ PDFViewer(pdf *domain.PDF) {
 	<div
 		class="pdf-viewer"
-		data-pdf-id={ pdfID }
-		x-data={ F("pdfViewer('%s', '%s')", pdfFile, pdfID) }
+		data-pdf-id={ pdf.ID.String() }
+		x-data={ F("pdfViewer('/static/%s.pdf', '%s')", pdf.Schema, pdf.ID) }
 		x-on:change-page.window="changePage"
 		x-on:pdf-opened.window="subToPDF"
 	>
@@ -22,7 +22,7 @@ templ PDFViewer(pdfID, pdfFile string) {
 		</div>
 		<form id="SUB_TO_PDF" ws-send>
 			<input type="hidden" name="OPERATION" value="SUB_TO_PDF"/>
-			<input type="hidden" name="pdf_id" value={ pdfID }/>
+			<input type="hidden" name="pdf_id" value={ pdf.ID.String() }/>
 		</form>
 		<div class="pdf-viewer__viewer-container">
 			<div class="viewer"></div>
@@ -30,15 +30,15 @@ templ PDFViewer(pdfID, pdfFile string) {
 	</div>
 }
 
-templ PDFViewerPageButtons(pdfID string, pageNames []string) {
+templ PDFViewerPageButtons(pdf *domain.PDF) {
 	<div
 		class="pdf-viewer-page-buttons"
-		data-pdf-id={ pdfID }
+		data-pdf-id={ pdf.ID.String() }
 		x-data="{ currentPage: 0 }"
 	>
-		for i, name := range pageNames {
+		for i, name := range domain.PDFSchemaPageNames[pdf.Schema] {
 			<button
-				data-pdf-id={ pdfID }
+				data-pdf-id={ pdf.ID.String() }
 				x-on:click={ F(`
                     $dispatch('change-page', %v);
                     currentPage = %v`,
@@ -51,13 +51,13 @@ templ PDFViewerPageButtons(pdfID string, pageNames []string) {
 	</div>
 }
 
-templ PDFFields(pdfID string, fields map[string]string) {
+templ PDFFields(pdfID uuid.UUID, fields map[string]string) {
 	for k, v := range fields {
 		@PDFField(pdfID, k, v)
 	}
 }
 
-templ PDFField(pdfID, key, value string) {
+templ PDFField(pdfID uuid.UUID, key, value string) {
 	<div hx-swap-oob={ F(`outerHTML:.pdf-viewer[data-pdf-id='%s'] #%s`, pdfID, key) }>
 		if keyParts := strings.Split(key, "__"); len(keyParts) == 2 {
 			if keyParts[0] == "textarea" {

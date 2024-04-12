@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
 
@@ -19,51 +20,60 @@ type Service struct {
 	Logger *zerolog.Logger
 }
 
-func (svc *Service) GetPlayPage(ctx context.Context, session *domain.Session, gameID string) (page *domain.PlayPage, err error) {
-	domain.ParseUUIDs(&gameID)
+func (svc *Service) GetPlayPage(ctx context.Context, session *domain.Session, gameID uuid.UUID) (page *domain.PlayPage, err error) {
+	page = &domain.PlayPage{}
 
-	page = &domain.PlayPage{
-		LoggedIn: false,
-	}
-
-	// Get the game.
-	page.Game, err = svc.GetGame(ctx, gameID)
-	if err != nil && !domain.IsProblemDetail(err, domain.PDTypeGameNotFound) {
-		return nil, errors.Wrap(err, "cannot get game")
-	}
-
-	if session != nil {
-		domain.ParseUUIDs(&session.UserID)
-		page.LoggedIn = true
-
-		// Get the user.
-		page.User, err = svc.DB.GetUser(ctx, session.UserID)
+	if gameID != uuid.Nil {
+		page.Game, err = svc.DB.GetGame(ctx, gameID, []string{"id", "title"}, nil)
 		if err != nil {
-			return nil, errors.Wrap(err, "cannot get user")
+			return nil, errors.Wrap(err, "cannot get game")
 		}
+
+		page.GamePDFs, err = svc.DB.GetPDFsByGame(ctx, page.Game.ID, []string{"id", "name", "schema"}, []string{"username"}, nil)
+		if err != nil {
+			return nil, errors.Wrap(err, "cannot get pdfs by game")
+		}
+	}
+
+	if session == nil {
+		return page, nil
+	}
+
+	page.User, err = svc.DB.GetUser(ctx, session.UserID, []string{"id", "username"})
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot get user")
+	}
+	page.LoggedIn = true
+
+	page.UserGames, err = svc.DB.GetGamesByHost(ctx, page.User.ID, []string{"id", "title"}, nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot get games by host")
+	}
+
+	page.UserPDFs, err = svc.DB.GetPDFsByOwner(ctx, page.User.ID, []string{"id", "name", "schema"}, nil, []string{"title"})
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot get pdfs by owner")
 	}
 
 	return page, nil
 }
 
 // DoEvents processes events. errChan closes before returning.
-func (svc *Service) DoEvents(ctx context.Context, gameID string, incomingChan, outgoingChan chan domain.Event, errChan chan error) {
+func (svc *Service) DoEvents(ctx context.Context, gameID uuid.UUID, incomingChan, outgoingChan chan domain.Event, errChan chan error) {
 	defer close(errChan)
 
 	var (
 		gameCtx       context.Context
 		cancelGameCtx context.CancelFunc
 
-		pdfID        string
+		pdfID        uuid.UUID
 		pdfCtx       context.Context
 		cancelPDFCtx context.CancelFunc = func() {}
 	)
 
-	if gameID != "" {
-		domain.ParseUUIDs(&gameID)
+	if gameID != uuid.Nil {
 
-		// Get the game.
-		_, err := svc.GetGame(ctx, gameID)
+		_, err := svc.DB.GetGame(ctx, gameID, []string{"id"}, nil)
 		if err != nil {
 			errChan <- errors.Wrap(err, "cannot get game")
 			return
@@ -72,8 +82,7 @@ func (svc *Service) DoEvents(ctx context.Context, gameID string, incomingChan, o
 		gameCtx, cancelGameCtx = context.WithCancel(context.Background())
 		defer cancelGameCtx()
 
-		// Subscribe to the game's topic.
-		go svc.PS.Sub(gameCtx, gameID, outgoingChan, errChan)
+		go svc.PS.Sub(gameCtx, gameID.String(), outgoingChan, errChan)
 	}
 
 	// Process incoming events.
@@ -87,10 +96,8 @@ func (svc *Service) DoEvents(ctx context.Context, gameID string, incomingChan, o
 
 			case *domain.EventSubToPDFPage:
 				cancelPDFCtx()
-				domain.ParseUUIDs(&event.PDFID)
 
-				// Get the PDF.
-				pdf, err := svc.DB.GetPDF(ctx, event.PDFID)
+				pdf, err := svc.DB.GetPDF(ctx, event.PDFID, []string{"id"}, nil, nil)
 				if err != nil {
 					errChan <- errors.Wrap(err, "cannot get pdf")
 					continue
@@ -100,12 +107,11 @@ func (svc *Service) DoEvents(ctx context.Context, gameID string, incomingChan, o
 				pdfCtx, cancelPDFCtx = context.WithCancel(context.Background())
 				defer cancelPDFCtx()
 
-				// Subscribe to the PDF page's topic.
-				go svc.PS.Sub(pdfCtx, pdfID, outgoingChan, errChan)
+				go svc.PS.Sub(pdfCtx, pdfID.String(), outgoingChan, errChan)
 
 			case *domain.EventUpdatePDFField:
 
-				if pdfID == "" {
+				if pdfID == uuid.Nil {
 					errChan <- &domain.ProblemDetail{
 						Type:   domain.PDTypeNotSubscribedToPDF,
 						Detail: "You must be subscribed to a PDF before updating it's field.",
@@ -125,7 +131,6 @@ func (svc *Service) DoEvents(ctx context.Context, gameID string, incomingChan, o
 					return
 				}
 
-				// Update the PDF page.
 				err := svc.DB.UpdatePDFField(ctx, pdfID, event.PageNum-1, event.FieldName, event.FieldValue)
 				if err != nil {
 					errChan <- errors.Wrap(err, "cannot update pdf field")
@@ -134,8 +139,7 @@ func (svc *Service) DoEvents(ctx context.Context, gameID string, incomingChan, o
 
 				event.PDFID = pdfID
 
-				// Publish the event to the PDF's topic.
-				if err := svc.PS.Pub(ctx, pdfID, event); err != nil {
+				if err := svc.PS.Pub(ctx, pdfID.String(), event); err != nil {
 					svc.Logger.Error().Stack().Err(err).Msg("Cannot publish event")
 					return
 				}

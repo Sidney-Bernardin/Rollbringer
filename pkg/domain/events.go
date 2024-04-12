@@ -3,6 +3,8 @@ package domain
 import (
 	"fmt"
 	"reflect"
+
+	"github.com/google/uuid"
 )
 
 type Event interface {
@@ -20,7 +22,7 @@ var operationToStruct = map[string]Event{
 }
 
 func (e BaseEvent) GetOperationStruct() (Event, error) {
-	
+
 	event, ok := operationToStruct[e.Operation]
 	if !ok {
 		return nil, &ProblemDetail{
@@ -37,16 +39,16 @@ type (
 	EventSubToPDFPage struct {
 		BaseEvent
 
-		PDFID string `json:"pdf_id"`
+		PDFID uuid.UUID `json:"pdf_id"`
 	}
 
 	EventUpdatePDFField struct {
 		BaseEvent
 
-		PDFID      string `json:"pdf_id"`
-		PageNum    int    `json:"page_num,string"`
-		FieldName  string `json:"field_name"`
-		FieldValue string `json:"field_value"`
+		PDFID      uuid.UUID `json:"pdf_id"`
+		PageNum    int       `json:"page_num,string"`
+		FieldName  string    `json:"field_name"`
+		FieldValue string    `json:"field_value"`
 	}
 
 	EventError struct {

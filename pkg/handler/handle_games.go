@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 
 	"rollbringer/pkg/domain"
@@ -13,39 +14,41 @@ import (
 func (h *Handler) HandleCreateGame(w http.ResponseWriter, r *http.Request) {
 
 	var session, _ = r.Context().Value("session").(*domain.Session)
+	
+	if session == nil {
+		h.err(w, r, &domain.ProblemDetail{
+			Type:   domain.PDTypeUnauthorized,
+		})
+		return
+	}
 
-	// Create a game.
-	game, err := h.Service.CreateGame(r.Context(), session)
-	if err != nil {
+	game := &domain.Game{
+		Title: "abc",
+	}
+
+	if err := h.Service.CreateGame(r.Context(), session, game); err != nil {
 		h.err(w, r, errors.Wrap(err, "cannot create game"))
 		return
 	}
 
-	// Respond with a GameButton component.
-	h.render(w, r, http.StatusOK, navigation.GameRow(game))
-}
-
-func (h *Handler) HandleGetGames(w http.ResponseWriter, r *http.Request) {
-
-	var session, _ = r.Context().Value("session").(*domain.Session)
-
-	// Get the games.
-	games, err := h.Service.GetGames(r.Context(), session.UserID)
-	if err != nil {
-		h.err(w, r, errors.Wrap(err, "cannot get games"))
-		return
-	}
-
-	// Respond with a Games component.
-	h.render(w, r, http.StatusOK, navigation.GameRows(games))
+	h.render(w, r, http.StatusOK, navigation.GameTableRow(game))
 }
 
 func (h *Handler) HandleDeleteGame(w http.ResponseWriter, r *http.Request) {
 
-	var session, _ = r.Context().Value("session").(*domain.Session)
+	var (
+		session, _ = r.Context().Value("session").(*domain.Session)
+		gameID, _  = uuid.Parse(chi.URLParam(r, "game_id"))
+	)
 
-	// Delete the game.
-	if err := h.Service.DeleteGame(r.Context(), chi.URLParam(r, "game_id"), session.UserID); err != nil {
+	if session == nil {
+		h.err(w, r, &domain.ProblemDetail{
+			Type:   domain.PDTypeUnauthorized,
+		})
+		return
+	}
+
+	if err := h.Service.DeleteGame(r.Context(), session, gameID); err != nil {
 		h.err(w, r, errors.Wrap(err, "cannot delete game"))
 		return
 	}

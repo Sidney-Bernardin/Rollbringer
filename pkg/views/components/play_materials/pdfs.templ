@@ -6,61 +6,88 @@ import (
 	. "rollbringer/pkg/views/components"
 )
 
-templ PDFs() {
-	<div
-		class="pdfs"
-		if GetPlayPage(ctx).LoggedIn {
-			hx-get="/play-materials/pdfs"
-			hx-trigger="load"
-			hx-target="find tbody"
-		}
-	>
-		@Table("Character Sheets", IconButton("", "material-symbols:add", templ.Attributes{
-            "x-on:click": "$root.querySelector('.create-pdf-modal').showModal()",
-        }))
-		@Modal("create-pdf-modal", "Create PDF") {
-			<form
-				hx-post="/play-materials/pdfs"
-				hx-target="previous .table tbody"
-				hx-swap="beforeend"
-			>
-				<input type="hidden" name="schema" value="DND_CHARACTER_SHEET"/>
-				if GetPlayPage(ctx).Game != nil {
-					<input type="hidden" name="game_id" value={ GetPlayPage(ctx).Game.ID }/>
+templ GamePDFs() {
+	if page := GetPlayPage(ctx); page.LoggedIn && page.Game != nil {
+		<div class="game-pdfs">
+			@Modal("create-game-pdf-modal", "Create PDF") {
+				<form hx-post="/play-materials/pdfs">
+					<input type="hidden" name="schema" value="DND_CHARACTER_SHEET"/>
+					<input type="hidden" name="game_id" value={ page.Game.ID.String() }/>
+					<label for="name">
+						<p>Name:</p>
+						<input type="text" name="name"/>
+					</label>
+					<input type="submit" value="Create"/>
+				</form>
+			}
+			@Table("Character Sheets", IconButton("", "material-symbols:add", templ.Attributes{
+                "x-on:click": "$root.querySelector('.create-game-pdf-modal').showModal()",
+            })) {
+				for _, pdf := range page.GamePDFs {
+					@UserPDFTableRow(pdf, pdf.Owner.Username)
 				}
-				<label for="name">
-					<p>Name:</p>
-					<input type="text" name="name"/>
-				</label>
-				<input type="submit" value="Create"/>
-			</form>
-		}
-	</div>
-}
-
-templ PDFTableRows(pdfs []*domain.PDF) {
-	for _, pdf := range pdfs {
-		@PDFTableRow(pdf)
+			}
+		</div>
 	}
 }
 
-templ PDFTableRow(pdf *domain.PDF) {
+templ UserPDFs() {
+	if page := GetPlayPage(ctx); page.LoggedIn {
+		<div class="user-pdfs">
+			@Modal("create-user-pdf-modal", "Create PDF") {
+				<form hx-post="/play-materials/pdfs">
+					<input type="hidden" name="schema" value="DND_CHARACTER_SHEET"/>
+					<label for="name">
+						<p>Name:</p>
+						<input type="text" name="name"/>
+					</label>
+					<input type="submit" value="Create"/>
+				</form>
+			}
+			@Table("Character Sheets", IconButton("", "material-symbols:add", templ.Attributes{
+                "x-on:click": "$root.querySelector('.create-user-pdf-modal').showModal()",
+            })) {
+				for _, pdf := range page.UserPDFs {
+					if pdf.Game == nil {
+						@UserPDFTableRow(pdf, "")
+					} else {
+						@UserPDFTableRow(pdf, pdf.Game.Title)
+					}
+				}
+			}
+		</div>
+	}
+}
+
+templ UserPDFTableRow(pdf *domain.PDF, info string) {
 	@TableRow(
-        templ.Attributes{ 
-            "hx-get": "/play-materials/pdfs/" + pdf.ID,
+	    templ.Attributes{ 
+            "hx-get": F("/play-materials/pdfs/%s", pdf.ID),
             "hx-target": "this",
             "hx-swap": "none",
         },
-	    pdf.Name,
-        "foobarbazz",
+        pdf.Name,
+        info,
         IconButton("", "material-symbols:delete", templ.Attributes{ 
             "x-on:click.stop": true,
-			"hx-delete": F("/play-materials/pdfs/%s", pdf.ID),
-			"hx-target": "closest tr",
-			"hx-swap": "outerHTML",
+            "hx-delete": F("/play-materials/pdfs/%s", pdf.ID),
+            "hx-target": "closest tr",
+            "hx-swap": "outerHTML",
         }),
-        IconButton("", "material-symbols:edit", templ.Attributes{
+	    IconButton("", "material-symbols:edit", templ.Attributes{ 
             "x-on:click.stop": true,
         }),
+	)
+}
+
+templ GamePDFTableRow(pdf *domain.PDF, info string) {
+	@TableRow(
+	    templ.Attributes{ 
+            "hx-get": F("/play-materials/pdfs/%s", pdf.ID),
+            "hx-target": "this",
+            "hx-swap": "none",
+        },
+        pdf.Name,
+        info,
 	)
 }

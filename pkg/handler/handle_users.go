@@ -97,7 +97,7 @@ func (h *Handler) HandleConsentCallback(w http.ResponseWriter, r *http.Request) 
 	// Store the session-ID in a cookie.
 	http.SetCookie(w, &http.Cookie{
 		Name:     "SESSION_ID",
-		Value:    session.ID,
+		Value:    session.ID.String(),
 		Path:     "/",
 		Expires:  time.Now().Add(15 * time.Minute),
 		HttpOnly: true,

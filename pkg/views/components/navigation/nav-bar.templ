@@ -7,15 +7,7 @@ import (
 )
 
 templ NavBar(class string) {
-	<div
-		class={ "nav-bar", class }
-		x-data
-		if GetPlayPage(ctx).LoggedIn {
-			hx-get="/games"
-			hx-trigger="load"
-			hx-target="find tbody"
-		}
-	>
+	<div class={ "nav-bar", class } x-data>
 		@IconButton("games-btn", "ic:baseline-meeting-room", templ.Attributes{
              "x-on:click": "$root.querySelector('.games-modal').showModal()",
         })
@@ -24,25 +16,23 @@ templ NavBar(class string) {
                 "hx-post": "/games",
                 "hx-target": "next table",
                 "hx-swap": "beforeend",
-            }))
+            })) {
+				for _, game := range GetPlayPage(ctx).UserGames {
+					@GameTableRow(game)
+				}
+			}
 			@Table("Other Games", nil)
 		}
 	</div>
 }
 
-templ GameRows(games []*domain.Game) {
-	for _, game := range games {
-		@GameRow(game)
-	}
-}
-
-templ GameRow(game *domain.Game) {
+templ GameTableRow(game *domain.Game) {
 	@TableRow(
         templ.Attributes{
     	    "x-on:click": F("window.location.href = '/play?g=%s'", game.ID),
         },
         game.Title,
-        "foobarbazz",
+        "",
         IconButton("", "material-symbols:delete", templ.Attributes{
             "x-on:click.stop": true,
             "hx-delete": F("/games/%s", game.ID),

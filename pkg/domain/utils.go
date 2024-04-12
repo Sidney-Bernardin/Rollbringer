@@ -1,10 +1,5 @@
 package domain
 
-import "github.com/google/uuid"
-
-func ParseUUIDs(ids ...*string) {
-	for _, id := range ids {
-		parsed, _ := uuid.Parse(*id)
-		*id = parsed.String()
-	}
+var PDFSchemaPageNames = map[string][]string{
+	"DND_CHARACTER_SHEET": {"main", "info", "spells"},
 }

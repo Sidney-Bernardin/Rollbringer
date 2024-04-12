@@ -11,14 +11,14 @@ import "io"
 import "bytes"
 
 import (
-	. "rollbringer/pkg/views"
+	"github.com/google/uuid"
 	"strings"
+
+	"rollbringer/pkg/domain"
+	. "rollbringer/pkg/views"
 )
 
-var DNDCharacterSheetFileLocation = "/static/DND_CharacterSheet.pdf"
-var DNDCharacterSheetPageNames = []string{"main", "info", "spells"}
-
-func PDFViewer(pdfID, pdfFile string) templ.Component {
+func PDFViewer(pdf *domain.PDF) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -35,7 +35,7 @@ func PDFViewer(pdfID, pdfFile string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(pdfID))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(pdf.ID.String()))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -43,7 +43,7 @@ func PDFViewer(pdfID, pdfFile string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(F("pdfViewer('%s', '%s')", pdfFile, pdfID)))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(F("pdfViewer('/static/%s.pdf', '%s')", pdf.Schema, pdf.ID)))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -51,7 +51,7 @@ func PDFViewer(pdfID, pdfFile string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(pdfID))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(pdf.ID.String()))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -66,7 +66,7 @@ func PDFViewer(pdfID, pdfFile string) templ.Component {
 	})
 }
 
-func PDFViewerPageButtons(pdfID string, pageNames []string) templ.Component {
+func PDFViewerPageButtons(pdf *domain.PDF) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -83,7 +83,7 @@ func PDFViewerPageButtons(pdfID string, pageNames []string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(pdfID))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(pdf.ID.String()))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -91,12 +91,12 @@ func PDFViewerPageButtons(pdfID string, pageNames []string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		for i, name := range pageNames {
+		for i, name := range domain.PDFSchemaPageNames[pdf.Schema] {
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<button data-pdf-id=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(pdfID))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(pdf.ID.String()))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -148,7 +148,7 @@ func PDFViewerPageButtons(pdfID string, pageNames []string) templ.Component {
 	})
 }
 
-func PDFFields(pdfID string, fields map[string]string) templ.Component {
+func PDFFields(pdfID uuid.UUID, fields map[string]string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -174,7 +174,7 @@ func PDFFields(pdfID string, fields map[string]string) templ.Component {
 	})
 }
 
-func PDFField(pdfID, key, value string) templ.Component {
+func PDFField(pdfID uuid.UUID, key, value string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {

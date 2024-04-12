@@ -3,42 +3,37 @@ package service
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 
 	"rollbringer/pkg/domain"
 )
 
-func (svc *Service) CreateGame(ctx context.Context, session *domain.Session) (*domain.Game, error) {
-	domain.ParseUUIDs(&session.ID, &session.UserID)
+func (svc *Service) CreateGame(ctx context.Context, session *domain.Session, game *domain.Game) error {
+	game.HostID = session.UserID
 
-	// Create a game.
-	game := &domain.Game{
-		HostID: session.UserID,
-		Title:  "New Game %d",
+	count, err := svc.DB.GetGamesCount(ctx, session.UserID)
+	if err != nil {
+		return errors.Wrap(err, "cannot get games count")
 	}
 
-	// Insert the game.
-	if err := svc.DB.InsertGame(ctx, game); err != nil {
-		return nil, errors.Wrap(err, "cannot insert game")
+	if count >= 5 {
+		return &domain.ProblemDetail{
+			Type:   domain.PDTypeMaxGames,
+			Detail: "You cannot host more than 5 games at a time.",
+		}
 	}
 
-	return game, nil
+	err = svc.DB.InsertGame(ctx, game)
+	return errors.Wrap(err, "cannot insert game")
 }
 
-func (svc *Service) GetGames(ctx context.Context, userID string) ([]*domain.Game, error) {
-	domain.ParseUUIDs(&userID)
-	games, err := svc.DB.GetGames(ctx, userID)
-	return games, errors.Wrap(err, "cannot get games from user")
+func (svc *Service) GetGamesByHost(ctx context.Context, hostID uuid.UUID, gameFields, hostFields []string) ([]*domain.Game, error) {
+	games, err := svc.DB.GetGamesByHost(ctx, hostID, gameFields, hostFields)
+	return games, errors.Wrap(err, "cannot get games by host")
 }
 
-func (svc *Service) GetGame(ctx context.Context, gameID string) (*domain.Game, error) {
-	domain.ParseUUIDs(&gameID)
-	game, err := svc.DB.GetGame(ctx, gameID)
-	return game, errors.Wrap(err, "cannot get game")
-}
-
-func (svc *Service) DeleteGame(ctx context.Context, gameID, userID string) error {
-	domain.ParseUUIDs(&gameID, &userID)
-	err := svc.DB.DeleteGame(ctx, gameID, userID)
+func (svc *Service) DeleteGame(ctx context.Context, session *domain.Session, gameID uuid.UUID) error {
+	err := svc.DB.DeleteGame(ctx, gameID, session.UserID)
 	return errors.Wrap(err, "cannot delete game")
 }

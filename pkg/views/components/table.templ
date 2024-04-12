@@ -9,7 +9,9 @@ templ Table(headerTitle string, headerButton templ.Component) {
 			}
 		</div>
 		<table>
-			<tbody></tbody>
+			<tbody>
+				{ children... }
+			</tbody>
 		</table>
 	</div>
 }

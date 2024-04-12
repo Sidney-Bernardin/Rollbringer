@@ -2,104 +2,87 @@ package database
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"gorm.io/gorm/clause"
 
 	"rollbringer/pkg/domain"
 )
 
-// InsertUser inserts the user.
-func (db *Database) InsertUser(ctx context.Context, user *domain.User) error {
-	user.ID = uuid.New().String()
+type gormUser struct {
+	ID uuid.UUID `gorm:"column:id;default:gen_random_uuid()"`
 
-	// Insert the user.
-	result, err := db.conn.Exec(
-		`INSERT INTO users (id, username, google_id) VALUES ($1, $2, $3)
-			ON CONFLICT (google_id) DO NOTHING`,
-		user.ID, user.Username, user.GoogleID)
+	GoogleID string `gorm:"column:google_id"`
+	Username string `gorm:"column:username"`
+}
 
-	if err != nil {
-		return errors.Wrap(err, "cannot insert user")
-	}
+func (user *gormUser) TableName() string { return "users" }
 
-	// Get the number of rows affected.
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return errors.Wrap(err, "cannot get rows affected")
-	}
-
-	if rowsAffected == 0 {
-
-		// Get the user-ID of the user with the google-ID.
-		err := db.conn.QueryRow(
-			`SELECT id FROM users WHERE google_id = $1`, user.GoogleID).
-			Scan(&user.ID)
-
-		if err != nil {
-			return errors.Wrap(err, "cannot get user")
+func (user *gormUser) domain() *domain.User {
+	if user != nil {
+		return &domain.User{
+			ID:       user.ID,
+			GoogleID: user.GoogleID,
+			Username: user.Username,
 		}
 	}
-
 	return nil
 }
 
-// UpsertSession upserts the session.
-func (db *Database) UpsertSession(ctx context.Context, session *domain.Session) error {
-	session.ID = uuid.New().String()
+func (db *Database) InsertUser(ctx context.Context, user *domain.User) error {
 
-	// Upsert the session.
-	_, err := db.conn.Exec(
-		`INSERT INTO sessions (id, csrf_token, user_id) VALUES ($1, $2, $3)
-		ON CONFLICT (user_id) DO 
-			UPDATE SET id=EXCLUDED.id, csrf_token=EXCLUDED.csrf_token, user_id=EXCLUDED.user_id`,
-		session.ID, session.CSRFToken, session.UserID)
-
-	return errors.Wrap(err, "cannot upsert session")
-}
-
-// GetUser returns the user with the user-ID.
-func (db *Database) GetUser(ctx context.Context, userID string) (*domain.User, error) {
-
-	// Get the user with the user-ID.
-	var user domain.User
-	err := db.conn.QueryRow(
-		`SELECT id, username, google_id FROM users WHERE id = $1`, userID).
-		Scan(&user.ID, &user.Username, &user.GoogleID)
-
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, &domain.ProblemDetail{
-				Type:   domain.PDTypeUserNotFound,
-				Detail: "No user with the given user-ID was found.",
-			}
-		}
-
-		return nil, errors.Wrap(err, "cannot select user")
+	userModel := gormUser{
+		GoogleID: user.GoogleID,
+		Username: user.Username,
 	}
 
-	return &user, nil
-}
+	result := db.gormDB.WithContext(ctx).
+		Clauses(
+			clause.OnConflict{
+				Columns:   []clause.Column{{Name: "google_id"}},
+				DoUpdates: clause.AssignmentColumns([]string{"google_id"}),
+			},
+			clause.Returning{
+				Columns: []clause.Column{{Name: "id"}},
+			},
+		).
+		Create(&userModel)
 
-// GetSession returns the session with the session-ID.
-func (db *Database) GetSession(ctx context.Context, sessionID string) (*domain.Session, error) {
-
-	// Get the session with the session-ID.
-	var session domain.Session
-	err := db.conn.QueryRow(
-		`SELECT id, user_id, csrf_token FROM sessions WHERE id = $1`, sessionID).
-		Scan(&session.ID, &session.UserID, &session.CSRFToken)
-
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, &domain.ProblemDetail{
-				Type: domain.PDTypeUnauthorized,
-			}
-		}
-
-		return nil, errors.Wrap(err, "cannot select session")
+	if err := result.Error; err != nil {
+		return errors.Wrap(err, "cannot create user")
 	}
 
-	return &session, nil
+	*user = *userModel.domain()
+	return nil
+}
+
+func (db *Database) GetUser(ctx context.Context, userID uuid.UUID, userFields []string) (*domain.User, error) {
+
+	var user gormUser
+	err := db.gormDB.
+		Select(userFields).
+		Where("id = ?", userID).
+		First(&user).Error
+
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot get user")
+	}
+
+	return user.domain(), nil
+}
+
+func (db *Database) GetUserByGoogleID(ctx context.Context, googleID string, userFields []string) (*domain.User, error) {
+
+	var user gormUser
+	err := db.gormDB.
+		Select(userFields).
+		Where("google_id = ?", googleID).
+		First(&user).Error
+
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot get user by google id")
+	}
+
+	return user.domain(), nil
 }

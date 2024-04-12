@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"golang.org/x/net/websocket"
 
@@ -22,16 +23,20 @@ func (h *Handler) HandleHomePage(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) HandlePlayPage(w http.ResponseWriter, r *http.Request) {
 
-	var session, _ = r.Context().Value("session").(*domain.Session)
+	var (
+		session, _ = r.Context().Value("session").(*domain.Session)
+		gameID, _  = uuid.Parse(r.URL.Query().Get("g"))
+	)
 
 	// Get the play page.
-	page, err := h.Service.GetPlayPage(r.Context(), session, r.URL.Query().Get("g"))
+	page, err := h.Service.GetPlayPage(r.Context(), session, gameID)
 	if err != nil {
 		h.err(w, r, errors.Wrap(err, "cannot get play page"))
 		return
 	}
 	r = r.WithContext(context.WithValue(r.Context(), "play_page", page))
 
+	// Respond with a play-page component.
 	h.render(w, r, http.StatusOK, pages.Play())
 }
 
@@ -43,10 +48,12 @@ func (h *Handler) HandleWebSocket(conn *websocket.Conn) {
 		errChan      = make(chan error)
 		incomingChan = make(chan domain.Event)
 		outgoingChan = make(chan domain.Event)
+
+		gameID, _ = uuid.Parse(r.URL.Query().Get("g"))
 	)
 
 	// Process events in another go-routine.
-	go h.Service.DoEvents(r.Context(), r.URL.Query().Get("g"), incomingChan, outgoingChan, errChan)
+	go h.Service.DoEvents(r.Context(), gameID, incomingChan, outgoingChan, errChan)
 
 	// Respond with outoutgoing events in another go-routine.
 	go func() {
@@ -73,7 +80,7 @@ func (h *Handler) HandleWebSocket(conn *websocket.Conn) {
 				switch event := e.(type) {
 				case *domain.EventUpdatePDFField:
 
-					// Respond with the PDF field.
+					// Respond with a PDF-field component.
 					h.render(conn, r, 0, components.PDFField(
 						event.PDFID,
 						event.FieldName,

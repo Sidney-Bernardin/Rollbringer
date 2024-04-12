@@ -3,91 +3,56 @@ package service
 import (
 	"context"
 
+	"rollbringer/pkg/domain"
+
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
-
-	"rollbringer/pkg/domain"
-	"rollbringer/pkg/repositories/database"
 )
 
-var PDFSchemaToPageCount = map[string]int{
-	"DND_CHARACTER_SHEET": 3,
-	"DND_LEVELING_GUIDE":  1,
+var PDFSchemaPageNames = map[string][]string{
+	"DND_CHARACTER_SHEET": {"main", "info", "spells"},
 }
 
-func (svc *Service) CreatePDF(ctx context.Context, pdf *domain.PDF) (*domain.PDF, error) {
-	domain.ParseUUIDs(&pdf.OwnerID, &pdf.GameID)
+func (svc *Service) CreatePDF(ctx context.Context, session *domain.Session, pdf *domain.PDF) error {
 
-	if len(pdf.Name) < 1 || 30 < len(pdf.Name) {
-		return nil, &domain.ProblemDetail{
-			Type:   domain.PDTypeInvalidPDFName,
-			Detail: "PDF name must be between 1 and 30 characters long.",
-		}
+	pages := len(PDFSchemaPageNames[pdf.Schema])
+
+	for range pages {
+		pdf.Fields = append(pdf.Fields, map[string]string{})
 	}
 
-	pdf.Pages = make([]map[string]string, PDFSchemaToPageCount[pdf.Schema])
-
-	err := svc.DB.Transaction(ctx, func(db *database.Database) error {
-
-		// Insert the PDF.
-		if err := db.InsertPDF(ctx, pdf); err != nil {
-			return errors.Wrap(err, "cannot insert PDF")
-		}
-
-		if pdf.GameID == uuid.Nil.String() {
-			return nil
-		}
-
-		// Append the PDF to the game.
-		if err := db.AppendGamePDF(ctx, pdf.GameID, pdf.ID); err != nil {
-			if domain.IsProblemDetail(err, domain.PDTypeGameNotFound) {
-				return errors.New("cannot add pdf to game because the game was not found")
-			}
-
-			return errors.Wrap(err, "cannot add pdf to game")
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		return nil, errors.Wrap(err, "transaction failed")
-	}
-
-	return pdf, nil
+	err := svc.DB.InsertPDF(ctx, pdf, pages)
+	return errors.Wrap(err, "cannot insert pdf")
 }
 
-func (svc *Service) GetPDF(ctx context.Context, pdfID string) (*domain.PDF, error) {
-	domain.ParseUUIDs(&pdfID)
-	pdf, err := svc.DB.GetPDF(ctx, pdfID)
+func (svc *Service) GetPDFsByOwner(ctx context.Context, ownerID uuid.UUID, pdfFields, ownerFields, gameFields []string) ([]*domain.PDF, error) {
+	pdfs, err := svc.DB.GetPDFsByOwner(ctx, ownerID, pdfFields, ownerFields, gameFields)
+	return pdfs, errors.Wrap(err, "cannot get pdfs by owner")
+}
+
+func (svc *Service) GetPDFsByGame(ctx context.Context, gameID uuid.UUID, pdfFields, ownerFields, gameFields []string) ([]*domain.PDF, error) {
+	pdfs, err := svc.DB.GetPDFsByGame(ctx, gameID, pdfFields, ownerFields, gameFields)
+	return pdfs, errors.Wrap(err, "cannot get pdfs by game")
+}
+
+func (svc *Service) GetPDF(ctx context.Context, pdfID uuid.UUID, pdfFields, ownerFields, gameFields []string) (*domain.PDF, error) {
+	pdf, err := svc.DB.GetPDF(ctx, pdfID, pdfFields, ownerFields, gameFields)
 	return pdf, errors.Wrap(err, "cannot get pdf")
 }
 
-func (svc *Service) GetPDFs(ctx context.Context, ownerID string) ([]*domain.PDF, error) {
-	domain.ParseUUIDs(&ownerID)
-	pdf, err := svc.DB.GetPDFs(ctx, ownerID)
-	return pdf, errors.Wrap(err, "cannot get pdfs")
+func (svc *Service) GetPDFFields(ctx context.Context, pdfID uuid.UUID, pageNum int) (map[string]string, error) {
+	if pageNum < 1 {
+		return nil, &domain.ProblemDetail{
+			Type:   domain.PDTypeInvalidPDFPageNumber,
+			Detail: "Page number must be greater than zero.",
+		}
+	}
+
+	fields, err := svc.DB.GetPDFFields(ctx, pdfID, pageNum-1)
+	return fields, errors.Wrap(err, "cannot get pdf fields")
 }
 
-func (svc *Service) DeletePDF(ctx context.Context, pdfID, userID string) error {
-	domain.ParseUUIDs(&pdfID, &userID)
-	err := svc.DB.Transaction(ctx, func(db *database.Database) error {
-
-		pdf, err := db.GetPDF(ctx, pdfID)
-		if err != nil {
-			return errors.Wrap(err, "cannot get pdf")
-		}
-
-		if pdf.GameID != uuid.Nil.String() {
-			err := db.RemoveGamePDF(ctx, pdf.GameID, pdfID)
-			if err != nil && !domain.IsProblemDetail(err, domain.PDTypeGameNotFound) {
-				return errors.Wrap(err, "cannot remove pdf from game")
-			}
-		}
-
-		err = db.DeletePDF(ctx, pdfID, userID)
-		return errors.Wrap(err, "cannot delete pdf")
-	})
-
-	return errors.Wrap(err, "transaction failed")
+func (svc *Service) DeletePDF(ctx context.Context, session *domain.Session, pdfID uuid.UUID) error {
+	err := svc.DB.DeletePDF(ctx, pdfID, session.UserID)
+	return errors.Wrap(err, "cannot delete pdf")
 }

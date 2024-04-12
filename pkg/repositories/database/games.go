@@ -2,176 +2,129 @@ package database
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 
 	"rollbringer/pkg/domain"
 )
 
-// InsertGame inserts the game.
-func (db *Database) InsertGame(ctx context.Context, game *domain.Game) error {
+type gormGame struct {
+	ID uuid.UUID `gorm:"column:id;default:gen_random_uuid()"`
 
-	// Get the number of games with the host-ID.
-	var count int
-	err := db.conn.QueryRow(
-		`SELECT COUNT(*) FROM games WHERE host_id = $1`, game.HostID).
-		Scan(&count)
+	HostID uuid.UUID `gorm:"column:host_id"`
+	Host   *gormUser
 
-	if err != nil {
-		return errors.Wrap(err, "cannot select games count")
-	}
-
-	if count >= 5 {
-		return &domain.ProblemDetail{
-			Type:   domain.PDTypeMaxGames,
-			Detail: "You cannot host more than 5 games at a time.",
-		}
-	}
-
-	game.ID = uuid.New().String()
-	game.Title = fmt.Sprintf(game.Title, count+1)
-	game.PDFs = []string{}
-
-	// Insert the game.
-	_, err = db.conn.Exec(
-		`INSERT INTO games (id, host_id, title, pdfs) VALUES ($1, $2, $3, $4)`,
-		game.ID, game.HostID, game.Title, pq.Array(game.PDFs))
-
-	return errors.Wrap(err, "cannot insert game")
+	Title string `gorm:"column:title"`
 }
 
-// GetGames return the games with the host-ID.
-func (db *Database) GetGames(ctx context.Context, hostID string) ([]*domain.Game, error) {
+func (game *gormGame) TableName() string { return "games" }
 
-	// Get the games with the host-ID.
-	rows, err := db.conn.Query(
-		`SELECT id, host_id, title, pdfs FROM games WHERE host_id = $1`, hostID)
+func (game *gormGame) domain() *domain.Game {
+	if game != nil {
+		return &domain.Game{
+			ID:     game.ID,
+			HostID: game.HostID,
+			Host:   game.Host.domain(),
+			Title:  game.Title,
+		}
+	}
+	return nil
+}
+
+func (db *Database) InsertGame(ctx context.Context, game *domain.Game) error {
+
+	gameModel := gormGame{
+		HostID: game.HostID,
+		Title:  game.Title,
+	}
+
+	err := db.gormDB.WithContext(ctx).Create(&gameModel).Error
+	if err != nil {
+		return errors.Wrap(err, "cannot create game")
+	}
+
+	*game = *gameModel.domain()
+	return nil
+}
+
+func (db *Database) GetGamesCount(ctx context.Context, hostID uuid.UUID) (int, error) {
+
+	var count int64
+	err := db.gormDB.WithContext(ctx).Model(&gormGame{}).
+		Where("host_id = ?", hostID).
+		Count(&count).Error
 
 	if err != nil {
-		return nil, errors.Wrap(err, "cannot select games")
+		return 0, errors.Wrap(err, "cannot count games")
 	}
-	defer rows.Close()
 
-	// Scan the rows into a slice of games.
-	games := []*domain.Game{}
-	for rows.Next() {
-		var game domain.Game
-		if err := rows.Scan(&game.ID, &game.HostID, &game.Title, pq.Array(&game.PDFs)); err != nil {
-			return nil, errors.Wrap(err, "cannot scan game")
+	return int(count), nil
+}
+
+func (db *Database) GetGamesByHost(ctx context.Context, hostID uuid.UUID, gameFields, hostFields []string) ([]*domain.Game, error) {
+
+	q := db.gormDB.WithContext(ctx).
+		Select(columnFields("games", gameFields)).
+		Where("host_id = ?", hostID)
+
+	if hostFields != nil {
+		q = q.Joins("Host")
+	}
+
+	var gameModels []gormGame
+	if err := q.Find(&gameModels).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, &domain.ProblemDetail{
+				Type:   domain.PDTypeGameNotFound,
+				Detail: "Cannot find a game with the host-ID.",
+			}
 		}
-		games = append(games, &game)
+
+		return nil, errors.Wrap(err, "cannot get games by host")
+	}
+
+	games := make([]*domain.Game, len(gameModels))
+	for i, m := range gameModels {
+		games[i] = m.domain()
 	}
 
 	return games, nil
 }
 
-// GetGame returns the game with the game-ID.
-func (db *Database) GetGame(ctx context.Context, gameID string) (*domain.Game, error) {
+func (db *Database) GetGame(ctx context.Context, gameID uuid.UUID, gameFields, hostFields []string) (*domain.Game, error) {
 
-	// Get the game with the game-ID.
-	var game domain.Game
-	err := db.conn.QueryRow(
-		`SELECT id, host_id, title, pdfs FROM games WHERE id = $1`, gameID).
-		Scan(&game.ID, &game.HostID, &game.Title, pq.Array(&game.PDFs))
+	q := db.gormDB.WithContext(ctx).
+		Select(columnFields("games", gameFields)).
+		Where("id = ?", gameID)
 
-	if err != nil {
-		if err == sql.ErrNoRows {
+	if hostFields != nil {
+		q = q.Joins("Host")
+	}
+
+	var gameModel gormGame
+	if err := q.First(&gameModel).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
 			return nil, &domain.ProblemDetail{
 				Type:   domain.PDTypeGameNotFound,
-				Detail: "No game with the given game-ID was found.",
+				Detail: "Cannot find a game with the game-ID.",
 			}
 		}
 
-		return nil, errors.Wrap(err, "cannot select game")
+		return nil, errors.Wrap(err, "cannot get game")
 	}
 
-	return &game, nil
+	return gameModel.domain(), nil
 }
 
-// AppendGamePDF appends the PDF-ID to the game with the game-ID.
-func (db *Database) AppendGamePDF(ctx context.Context, gameID, pdfID string) error {
+func (db *Database) DeleteGame(ctx context.Context, gameID, hostID uuid.UUID) error {
 
-	// Append the PDF to the game.
-	result, err := db.conn.Exec(
-		`UPDATE games SET pdfs = array_append(pdfs, $1) WHERE id = $2`,
-		pdfID, gameID)
+	err := db.gormDB.WithContext(ctx).
+		Delete(&gormGame{
+			ID:     gameID,
+			HostID: hostID,
+		}).Error
 
-	if err != nil {
-		return errors.Wrap(err, "cannot append pdf to game")
-	}
-
-	// Get the number of rows affected.
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return errors.Wrap(err, "cannot get rows affected")
-	}
-
-	if rowsAffected == 0 {
-		return &domain.ProblemDetail{
-			Type:   domain.PDTypeGameNotFound,
-			Detail: "No game with the given game-ID was found.",
-		}
-	}
-
-	return nil
-}
-
-// RemoveGamePDF removes the PDF-ID from the game with the game-ID.
-func (db *Database) RemoveGamePDF(ctx context.Context, gameID, pdfID string) error {
-
-	// Remove the PDF from the game.
-	result, err := db.conn.Exec(
-		`UPDATE games SET pdfs = array_remove(pdfs, $1) WHERE id = $2`,
-		pdfID, gameID)
-
-	if err != nil {
-		return errors.Wrap(err, "cannot remove pdf from game")
-	}
-
-	// Get the number of rows affected.
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return errors.Wrap(err, "cannot get rows affected")
-	}
-
-	if rowsAffected == 0 {
-		return &domain.ProblemDetail{
-			Type:   domain.PDTypeGameNotFound,
-			Detail: "No game with the given game-ID was found.",
-		}
-	}
-
-	return nil
-}
-
-// DeleteGame deletes the game with the game-ID and host-ID.
-func (db *Database) DeleteGame(ctx context.Context, gameID, hostID string) error {
-
-	// Delete the game with the game-ID and host-ID.
-	result, err := db.conn.Exec(
-		`DELETE FROM games WHERE id = $1 AND host_id = $2`,
-		gameID, hostID)
-
-	if err != nil {
-		return errors.Wrap(err, "cannot delete game")
-	}
-
-	// Get the number of rows affected.
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return errors.Wrap(err, "cannot get rows affected")
-	}
-
-	if rowsAffected == 0 {
-		return &domain.ProblemDetail{
-			Type:   domain.PDTypeGameNotFound,
-			Detail: "No game with the given game-ID and host-ID was found.",
-		}
-	}
-
-	return nil
+	return errors.Wrap(err, "cannot delete game")
 }

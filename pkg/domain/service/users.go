@@ -10,39 +10,28 @@ import (
 
 func (svc *Service) Login(ctx context.Context, googleID string) (*domain.Session, error) {
 
-	// Create a user.
 	user := &domain.User{
 		GoogleID: googleID,
 		Username: "new-user_123",
 	}
 
-	// Insert the user.
 	if err := svc.DB.InsertUser(ctx, user); err != nil {
 		return nil, errors.Wrap(err, "cannot insert user")
 	}
 
-	// Create a session for the user.
 	session := &domain.Session{
-		CSRFToken: uuid.New().String(),
 		UserID:    user.ID,
+		CSRFToken: uuid.New().String(),
 	}
 
-	// Upsert the session.
 	if err := svc.DB.UpsertSession(ctx, session); err != nil {
-		return nil, errors.Wrap(err, "cannot upsert session")
+		return nil, errors.Wrap(err, "cannot insert session")
 	}
 
 	return session, nil
 }
 
-func (svc *Service) GetUser(ctx context.Context, userID string) (*domain.User, error) {
-	domain.ParseUUIDs(&userID)
-	user, err := svc.DB.GetUser(ctx, userID)
-	return user, errors.Wrap(err, "cannot get user")
-}
-
-func (svc *Service) GetSession(ctx context.Context, sessionID string) (*domain.Session, error) {
-	domain.ParseUUIDs(&sessionID)
-	session, err := svc.DB.GetSession(ctx, sessionID)
+func (svc *Service) GetSession(ctx context.Context, sessionID uuid.UUID, userFields []string) (*domain.Session, error) {
+	session, err := svc.DB.GetSession(ctx, sessionID, []string{"id", "user_id", "csrf_token"}, userFields)
 	return session, errors.Wrap(err, "cannot get session")
 }

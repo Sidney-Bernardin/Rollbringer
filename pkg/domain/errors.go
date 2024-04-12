@@ -16,6 +16,7 @@ const (
 	PDTypeGameNotFound pdType = "game not found"
 
 	PDTypePDFNotFound          pdType = "pdf not found"
+	PDTypePDFPageNotFound      pdType = "pdf page not found"
 	PDTypeInvalidPDFName       pdType = "invalid pdf name"
 	PDTypeInvalidPDFFieldName  pdType = "invalid pdf field name"
 	PDTypeInvalidPDFPageNumber pdType = "invalid pdf page number"

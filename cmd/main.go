@@ -50,7 +50,7 @@ func main() {
 	}
 
 	// Create a Database repository.
-	db, err := database.New(cfg.PostgresAddress)
+	db, err := database.New(cfg.PostgresAddress, &logger)
 	if err != nil {
 		logger.Fatal().Stack().Err(err).Msg("Cannot create database repository")
 	}
@@ -87,7 +87,8 @@ func main() {
 	h.Router.Get("/", h.HandleHomePage)
 
 	h.Router.Route("/", func(r chi.Router) {
-		r.Use(h.LightAuth)
+		r.Use(h.Authenticate)
+
 		r.Get("/play", h.HandlePlayPage)
 		r.Method("GET", "/ws", websocket.Handler(h.HandleWebSocket))
 	})
@@ -96,18 +97,18 @@ func main() {
 	h.Router.Get("/users/consent-callback", h.HandleConsentCallback)
 
 	h.Router.Route("/games", func(r chi.Router) {
-		r.Use(h.Auth)
+		r.Use(h.Authenticate)
+
 		r.Post("/", h.HandleCreateGame)
-		r.Get("/", h.HandleGetGames)
 		r.Delete("/{game_id}", h.HandleDeleteGame)
 	})
 
 	h.Router.Route("/play-materials", func(r chi.Router) {
-		r.Use(h.Auth)
+		r.Use(h.Authenticate)
+
 		r.Post("/pdfs", h.HandleCreatePDF)
-		r.Get("/pdfs", h.HandleGetPDFs)
 		r.Get("/pdfs/{pdf_id}", h.HandleGetPDF)
-		r.Get("/pdfs/{pdf_id}/{page_num}", h.HandleGetPDF)
+		r.Get("/pdfs/{pdf_id}/{page_num}", h.HandleGetPDFFields)
 		r.Delete("/pdfs/{pdf_id}", h.HandleDeletePDF)
 	})
 

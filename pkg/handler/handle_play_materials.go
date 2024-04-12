@@ -4,101 +4,83 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 
 	"rollbringer/pkg/domain"
 	"rollbringer/pkg/views/components"
-	"rollbringer/pkg/views/components/play_materials"
 	"rollbringer/pkg/views/pages"
 )
 
 func (h *Handler) HandleCreatePDF(w http.ResponseWriter, r *http.Request) {
 
-	var session, _ = r.Context().Value("session").(*domain.Session)
+	var (
+		session, _ = r.Context().Value("session").(*domain.Session)
+		gameID, _  = uuid.Parse(r.FormValue("game_id"))
+	)
 
-	// Create a PDF.
-	pdf, err := h.Service.CreatePDF(r.Context(), &domain.PDF{
+	pdf := &domain.PDF{
 		OwnerID: session.UserID,
-		GameID:  r.FormValue("game_id"),
+		GameID:  gameID,
 		Name:    r.FormValue("name"),
 		Schema:  r.FormValue("schema"),
-	})
+	}
 
-	if err != nil {
+	if err := h.Service.CreatePDF(r.Context(), session, pdf); err != nil {
 		h.err(w, r, errors.Wrap(err, "cannot create pdf"))
 		return
 	}
 
-	// Respond with a PDFRow component.
-	h.render(w, r, http.StatusOK, play_materials.PDFTableRow(pdf))
-}
-
-func (h *Handler) HandleGetPDFs(w http.ResponseWriter, r *http.Request) {
-
-	var session, _ = r.Context().Value("session").(*domain.Session)
-
-	// Get the PDFs.
-	pdfs, err := h.Service.GetPDFs(r.Context(), session.UserID)
-	if err != nil {
-		h.err(w, r, errors.Wrap(err, "cannot get pdfs"))
-		return
-	}
-
-	// Respond with a PDFs component.
-	h.render(w, r, http.StatusOK, play_materials.PDFTableRows(pdfs))
+	h.render(w, r, http.StatusOK, templ.NopComponent)
 }
 
 func (h *Handler) HandleGetPDF(w http.ResponseWriter, r *http.Request) {
 
-	// Get the PDF.
-	pdf, err := h.Service.GetPDF(r.Context(), chi.URLParam(r, "pdf_id"))
+	var pdfID, _ = uuid.Parse(chi.URLParam(r, "pdf_id"))
+
+	pdf, err := h.Service.GetPDF(r.Context(), pdfID, []string{"id", "name", "schema"}, nil, nil)
 	if err != nil {
 		h.err(w, r, errors.Wrap(err, "cannot get pdf"))
 		return
 	}
 
-	if chi.URLParam(r, "page_num") != "" {
+	h.render(w, r, http.StatusOK, pages.PDFViewerTab(pdf))
+}
 
-		pageNum, err := strconv.Atoi(chi.URLParam(r, "page_num"))
-		if err != nil {
-			h.renderErr(w, r, http.StatusUnprocessableEntity, &domain.ProblemDetail{
-				Type:   domain.PDTypeInvalidPDFPageNumber,
-				Detail: errors.Wrap(err, "cannot parse page number").Error(),
-			})
-			return
-		}
+func (h *Handler) HandleGetPDFFields(w http.ResponseWriter, r *http.Request) {
 
-		if pageNum-1 < 0 {
-			h.renderErr(w, r, http.StatusUnprocessableEntity, &domain.ProblemDetail{
-				Type:   domain.PDTypeInvalidPDFPageNumber,
-				Detail: "Page number must resemble a positive integer.",
-			})
-			return
-		}
-
-		h.render(w, r, http.StatusOK, components.PDFFields(pdf.ID, pdf.Pages[pageNum-1]))
+	pdfID, _ := uuid.Parse(chi.URLParam(r, "pdf_id"))
+	pageNum, err := strconv.Atoi(chi.URLParam(r, "page_num"))
+	if err != nil {
+		h.err(w, r, &domain.ProblemDetail{
+			Type:   domain.PDTypeInvalidPDFPageNumber,
+			Detail: "Page number must resemble an integer.",
+		})
 		return
 	}
 
-	// Respond with a PDF-viewer tab.
-	h.render(w, r, http.StatusOK, pages.PDFViewerTab(
-		pdf.ID,
-		pdf.Name,
-		components.DNDCharacterSheetPageNames,
-		components.DNDCharacterSheetFileLocation,
-	))
+	fields, err := h.Service.GetPDFFields(r.Context(), pdfID, pageNum)
+	if err != nil {
+		h.err(w, r, errors.Wrap(err, "cannot get pdf fields"))
+		return
+	}
+
+	h.render(w, r, http.StatusOK, components.PDFFields(pdfID, fields))
 }
 
 func (h *Handler) HandleDeletePDF(w http.ResponseWriter, r *http.Request) {
 
-	var session, _ = r.Context().Value("session").(*domain.Session)
+	var (
+		session, _ = r.Context().Value("session").(*domain.Session)
+		pdfID, _   = uuid.Parse(chi.URLParam(r, "pdf_id"))
+	)
 
-	// Delete the PDF.
-	if err := h.Service.DeletePDF(r.Context(), chi.URLParam(r, "pdf_id"), session.UserID); err != nil {
+	if err := h.Service.DeletePDF(r.Context(), session, pdfID); err != nil {
 		h.err(w, r, errors.Wrap(err, "cannot delete pdf"))
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	h.render(w, r, http.StatusOK, templ.NopComponent)
 }

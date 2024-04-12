@@ -1,6 +1,7 @@
 @use "../../global.scss" as *;
 
-.pdfs {
+.game-pdfs,
+.user-pdfs {
     .table {
         &:first-child {
             border-top: none;
@@ -16,7 +17,8 @@
         }
     }
 
-    .create-pdf-modal {
+    .create-user-pdf-modal,
+    .create-game-pdf-modal {
         .panel__body form {
             display: flex;
             flex-direction: column;
