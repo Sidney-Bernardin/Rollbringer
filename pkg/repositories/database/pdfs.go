@@ -69,11 +69,11 @@ func (db *Database) GetPDFsByOwner(ctx context.Context, ownerID uuid.UUID, pdfFi
 		Where("owner_id = ?", ownerID)
 
 	if ownerFields != nil {
-		q = q.Joins("Host")
+		q = q.Joins("Owner", db.gormDB.Select(ownerFields))
 	}
 
 	if gameFields != nil {
-		q = q.Joins("Game")
+		q = q.Joins("Game", db.gormDB.Select(gameFields))
 	}
 
 	var pdfModels []gormPDF
@@ -96,11 +96,11 @@ func (db *Database) GetPDFsByGame(ctx context.Context, gameID uuid.UUID, pdfFiel
 		Where("game_id = ?", gameID)
 
 	if ownerFields != nil {
-		q = q.Joins("Owner")
+		q = q.Joins("Owner", db.gormDB.Select(ownerFields))
 	}
 
 	if gameFields != nil {
-		q = q.Joins("Game")
+		q = q.Joins("Game", db.gormDB.Select(gameFields))
 	}
 
 	var pdfModels []gormPDF
@@ -123,11 +123,11 @@ func (db *Database) GetPDF(ctx context.Context, pdfID uuid.UUID, pdfFields, owne
 		Where("pdfs.id = ?", pdfID)
 
 	if ownerFields != nil {
-		q.Joins("Owner")
+		q.Joins("Owner", db.gormDB.Select(ownerFields))
 	}
 
 	if gameFields != nil {
-		q.Joins("Game")
+		q.Joins("Game", db.gormDB.Select(gameFields))
 	}
 
 	var pdfModel gormPDF

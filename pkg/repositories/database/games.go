@@ -70,7 +70,7 @@ func (db *Database) GetGamesByHost(ctx context.Context, hostID uuid.UUID, gameFi
 		Where("host_id = ?", hostID)
 
 	if hostFields != nil {
-		q = q.Joins("Host")
+		q = q.Joins("Host", db.gormDB.Select(hostFields))
 	}
 
 	var gameModels []gormGame
@@ -100,7 +100,7 @@ func (db *Database) GetGame(ctx context.Context, gameID uuid.UUID, gameFields, h
 		Where("id = ?", gameID)
 
 	if hostFields != nil {
-		q = q.Joins("Host")
+		q = q.Joins("Host", db.gormDB.Select(hostFields))
 	}
 
 	var gameModel gormGame

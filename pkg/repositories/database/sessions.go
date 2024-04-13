@@ -68,7 +68,7 @@ func (db *Database) GetSession(ctx context.Context, sessionID uuid.UUID, session
 		Where("id = ?", sessionID)
 
 	if userFields != nil {
-		q.Joins("User")
+		q.Joins("User", db.gormDB.Select(userFields))
 	}
 
 	if err := q.First(&sessionModel).Error; err != nil {
