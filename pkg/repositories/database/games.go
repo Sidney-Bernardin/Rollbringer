@@ -2,32 +2,37 @@ package database
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
-	"gorm.io/gorm"
 
 	"rollbringer/pkg/domain"
 )
 
-type gormGame struct {
-	ID uuid.UUID `gorm:"column:id;default:gen_random_uuid()"`
-
-	HostID uuid.UUID `gorm:"column:host_id"`
-	Host   *gormUser
-
-	Title string `gorm:"column:title"`
+var gameViewColumns = map[domain.GameView]string{
+	domain.GameViewMain: `games.*`,
+	domain.GameViewBasicInfo: `games.*, users.id AS "host.id", users.username AS "host.username"`,
 }
 
-func (game *gormGame) TableName() string { return "games" }
+type gameModel struct {
+	ID uuid.UUID `db:"id"`
 
-func (game *gormGame) domain() *domain.Game {
+	HostID uuid.UUID  `db:"host_id"`
+	Host   *userModel `db:"host"`
+
+	Name string `db:"name"`
+}
+
+func (game *gameModel) domain() *domain.Game {
 	if game != nil {
 		return &domain.Game{
 			ID:     game.ID,
 			HostID: game.HostID,
 			Host:   game.Host.domain(),
-			Title:  game.Title,
+			Name:   game.Name,
 		}
 	}
 	return nil
@@ -35,96 +40,120 @@ func (game *gormGame) domain() *domain.Game {
 
 func (db *Database) InsertGame(ctx context.Context, game *domain.Game) error {
 
-	gameModel := gormGame{
+	model := gameModel{
+		ID:     uuid.New(),
 		HostID: game.HostID,
-		Title:  game.Title,
+		Name:   game.Name,
 	}
 
-	err := db.gormDB.WithContext(ctx).Create(&gameModel).Error
+	// Insert the game.
+	err := sqlx.GetContext(ctx, db.tx, &model,
+		`
+			INSERT INTO games (id, host_id, name)
+				VALUES ($1, $2, $3)
+			RETURNING id
+		`,
+		model.ID, model.HostID, model.Name,
+	)
+
 	if err != nil {
-		return errors.Wrap(err, "cannot create game")
+		return errors.Wrap(err, "cannot insert user")
 	}
 
-	*game = *gameModel.domain()
+	*game = *model.domain()
 	return nil
 }
 
-func (db *Database) GetGamesCount(ctx context.Context, hostID uuid.UUID) (int, error) {
+func (db *Database) GamesCount(ctx context.Context, hostID uuid.UUID) (int, error) {
 
-	var count int64
-	err := db.gormDB.WithContext(ctx).Model(&gormGame{}).
-		Where("host_id = ?", hostID).
-		Count(&count).Error
+	// Count games with the host-ID.
+	var count int
+	err := sqlx.GetContext(ctx, db.tx, &count,
+		`SELECT COUNT(id) FROM games WHERE host_id = $1`,
+		hostID,
+	)
 
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return 0, &domain.ProblemDetail{
+				Type:   domain.PDTypeGameNotFound,
+				Detail: "Cannot find a game hosted by a user with the user-ID.",
+			}
+		}
+
 		return 0, errors.Wrap(err, "cannot count games")
 	}
 
-	return int(count), nil
+	return count, nil
 }
 
-func (db *Database) GetGamesByHost(ctx context.Context, hostID uuid.UUID, gameFields, hostFields []string) ([]*domain.Game, error) {
+func (db *Database) GetGamesByHost(ctx context.Context, hostID uuid.UUID, view domain.GameView) ([]*domain.Game, error) {
 
-	q := db.gormDB.WithContext(ctx).
-		Select(columnFields("games", gameFields)).
-		Where("host_id = ?", hostID)
+	// Build a query to select games with the host-ID.
+	query := fmt.Sprintf(
+		`SELECT %s FROM games WHERE games.host_id = $1`,
+		gameViewColumns[view],
+	)
 
-	if hostFields != nil {
-		q = q.Joins("Host", db.gormDB.Select(hostFields))
-	}
-
-	var gameModels []gormGame
-	if err := q.Find(&gameModels).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
+	// Execute the query.
+	var models []*gameModel
+	if err := sqlx.SelectContext(ctx, db.tx, &models, query, hostID); err != nil {
+		if err == sql.ErrNoRows {
 			return nil, &domain.ProblemDetail{
 				Type:   domain.PDTypeGameNotFound,
-				Detail: "Cannot find a game with the host-ID.",
+				Detail: "Cannot find a game hosted by a user with the user-ID",
 			}
 		}
 
-		return nil, errors.Wrap(err, "cannot get games by host")
+		return nil, errors.Wrap(err, "cannot select games")
 	}
 
-	games := make([]*domain.Game, len(gameModels))
-	for i, m := range gameModels {
-		games[i] = m.domain()
+	// Convert each model to domain.Game.
+	ret := make([]*domain.Game, len(models))
+	for i, m := range models {
+		ret[i] = m.domain()
 	}
 
-	return games, nil
+	return ret, nil
 }
 
-func (db *Database) GetGame(ctx context.Context, gameID uuid.UUID, gameFields, hostFields []string) (*domain.Game, error) {
+func (db *Database) GetGame(ctx context.Context, gameID uuid.UUID, view domain.GameView) (*domain.Game, error) {
 
-	q := db.gormDB.WithContext(ctx).
-		Select(columnFields("games", gameFields)).
-		Where("id = ?", gameID)
-
-	if hostFields != nil {
-		q = q.Joins("Host", db.gormDB.Select(hostFields))
+	var joins string
+	if view == domain.GameViewBasicInfo {
+		joins = `LEFT JOIN users ON users.id = games.host_id`
 	}
 
-	var gameModel gormGame
-	if err := q.First(&gameModel).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
+	// Build a query to select a game with the game-ID.
+	query := fmt.Sprintf(
+		`SELECT %s FROM games %s WHERE games.id = $1`,
+		gameViewColumns[view], joins,
+	)
+
+	// Execute the query.
+	var model gameModel
+	if err := sqlx.GetContext(ctx, db.tx, &model, query, gameID); err != nil {
+		if err == sql.ErrNoRows {
 			return nil, &domain.ProblemDetail{
 				Type:   domain.PDTypeGameNotFound,
-				Detail: "Cannot find a game with the game-ID.",
+				Detail: fmt.Sprintf("Cannot find a game with the game-ID of (%s)", gameID),
 			}
 		}
 
-		return nil, errors.Wrap(err, "cannot get game")
+		return nil, errors.Wrap(err, "cannot select game")
 	}
+	fmt.Println(model)
 
-	return gameModel.domain(), nil
+	return model.domain(), nil
 }
 
 func (db *Database) DeleteGame(ctx context.Context, gameID, hostID uuid.UUID) error {
 
-	err := db.gormDB.WithContext(ctx).
-		Delete(&gormGame{
-			ID:     gameID,
-			HostID: hostID,
-		}).Error
+	// Delete the game with the game and host IDs.
+	_, err := db.tx.ExecContext(ctx,
+		`DELETE FROM games WHERE id = $1 AND host_id = $2`,
+		gameID, hostID,
+	)
 
 	return errors.Wrap(err, "cannot delete game")
 }

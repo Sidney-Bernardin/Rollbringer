@@ -2,62 +2,58 @@ package database
 
 import (
 	"context"
-	"fmt"
+	"slices"
+	"strings"
 
+	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/pkg/errors"
-	"github.com/rs/zerolog"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
 type Database struct {
-	gormDB *gorm.DB
+	tx sqlx.ExtContext
 }
 
 // New returns a new Database that connects to a Postgres server.
-func New(addr string, zeroLogger *zerolog.Logger) (*Database, error) {
+func New(addr string) (*Database, error) {
 
-	config := &gorm.Config{
-		Logger: logger.New(
-			zeroLogger,
-			logger.Config{
-				IgnoreRecordNotFoundError: true,
-			},
-		),
-	}
-
-	gormDB, err := gorm.Open(postgres.Open(addr), config)
+	// Create connection to the Postgres server.
+	db, err := sqlx.Open("postgres", addr)
 	if err != nil {
-		return nil, errors.Wrap(err, "cannot open database connection")
+		return nil, errors.Wrap(err, "cannot open postgres connection")
 	}
 
-	return &Database{gormDB}, nil
+	// Ping the Postgres server.
+	if err := db.Ping(); err != nil {
+		return nil, errors.Wrap(err, "ping failed")
+	}
+
+	return &Database{db}, nil
 }
 
 func (db *Database) Transaction(ctx context.Context, txFunc func(db *Database) error) error {
 
-	tx := db.gormDB.Begin()
+	tx, err := db.tx.(*sqlx.DB).Beginx()
+	if err != nil {
+		return errors.Wrap(err, "cannot begin transaction")
+	}
 
 	if err := txFunc(&Database{tx}); err != nil {
-		tx.Rollback()
+		if rbErr := tx.Rollback(); rbErr != nil {
+			return errors.Wrap(rbErr, "cannot rollback failed transaction")
+		}
+
 		return errors.Wrap(err, "transaction failed")
 	}
 
-	err := tx.Commit().Error
+	err = tx.Commit()
 	return errors.Wrap(err, "cannot commit transaction")
 }
 
-func columnFields(column string, fields []string) []string {
-	if fields == nil {
-		return nil
-	}
-
-	ret := make([]string, len(fields))
-	for i, f := range fields {
-		ret[i] = fmt.Sprintf("%s.%s", column, f)
-	}
-
-	return ret
+func parseColumns(columns ...string) string {
+	columns = slices.DeleteFunc(columns, func(c string) bool {
+		return c == ""
+	})
+	return strings.Join(columns, ", ")
 }

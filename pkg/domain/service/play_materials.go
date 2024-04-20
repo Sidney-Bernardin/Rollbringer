@@ -14,25 +14,8 @@ var PDFSchemaPageNames = map[string][]string{
 }
 
 func (svc *Service) CreatePDF(ctx context.Context, session *domain.Session, pdf *domain.PDF) error {
-
-	pages := len(PDFSchemaPageNames[pdf.Schema])
-
-	for range pages {
-		pdf.Fields = append(pdf.Fields, map[string]string{})
-	}
-
-	err := svc.DB.InsertPDF(ctx, pdf, pages)
+	err := svc.DB.InsertPDF(ctx, pdf, len(PDFSchemaPageNames[pdf.Schema]))
 	return errors.Wrap(err, "cannot insert pdf")
-}
-
-func (svc *Service) GetPDFsByOwner(ctx context.Context, ownerID uuid.UUID, pdfFields, ownerFields, gameFields []string) ([]*domain.PDF, error) {
-	pdfs, err := svc.DB.GetPDFsByOwner(ctx, ownerID, pdfFields, ownerFields, gameFields)
-	return pdfs, errors.Wrap(err, "cannot get pdfs by owner")
-}
-
-func (svc *Service) GetPDFsByGame(ctx context.Context, gameID uuid.UUID, pdfFields, ownerFields, gameFields []string) ([]*domain.PDF, error) {
-	pdfs, err := svc.DB.GetPDFsByGame(ctx, gameID, pdfFields, ownerFields, gameFields)
-	return pdfs, errors.Wrap(err, "cannot get pdfs by game")
 }
 
 func (svc *Service) GetPDF(ctx context.Context, pdfID uuid.UUID, pdfFields, ownerFields, gameFields []string) (*domain.PDF, error) {

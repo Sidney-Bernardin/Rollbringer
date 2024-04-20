@@ -50,7 +50,7 @@ func main() {
 	}
 
 	// Create a Database repository.
-	db, err := database.New(cfg.PostgresAddress, &logger)
+	db, err := database.New(cfg.PostgresAddress)
 	if err != nil {
 		logger.Fatal().Stack().Err(err).Msg("Cannot create database repository")
 	}

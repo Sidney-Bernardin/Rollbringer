@@ -1,7 +1,8 @@
 [build]
-pre_cmd = ["templ generate"]
+pre_cmd = ["templ generate -path ./pkg/views"]
 cmd = "go build -o ./tmp/main ./cmd"
 
-exclude_dir = ["tmp", "web", "node_modules"]
+exclude_dir = ["Docker", "tmp", "web", "node_modules"]
 exclude_regex = [".*_templ.go"]
+
 include_ext = ["go", "templ"]

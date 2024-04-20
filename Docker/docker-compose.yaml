@@ -29,6 +29,8 @@ services:
     build:
       context: ../
       dockerfile: Docker/postgres.dockerfile
+    volumes:
+      - ./pg-data:/var/lib/postgresql/data
     ports:
       - 5432:5432
 

@@ -2,31 +2,32 @@ package database
 
 import (
 	"context"
-	"rollbringer/pkg/domain"
+	"database/sql"
+	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
+
+	"rollbringer/pkg/domain"
 )
 
-type gormSession struct {
-	ID uuid.UUID `gorm:"column:id;default:gen_random_uuid()"`
-
-	UserID uuid.UUID `gorm:"column:user_id"`
-	User   *gormUser
-
-	CSRFToken string `gorm:"column:csrf_token"`
+var sessionViewColumns = map[domain.SessionView]string{
+	domain.SessionViewMain: "sessions.id, sessions.user_id, sessions.csrf_token",
 }
 
-func (session *gormSession) TableName() string { return "sessions" }
+type sessionModel struct {
+	ID uuid.UUID `db:"id"`
 
-func (session *gormSession) domain() *domain.Session {
+	UserID    uuid.UUID `db:"user_id"`
+	CSRFToken string    `db:"csrf_token"`
+}
+
+func (session *sessionModel) domain() *domain.Session {
 	if session != nil {
 		return &domain.Session{
 			ID:        session.ID,
 			UserID:    session.UserID,
-			User:      session.User.domain(),
 			CSRFToken: session.CSRFToken,
 		}
 	}
@@ -35,51 +36,64 @@ func (session *gormSession) domain() *domain.Session {
 
 func (db *Database) UpsertSession(ctx context.Context, session *domain.Session) error {
 
-	sessionModel := gormSession{
+	model := sessionModel{
+		ID:        uuid.New(),
 		UserID:    session.UserID,
 		CSRFToken: session.CSRFToken,
 	}
 
-	err := db.gormDB.WithContext(ctx).
-		Clauses(
-			clause.OnConflict{
-				Columns:   []clause.Column{{Name: "user_id"}},
-				UpdateAll: true,
-			},
-			clause.Returning{
-				Columns: []clause.Column{{Name: "id"}},
-			},
-		).
-		Create(&sessionModel).Error
+	// Upsert the session.
+	rows, err := sqlx.NamedQueryContext(ctx, db.tx,
+		`
+			INSERT INTO sessions (id, user_id, csrf_token)
+				VALUES (:id, :user_id, :csrf_token)
+			ON CONFLICT (user_id) DO UPDATE SET 
+				id = EXCLUDED.id,
+				user_id = EXCLUDED.user_id,
+				csrf_token = EXCLUDED.csrf_token
+			RETURNING id
+		`,
+		model,
+	)
 
 	if err != nil {
-		return errors.Wrap(err, "cannot upsert session")
+		return errors.Wrap(err, "cannot insert session")
+	}
+	defer rows.Close()
+
+	rows.Next()
+
+	// Scan the row into the model.
+	if err := rows.StructScan(&model); err != nil {
+		return errors.Wrap(err, "cannot scan user")
 	}
 
-	*session = *sessionModel.domain()
+	*session = *model.domain()
 	return nil
 }
 
-func (db *Database) GetSession(ctx context.Context, sessionID uuid.UUID, sessionFields, userFields []string) (*domain.Session, error) {
+func (db *Database) GetSession(ctx context.Context, sessionID uuid.UUID, view domain.SessionView) (*domain.Session, error) {
 
-	var sessionModel gormSession
-	q := db.gormDB.WithContext(ctx).
-		Select(columnFields("sessions", sessionFields)).
-		Where("id = ?", sessionID)
+	// Build a query to select a session with the session-ID.
+	query := fmt.Sprintf(
+		`
+			SELECT %s FROM sessions WHERE id = $1
+		`,
+		sessionViewColumns[view],
+	)
 
-	if userFields != nil {
-		q.Joins("User", db.gormDB.Select(userFields))
-	}
-
-	if err := q.First(&sessionModel).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
+	// Execute the query.
+	var model sessionModel
+	if err := sqlx.GetContext(ctx, db.tx, &model, query, sessionID); err != nil {
+		if err == sql.ErrNoRows {
 			return nil, &domain.ProblemDetail{
-				Type: domain.PDTypeUnauthorized,
+				Type:   domain.PDTypeSessionNotFound,
+				Detail: fmt.Sprintf("Cannot find a session with the session-ID of (%s)", sessionID),
 			}
 		}
 
-		return nil, errors.Wrap(err, "cannot get session")
+		return nil, errors.Wrap(err, "cannot select session")
 	}
 
-	return sessionModel.domain(), nil
+	return model.domain(), nil
 }

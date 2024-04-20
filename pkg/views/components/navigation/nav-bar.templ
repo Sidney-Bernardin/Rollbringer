@@ -8,30 +8,36 @@ import (
 
 templ NavBar(class string) {
 	<div class={ "nav-bar", class } x-data>
-		@IconButton("games-btn", "ic:baseline-meeting-room", templ.Attributes{
-             "x-on:click": "$root.querySelector('.games-modal').showModal()",
-        })
-		@Modal("games-modal", "Games") {
-			@Table("Your Games", IconButton("", "material-symbols:add", templ.Attributes{
-                "hx-post": "/games",
-                "hx-target": "next table",
-                "hx-swap": "beforeend",
-            })) {
-				for _, game := range GetPlayPage(ctx).UserGames {
-					@GameTableRow(game)
+		if GetPlayPage(ctx).LoggedIn {
+			@IconButton("games-btn", "ic:baseline-meeting-room", templ.Attributes{
+                    "x-on:click": "$root.querySelector('.games-modal').showModal()",
+                    })
+			@Modal("games-modal", "Games") {
+				@Table("Your Games", IconButton("", "material-symbols:add", templ.Attributes{
+                            "hx-post": "/games",
+                            "hx-target": "next table",
+                            "hx-swap": "beforeend",
+                            })) {
+					for _, game := range GetPlayPage(ctx).User.HostedGames {
+						@HostedGameTableRow(game)
+					}
+				}
+				@Table("Other Games", nil) {
+					for _, game := range GetPlayPage(ctx).User.JoinedGames {
+						@JoinedGameTableRow(game)
+					}
 				}
 			}
-			@Table("Other Games", nil)
 		}
 	</div>
 }
 
-templ GameTableRow(game *domain.Game) {
+templ HostedGameTableRow(game *domain.Game) {
 	@TableRow(
         templ.Attributes{
     	    "x-on:click": F("window.location.href = '/play?g=%s'", game.ID),
         },
-        game.Title,
+        game.Name,
         "",
         IconButton("", "material-symbols:delete", templ.Attributes{
             "x-on:click.stop": true,
@@ -40,6 +46,19 @@ templ GameTableRow(game *domain.Game) {
             "hx-swap": "outerHTML",
         }),
         IconButton("", "material-symbols:edit", templ.Attributes{
+            "x-on:click.stop": true,
+        }),
+	)
+}
+
+templ JoinedGameTableRow(game *domain.Game) {
+	@TableRow(
+        templ.Attributes{
+    	    "x-on:click": F("window.location.href = '/play?g=%s'", game.ID),
+        },
+        game.Name,
+        "",
+        IconButton("", "fluent-mdl2:leave", templ.Attributes{
             "x-on:click.stop": true,
         }),
 	)

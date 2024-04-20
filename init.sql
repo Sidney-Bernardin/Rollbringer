@@ -1,7 +1,11 @@
-CREATE TABLE users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    google_id text,
+CREATE EXTENSION hstore;
 
+
+
+CREATE TABLE users (
+    id UUID PRIMARY KEY,
+
+    google_id text,
     username text NOT NULL,
 
     UNIQUE(google_id),
@@ -9,8 +13,9 @@ CREATE TABLE users (
 );
 
 CREATE TABLE sessions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL,
+    id UUID PRIMARY KEY,
+
+    user_id UUID NOT NULL REFERENCES users,
     csrf_token text NOT NULL,
 
     UNIQUE(user_id),
@@ -18,20 +23,27 @@ CREATE TABLE sessions (
 );
 
 CREATE TABLE games (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    host_id UUID NOT NULL,
+    id UUID PRIMARY KEY,
 
-    title text NOT NULL
+    host_id UUID NOT NULL REFERENCES users,
+    name text NOT NULL
 );
 
 CREATE TABLE pdfs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
 
-    owner_id UUID NOT NULL,
-    game_id UUID NOT NULL,
+    owner_id UUID NOT NULL REFERENCES users,
+    game_id UUID REFERENCES games,
 
     name text NOT NULL,
     schema text NOT NULL,
 
-    fields jsonb NOT NULL
+    pages hstore[] NOT NULL
 );
+
+
+
+CREATE TABLE user_joined_games (
+    user_id UUID NOT NULL REFERENCES users,
+    game_id UUID NOT NULL REFERENCES games
+)

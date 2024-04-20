@@ -10,7 +10,8 @@ const (
 	PDTypeUnauthorized          pdType = "unauthorized"
 	PDTypeInvalidEventOperation pdType = "invalid event operation"
 
-	PDTypeUserNotFound pdType = "user not found"
+	PDTypeUserNotFound    pdType = "user not found"
+	PDTypeSessionNotFound pdType = "session not found"
 
 	PDTypeMaxGames     pdType = "max games reached"
 	PDTypeGameNotFound pdType = "game not found"

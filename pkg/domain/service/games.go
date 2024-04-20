@@ -12,7 +12,7 @@ import (
 func (svc *Service) CreateGame(ctx context.Context, session *domain.Session, game *domain.Game) error {
 	game.HostID = session.UserID
 
-	count, err := svc.DB.GetGamesCount(ctx, session.UserID)
+	count, err := svc.DB.GamesCount(ctx, session.UserID)
 	if err != nil {
 		return errors.Wrap(err, "cannot get games count")
 	}
@@ -26,11 +26,6 @@ func (svc *Service) CreateGame(ctx context.Context, session *domain.Session, gam
 
 	err = svc.DB.InsertGame(ctx, game)
 	return errors.Wrap(err, "cannot insert game")
-}
-
-func (svc *Service) GetGamesByHost(ctx context.Context, hostID uuid.UUID, gameFields, hostFields []string) ([]*domain.Game, error) {
-	games, err := svc.DB.GetGamesByHost(ctx, hostID, gameFields, hostFields)
-	return games, errors.Wrap(err, "cannot get games by host")
 }
 
 func (svc *Service) DeleteGame(ctx context.Context, session *domain.Session, gameID uuid.UUID) error {

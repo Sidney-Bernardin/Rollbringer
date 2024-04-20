@@ -23,36 +23,53 @@ type Service struct {
 func (svc *Service) GetPlayPage(ctx context.Context, session *domain.Session, gameID uuid.UUID) (page *domain.PlayPage, err error) {
 	page = &domain.PlayPage{}
 
+	if session != nil {
+		page.User, err = svc.DB.GetUser(ctx, session.UserID, domain.UserViewMain)
+		if err != nil {
+			return nil, errors.Wrap(err, "cannot get user")
+		}
+
+		page.LoggedIn = true
+
+		page.User.PDFs, err = svc.DB.GetPDFsByOwner(ctx, session.UserID, domain.PDFViewBasicInfo)
+		if err != nil {
+			return nil, errors.Wrap(err, "cannot get user pdfs")
+		}
+
+		page.User.HostedGames, err = svc.DB.GetGamesByHost(ctx, session.UserID, domain.GameViewMain)
+		if err != nil {
+			return nil, errors.Wrap(err, "cannot get user hosted games")
+		}
+
+		// page.User.JoinedGames, err = svc.DB.GetGamesJoinedByUser(ctx, session.UserID, domain.GameViewAll, domain.UserViewAll)
+		// if err != nil {
+		// 	return nil, errors.Wrap(err, "cannot get user joined games")
+		// }
+	} else {
+		page.User = &domain.User{
+			Username: "Guest123",
+		}
+	}
+
 	if gameID != uuid.Nil {
-		page.Game, err = svc.DB.GetGame(ctx, gameID, []string{"id", "title"}, nil)
+		page.Game, err = svc.DB.GetGame(ctx, gameID, domain.GameViewBasicInfo)
 		if err != nil {
 			return nil, errors.Wrap(err, "cannot get game")
 		}
 
-		page.GamePDFs, err = svc.DB.GetPDFsByGame(ctx, page.Game.ID, []string{"id", "name", "schema"}, []string{"username"}, nil)
-		if err != nil {
-			return nil, errors.Wrap(err, "cannot get pdfs by game")
+		if page.Game.HostID == page.User.ID {
+			page.IsHost = true
 		}
-	}
 
-	if session == nil {
-		return page, nil
-	}
+		// page.Game.PDFs, err = svc.DB.GetPDFsByGame(ctx, gameID, domain.GameViewAll)
+		// if err != nil {
+		// 	return nil, errors.Wrap(err, "cannot get game pdfs")
+		// }
 
-	page.User, err = svc.DB.GetUser(ctx, session.UserID, []string{"id", "username"})
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot get user")
-	}
-	page.LoggedIn = true
-
-	page.UserGames, err = svc.DB.GetGamesByHost(ctx, page.User.ID, []string{"id", "title"}, nil)
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot get games by host")
-	}
-
-	page.UserPDFs, err = svc.DB.GetPDFsByOwner(ctx, page.User.ID, []string{"id", "name", "schema"}, nil, []string{"title"})
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot get pdfs by owner")
+		// page.Game.Players, err = svc.DB.GetUsersByJoinedGame(ctx, session.UserID, domain.UserViewAll)
+		// if err != nil {
+		// 	return nil, errors.Wrap(err, "cannot get game players")
+		// }
 	}
 
 	return page, nil
@@ -73,7 +90,8 @@ func (svc *Service) DoEvents(ctx context.Context, gameID uuid.UUID, incomingChan
 
 	if gameID != uuid.Nil {
 
-		_, err := svc.DB.GetGame(ctx, gameID, []string{"id"}, nil)
+		// TODO: Replace with a GameExists function.
+		_, err := svc.DB.GetGame(ctx, gameID, domain.GameViewMain)
 		if err != nil {
 			errChan <- errors.Wrap(err, "cannot get game")
 			return

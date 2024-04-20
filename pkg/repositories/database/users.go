@@ -2,24 +2,28 @@ package database
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
-	"gorm.io/gorm/clause"
 
 	"rollbringer/pkg/domain"
 )
 
-type gormUser struct {
-	ID uuid.UUID `gorm:"column:id;default:gen_random_uuid()"`
-
-	GoogleID string `gorm:"column:google_id"`
-	Username string `gorm:"column:username"`
+var userViewColumns = map[domain.UserView]string{
+	domain.UserViewMain: "users.id, users.google_id, users.username",
 }
 
-func (user *gormUser) TableName() string { return "users" }
+type userModel struct {
+	ID uuid.UUID `db:"id"`
 
-func (user *gormUser) domain() *domain.User {
+	GoogleID *string `db:"google_id"`
+	Username string  `db:"username"`
+}
+
+func (user *userModel) domain() *domain.User {
 	if user != nil {
 		return &domain.User{
 			ID:       user.ID,
@@ -32,57 +36,61 @@ func (user *gormUser) domain() *domain.User {
 
 func (db *Database) InsertUser(ctx context.Context, user *domain.User) error {
 
-	userModel := gormUser{
+	model := userModel{
+		ID:       uuid.New(),
 		GoogleID: user.GoogleID,
 		Username: user.Username,
 	}
 
-	result := db.gormDB.WithContext(ctx).
-		Clauses(
-			clause.OnConflict{
-				Columns:   []clause.Column{{Name: "google_id"}},
-				DoUpdates: clause.AssignmentColumns([]string{"google_id"}),
-			},
-			clause.Returning{
-				Columns: []clause.Column{{Name: "id"}},
-			},
-		).
-		Create(&userModel)
+	// Insert the user.
+	err := sqlx.GetContext(ctx, db.tx, &model,
+		`INSERT INTO users (id, google_id, username)
+			VALUES ($1, $2, $3)
+		ON CONFLICT (google_id)
+			DO UPDATE SET google_id = EXCLUDED.google_id
+		RETURNING id`,
+		model.ID, model.GoogleID, model.Username,
+	)
 
-	if err := result.Error; err != nil {
-		return errors.Wrap(err, "cannot create user")
+	if err != nil {
+		return errors.Wrap(err, "cannot insert user")
 	}
 
-	*user = *userModel.domain()
+	*user = *model.domain()
 	return nil
 }
 
-func (db *Database) GetUser(ctx context.Context, userID uuid.UUID, userFields []string) (*domain.User, error) {
+func (db *Database) GetUser(ctx context.Context, userID uuid.UUID, view domain.UserView) (*domain.User, error) {
 
-	var user gormUser
-	err := db.gormDB.
-		Select(userFields).
-		Where("id = ?", userID).
-		First(&user).Error
+	// Build a query to select a user with the user-ID.
+	query := fmt.Sprintf(
+		`SELECT %s FROM users WHERE id = $1`,
+		userViewColumns[view],
+	)
 
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot get user")
+	// Execute the query.
+	var model userModel
+	if err := sqlx.GetContext(ctx, db.tx, &model, query, userID); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, &domain.ProblemDetail{
+				Type:   domain.PDTypeUserNotFound,
+				Detail: fmt.Sprintf("Cannot find a user with the user-ID of (%s)", userID),
+			}
+		}
+
+		return nil, errors.Wrap(err, "cannot select user")
 	}
 
-	return user.domain(), nil
+	return model.domain(), nil
 }
 
-func (db *Database) GetUserByGoogleID(ctx context.Context, googleID string, userFields []string) (*domain.User, error) {
-
-	var user gormUser
-	err := db.gormDB.
-		Select(userFields).
-		Where("google_id = ?", googleID).
-		First(&user).Error
-
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot get user by google id")
-	}
-
-	return user.domain(), nil
+func (db *Database) GetUserByGoogleID(ctx context.Context, googleID string, view domain.UserView) (*domain.User, error) {
+	return &domain.User{
+		ID:          [16]byte{},
+		GoogleID:    &googleID,
+		Username:    "",
+		PDFs:        []*domain.PDF{},
+		HostedGames: []*domain.Game{},
+		JoinedGames: []*domain.Game{},
+	}, nil
 }

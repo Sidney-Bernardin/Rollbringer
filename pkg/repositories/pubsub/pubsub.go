@@ -17,7 +17,7 @@ type PubSub struct {
 // New returns a new PubSub that connects to a Redis server.
 func New(addr, passw string) (*PubSub, error) {
 
-	// Connect to the Redis server.
+	// Create connection to the Redis server.
 	client := redis.NewClient(&redis.Options{
 		Addr:     addr,
 		Password: passw,

@@ -108,7 +108,7 @@ func tabButtons(tabs map[string]templ.Component) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/components/navigation/static-tab-container.templ`, Line: 28, Col: 10}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/navigation/static-tab-container.templ`, Line: 28, Col: 10}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {

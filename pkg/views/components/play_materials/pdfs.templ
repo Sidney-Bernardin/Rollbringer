@@ -23,8 +23,12 @@ templ GamePDFs() {
 			@Table("Character Sheets", IconButton("", "material-symbols:add", templ.Attributes{
                 "x-on:click": "$root.querySelector('.create-game-pdf-modal').showModal()",
             })) {
-				for _, pdf := range page.GamePDFs {
-					@UserPDFTableRow(pdf, pdf.Owner.Username)
+				for _, pdf := range page.Game.PDFs {
+					for _, player := range page.Game.Players {
+						if player.ID == pdf.OwnerID {
+							@GamePDFTableRow(pdf, player.Username)
+						}
+					}
 				}
 			}
 		</div>
@@ -47,14 +51,25 @@ templ UserPDFs() {
 			@Table("Character Sheets", IconButton("", "material-symbols:add", templ.Attributes{
                 "x-on:click": "$root.querySelector('.create-user-pdf-modal').showModal()",
             })) {
-				for _, pdf := range page.UserPDFs {
-					if pdf.Game == nil {
-						@UserPDFTableRow(pdf, "")
-					} else {
-						@UserPDFTableRow(pdf, pdf.Game.Title)
-					}
+				for _, pdf := range page.User.PDFs {
+					@UserPDFTableRow(pdf, pdf.Game.Name)
 				}
 			}
+		</div>
+	}
+}
+
+templ NewPDFTableRow(pdf *domain.PDF) {
+	if pdf.Game != nil {
+		<div hx-swap-oob="beforeend:.user-pdfs .table tbody">
+			@GamePDFTableRow(pdf, pdf.Game.Name)
+		</div>
+		<div hx-swap-oob="beforeend:.game-pdfs .table tbody">
+			@GamePDFTableRow(pdf, pdf.Owner.Username)
+		</div>
+	} else {
+		<div hx-swap-oob="beforeend:.user-pdfs .table tbody">
+			@GamePDFTableRow(pdf, "")
 		</div>
 	}
 }

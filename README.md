@@ -1,7 +1,7 @@
 # STILL IN DEVELOPMENT
 
-## Don't forget to:
-1) Have users create usernames during account creation.
-2) Manage guest users.
-3) Force users to be members the game they're creating PDFs for.
-4) Prevent users from requesting PDF fields that don't exist.
+SELECT * FROM 
+    (SELECT username FROM users) users
+NATURAL FULL JOIN
+    (SELECT name FROM pdfs WHERE owner_id = '7438abb6-6135-44de-a9aa-e755ce375505') pdfs
+LIMIT 200

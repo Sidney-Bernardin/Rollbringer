@@ -11,7 +11,7 @@ import (
 func (svc *Service) Login(ctx context.Context, googleID string) (*domain.Session, error) {
 
 	user := &domain.User{
-		GoogleID: googleID,
+		GoogleID: &googleID,
 		Username: "new-user_123",
 	}
 
@@ -31,7 +31,17 @@ func (svc *Service) Login(ctx context.Context, googleID string) (*domain.Session
 	return session, nil
 }
 
-func (svc *Service) GetSession(ctx context.Context, sessionID uuid.UUID, userFields []string) (*domain.Session, error) {
-	session, err := svc.DB.GetSession(ctx, sessionID, []string{"id", "user_id", "csrf_token"}, userFields)
-	return session, errors.Wrap(err, "cannot get session")
+func (svc *Service) GetSession(ctx context.Context, sessionID uuid.UUID, view domain.SessionView) (*domain.Session, error) {
+	session, err := svc.DB.GetSession(ctx, sessionID, view)
+	if err != nil {
+		if domain.IsProblemDetail(err, domain.PDTypeSessionNotFound) {
+			return nil, &domain.ProblemDetail{
+				Type: domain.PDTypeUnauthorized,
+			}
+		}
+
+		return nil, errors.Wrap(err, "cannot get session")
+	}
+
+	return session, nil
 }

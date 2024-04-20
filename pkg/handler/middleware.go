@@ -39,8 +39,8 @@ func (h *Handler) Authenticate(next http.Handler) http.Handler {
 		sessionID, _ := uuid.Parse(stCookie.Value)
 
 		// Get the session.
-		session, err := h.Service.GetSession(r.Context(), sessionID, nil)
-		if err != nil && domain.IsProblemDetail(err, domain.PDTypeUnauthorized) {
+		session, err := h.Service.GetSession(r.Context(), sessionID, domain.SessionViewMain)
+		if err != nil && !domain.IsProblemDetail(err, domain.PDTypeUnauthorized) {
 			h.err(w, r, errors.Wrap(err, "cannot get session"))
 			return
 		}

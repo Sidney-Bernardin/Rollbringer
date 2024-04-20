@@ -14,16 +14,16 @@ import (
 func (h *Handler) HandleCreateGame(w http.ResponseWriter, r *http.Request) {
 
 	var session, _ = r.Context().Value("session").(*domain.Session)
-	
+
 	if session == nil {
 		h.err(w, r, &domain.ProblemDetail{
-			Type:   domain.PDTypeUnauthorized,
+			Type: domain.PDTypeUnauthorized,
 		})
 		return
 	}
 
 	game := &domain.Game{
-		Title: "abc",
+		Name: "abc",
 	}
 
 	if err := h.Service.CreateGame(r.Context(), session, game); err != nil {
@@ -31,7 +31,7 @@ func (h *Handler) HandleCreateGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.render(w, r, http.StatusOK, navigation.GameTableRow(game))
+	h.render(w, r, http.StatusOK, navigation.HostedGameTableRow(game))
 }
 
 func (h *Handler) HandleDeleteGame(w http.ResponseWriter, r *http.Request) {
@@ -43,7 +43,7 @@ func (h *Handler) HandleDeleteGame(w http.ResponseWriter, r *http.Request) {
 
 	if session == nil {
 		h.err(w, r, &domain.ProblemDetail{
-			Type:   domain.PDTypeUnauthorized,
+			Type: domain.PDTypeUnauthorized,
 		})
 		return
 	}

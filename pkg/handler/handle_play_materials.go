@@ -11,6 +11,7 @@ import (
 
 	"rollbringer/pkg/domain"
 	"rollbringer/pkg/views/components"
+	"rollbringer/pkg/views/components/play_materials"
 	"rollbringer/pkg/views/pages"
 )
 
@@ -18,14 +19,16 @@ func (h *Handler) HandleCreatePDF(w http.ResponseWriter, r *http.Request) {
 
 	var (
 		session, _ = r.Context().Value("session").(*domain.Session)
-		gameID, _  = uuid.Parse(r.FormValue("game_id"))
 	)
 
 	pdf := &domain.PDF{
 		OwnerID: session.UserID,
-		GameID:  gameID,
 		Name:    r.FormValue("name"),
 		Schema:  r.FormValue("schema"),
+	}
+
+	if gameID, err := uuid.Parse(r.FormValue("game_id")); err == nil {
+		pdf.GameID = &gameID
 	}
 
 	if err := h.Service.CreatePDF(r.Context(), session, pdf); err != nil {
@@ -33,7 +36,7 @@ func (h *Handler) HandleCreatePDF(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.render(w, r, http.StatusOK, templ.NopComponent)
+	h.render(w, r, http.StatusOK, play_materials.NewPDFTableRow(pdf))
 }
 
 func (h *Handler) HandleGetPDF(w http.ResponseWriter, r *http.Request) {
