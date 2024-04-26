@@ -14,8 +14,9 @@ import (
 )
 
 var pdfViewColumns = map[domain.PDFView]string{
-	domain.PDFViewMain:      `pdfs.id, pdfs.owner_id, pdfs.game_id, pdfs.name, pdfs.schema`,
-	domain.PDFViewBasicInfo: `pdfs.id, pdfs.owner_id, pdfs.game_id, pdfs.name, pdfs.schema, games.id AS "game.id", COALESCE(games.name, '') AS "game.name"`,
+	domain.PDFViewDefault:   `pdfs.id, pdfs.owner_id, pdfs.game_id, pdfs.name, pdfs.schema`,
+	domain.PDFViewWithOwner: `pdfs.id, pdfs.owner_id, pdfs.game_id, pdfs.name, pdfs.schema, users.id AS "owner.id", COALESCE(users.username, '') AS "owner.username"`,
+	domain.PDFViewWithGame:  `pdfs.id, pdfs.owner_id, pdfs.game_id, pdfs.name, pdfs.schema, games.id AS "game.id", COALESCE(games.name, '') AS "game.name"`,
 }
 
 type pdfModel struct {
@@ -62,14 +63,18 @@ func (db *Database) InsertPDF(ctx context.Context, pdf *domain.PDF, pageCount in
 		uuid.New(), pdf.OwnerID, pdf.GameID, pdf.Name, pdf.Schema, pq.Array(hstorePages),
 	).Scan(&pdf.ID)
 
-	return errors.Wrap(err, "cannot insert pdf")
+	return errors.Wrap(err, "cannot insert PDF")
 }
 
-func (db *Database) GetPDFsByOwner(ctx context.Context, ownerID uuid.UUID, view domain.PDFView) ([]*domain.PDF, error) {
+func (db *Database) GetPDFsForOwner(ctx context.Context, ownerID uuid.UUID, view domain.PDFView) ([]*domain.PDF, error) {
 
 	var joins string
-	if view == domain.PDFViewBasicInfo {
-		joins = `LEFT JOIN games ON pdfs.game_id = games.id`
+
+	switch view {
+	case domain.PDFViewWithOwner:
+		joins = `LEFT JOIN users ON users.id = pdfs.owner_id`
+	case domain.PDFViewWithGame:
+		joins = `LEFT JOIN games ON games.id = pdfs.game_id`
 	}
 
 	// Build a query to select PDFs with the owner-ID.
@@ -81,7 +86,7 @@ func (db *Database) GetPDFsByOwner(ctx context.Context, ownerID uuid.UUID, view 
 	// Execute the query.
 	var models []*pdfModel
 	if err := sqlx.SelectContext(ctx, db.tx, &models, query, ownerID); err != nil {
-		return nil, errors.Wrap(err, "cannot select pdfs")
+		return nil, errors.Wrap(err, "cannot select PDFs")
 	}
 
 	// Convert each model to domain.PDF.
@@ -93,27 +98,118 @@ func (db *Database) GetPDFsByOwner(ctx context.Context, ownerID uuid.UUID, view 
 	return ret, nil
 }
 
-func (db *Database) GetPDF(ctx context.Context, pdfID uuid.UUID, pdfFields, ownerFields, gameFields []string) (*domain.PDF, error) {
-	return &domain.PDF{
-		ID:      pdfID,
-		OwnerID: [16]byte{},
-		Owner:   &domain.User{},
-		GameID:  nil,
-		Game:    &domain.Game{},
-		Name:    "",
-		Schema:  "",
-		Pages:   []map[string]string{},
-	}, nil
+func (db *Database) GetPDFsForGame(ctx context.Context, gameID uuid.UUID, view domain.PDFView) ([]*domain.PDF, error) {
+
+	var joins string
+
+	switch view {
+	case domain.PDFViewWithOwner:
+		joins = `LEFT JOIN users ON users.id = pdfs.owner_id`
+	case domain.PDFViewWithGame:
+		joins = `LEFT JOIN games ON games.id = pdfs.game_id`
+	}
+
+	// Build a query to select PDFs with the owner-ID.
+	query := fmt.Sprintf(
+		`SELECT %s FROM pdfs %s WHERE pdfs.game_id = $1`,
+		pdfViewColumns[view], joins,
+	)
+
+	// Execute the query.
+	var models []*pdfModel
+	if err := sqlx.SelectContext(ctx, db.tx, &models, query, gameID); err != nil {
+		return nil, errors.Wrap(err, "cannot select PDFs")
+	}
+
+	// Convert each model to domain.PDF.
+	ret := make([]*domain.PDF, len(models))
+	for i, m := range models {
+		ret[i] = m.domain()
+	}
+
+	return ret, nil
 }
 
-func (db *Database) GetPDFFields(ctx context.Context, pdfID uuid.UUID, pageIdx int) (map[string]string, error) {
-	return map[string]string{}, nil
+func (db *Database) GetPDF(ctx context.Context, pdfID uuid.UUID, view domain.PDFView) (*domain.PDF, error) {
+
+	var joins string
+
+	switch view {
+	case domain.PDFViewWithOwner:
+		joins = `LEFT JOIN users ON users.id = pdfs.owner_id`
+	case domain.PDFViewWithGame:
+		joins = `LEFT JOIN games ON games.id = pdfs.game_id`
+	}
+
+	// Build a query to select a PDF with the PDF-ID.
+	query := fmt.Sprintf(
+		`SELECT %s FROM pdfs %s WHERE pdfs.id = $1`,
+		pdfViewColumns[view], joins,
+	)
+
+	// Execute the query.
+	var model pdfModel
+	if err := sqlx.GetContext(ctx, db.tx, &model, query, pdfID); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, &domain.ProblemDetail{
+				Type:   domain.PDTypePDFNotFound,
+				Detail: fmt.Sprintf("Cannot find a PDF with the PDF-ID"),
+			}
+		}
+
+		return nil, errors.Wrap(err, "cannot select PDF")
+	}
+
+	return model.domain(), nil
 }
 
-func (db *Database) UpdatePDFField(ctx context.Context, pdfID uuid.UUID, pageIdx int, fieldName, fieldValue string) error {
-	return nil
+func (db *Database) GetPDFPage(ctx context.Context, pdfID uuid.UUID, pageIdx int) (map[string]string, error) {
+
+	// Execute a query to select a page for a PDF with the PDF-ID.
+	var hstorePage hstore.Hstore
+	err := db.tx.QueryRowxContext(ctx,
+		`SELECT pages[$1] FROM pdfs WHERE id = $2`,
+		pageIdx+1, pdfID,
+	).Scan(&hstorePage)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, &domain.ProblemDetail{
+				Type:   domain.PDTypePDFNotFound,
+				Detail: "Cannot find a PDF with the PDF-ID",
+			}
+		}
+
+		return nil, errors.Wrap(err, "cannot get PDF page")
+	}
+
+	// Convert the hstore to a map without null-strings.
+	ret := make(map[string]string, len(hstorePage.Map))
+	for k, v := range hstorePage.Map {
+		ret[k] = v.String
+	}
+
+	return ret, nil
+}
+
+func (db *Database) UpdatePDFPage(ctx context.Context, pdfID uuid.UUID, pageIdx int, fieldName, fieldValue string) error {
+
+	// Execute a query to update a page of a PDF with the PDF-ID.
+	_, err := db.tx.ExecContext(ctx,
+		`UPDATE pdfs SET pages[$1] = pages[$1] || hstore($2, $3) WHERE id = $4`,
+		pageIdx+1, fieldName, fieldValue, pdfID,
+	)
+
+	return errors.Wrap(err, "cannot update PDF page")
 }
 
 func (db *Database) DeletePDF(ctx context.Context, pdfID, ownerID uuid.UUID) error {
-	return nil
+
+	// Delete the PDF with the PDF and owner IDs.
+	_, err := db.tx.ExecContext(ctx,
+		`DELETE FROM pdfs WHERE id = $1 AND owner_id = $2`,
+		pdfID, ownerID,
+	)
+
+	return errors.Wrap(err, "cannot delete PDF")
 }

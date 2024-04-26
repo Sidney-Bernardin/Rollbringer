@@ -13,7 +13,7 @@ import (
 )
 
 var sessionViewColumns = map[domain.SessionView]string{
-	domain.SessionViewMain: "sessions.id, sessions.user_id, sessions.csrf_token",
+	domain.SessionViewDefault: "sessions.id, sessions.user_id, sessions.csrf_token",
 }
 
 type sessionModel struct {
@@ -76,9 +76,7 @@ func (db *Database) GetSession(ctx context.Context, sessionID uuid.UUID, view do
 
 	// Build a query to select a session with the session-ID.
 	query := fmt.Sprintf(
-		`
-			SELECT %s FROM sessions WHERE id = $1
-		`,
+		`SELECT %s FROM sessions WHERE id = $1`,
 		sessionViewColumns[view],
 	)
 
@@ -88,7 +86,7 @@ func (db *Database) GetSession(ctx context.Context, sessionID uuid.UUID, view do
 		if err == sql.ErrNoRows {
 			return nil, &domain.ProblemDetail{
 				Type:   domain.PDTypeSessionNotFound,
-				Detail: fmt.Sprintf("Cannot find a session with the session-ID of (%s)", sessionID),
+				Detail: fmt.Sprintf("Cannot find a session with the session-ID"),
 			}
 		}
 

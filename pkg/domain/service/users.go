@@ -31,8 +31,8 @@ func (svc *Service) Login(ctx context.Context, googleID string) (*domain.Session
 	return session, nil
 }
 
-func (svc *Service) GetSession(ctx context.Context, sessionID uuid.UUID, view domain.SessionView) (*domain.Session, error) {
-	session, err := svc.DB.GetSession(ctx, sessionID, view)
+func (svc *Service) Authenticate(ctx context.Context, sessionID uuid.UUID, checkCSRFToken bool, csrfToken string) (*domain.Session, error) {
+	session, err := svc.DB.GetSession(ctx, sessionID, domain.SessionViewDefault)
 	if err != nil {
 		if domain.IsProblemDetail(err, domain.PDTypeSessionNotFound) {
 			return nil, &domain.ProblemDetail{
@@ -41,6 +41,12 @@ func (svc *Service) GetSession(ctx context.Context, sessionID uuid.UUID, view do
 		}
 
 		return nil, errors.Wrap(err, "cannot get session")
+	}
+
+	if checkCSRFToken && session.CSRFToken != csrfToken {
+		return nil, &domain.ProblemDetail{
+			Type: domain.PDTypeUnauthorized,
+		}
 	}
 
 	return session, nil

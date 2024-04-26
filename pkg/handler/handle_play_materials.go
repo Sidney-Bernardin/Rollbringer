@@ -17,9 +17,7 @@ import (
 
 func (h *Handler) HandleCreatePDF(w http.ResponseWriter, r *http.Request) {
 
-	var (
-		session, _ = r.Context().Value("session").(*domain.Session)
-	)
+	var session, _ = r.Context().Value("session").(*domain.Session)
 
 	pdf := &domain.PDF{
 		OwnerID: session.UserID,
@@ -43,7 +41,7 @@ func (h *Handler) HandleGetPDF(w http.ResponseWriter, r *http.Request) {
 
 	var pdfID, _ = uuid.Parse(chi.URLParam(r, "pdf_id"))
 
-	pdf, err := h.Service.GetPDF(r.Context(), pdfID, []string{"id", "name", "schema"}, nil, nil)
+	pdf, err := h.Service.GetPDF(r.Context(), pdfID, domain.PDFViewDefault)
 	if err != nil {
 		h.err(w, r, errors.Wrap(err, "cannot get pdf"))
 		return
@@ -52,7 +50,7 @@ func (h *Handler) HandleGetPDF(w http.ResponseWriter, r *http.Request) {
 	h.render(w, r, http.StatusOK, pages.PDFViewerTab(pdf))
 }
 
-func (h *Handler) HandleGetPDFFields(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) HandleGetPDFPage(w http.ResponseWriter, r *http.Request) {
 
 	pdfID, _ := uuid.Parse(chi.URLParam(r, "pdf_id"))
 	pageNum, err := strconv.Atoi(chi.URLParam(r, "page_num"))
@@ -64,7 +62,7 @@ func (h *Handler) HandleGetPDFFields(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fields, err := h.Service.GetPDFFields(r.Context(), pdfID, pageNum)
+	fields, err := h.Service.GetPDFPage(r.Context(), pdfID, pageNum)
 	if err != nil {
 		h.err(w, r, errors.Wrap(err, "cannot get pdf fields"))
 		return

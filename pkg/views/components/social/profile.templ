@@ -1,18 +1,5 @@
 package social
 
-import (
-	. "rollbringer/pkg/views"
-)
-
 templ Profile() {
-	<div class="profile">
-		if !GetPlayPage(ctx).LoggedIn {
-			<a href="/users/login">
-				<button class="login-btn">
-					<iconify-icon icon="devicon:google"></iconify-icon>
-					Login with Google
-				</button>
-			</a>
-		}
-	</div>
+	<div class="profile"></div>
 }

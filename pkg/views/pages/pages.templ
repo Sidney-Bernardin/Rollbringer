@@ -18,7 +18,9 @@ templ page(title, script string) {
 			<title>{ title } | Rollbringer</title>
 			<link rel="icon" type="image/x-icon" href="/static/favicon.png"/>
 			<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-			<script src={ "/static/" + script } defer></script>
+			if script != "" {
+				<script src={ "/static/" + script } defer></script>
+			}
 		</head>
 		{ children... }
 	</html>

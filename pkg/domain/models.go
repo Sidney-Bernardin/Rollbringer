@@ -15,7 +15,7 @@ type PlayPage struct {
 type UserView string
 
 const (
-	UserViewMain UserView = "mian"
+	UserViewDefault UserView = "default"
 )
 
 type User struct {
@@ -34,7 +34,7 @@ type User struct {
 type SessionView string
 
 const (
-	SessionViewMain SessionView = "main"
+	SessionViewDefault SessionView = "default"
 )
 
 type Session struct {
@@ -49,8 +49,8 @@ type Session struct {
 type GameView string
 
 const (
-	GameViewMain      GameView = "main"
-	GameViewBasicInfo GameView = "basic_info"
+	GameViewDefault  GameView = "default"
+	GameViewWithHost GameView = "with_host"
 )
 
 type Game struct {
@@ -70,8 +70,9 @@ type Game struct {
 type PDFView string
 
 const (
-	PDFViewMain      PDFView = "main"
-	PDFViewBasicInfo PDFView = "basic_info"
+	PDFViewDefault   PDFView = "default"
+	PDFViewWithOwner PDFView = "with_owner"
+	PDFViewWithGame  PDFView = "with_game"
 )
 
 type PDF struct {

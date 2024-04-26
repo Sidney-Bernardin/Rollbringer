@@ -13,8 +13,8 @@ import (
 )
 
 var gameViewColumns = map[domain.GameView]string{
-	domain.GameViewMain: `games.*`,
-	domain.GameViewBasicInfo: `games.*, users.id AS "host.id", users.username AS "host.username"`,
+	domain.GameViewDefault:  `games.*`,
+	domain.GameViewWithHost: `games.*, users.id AS "host.id", users.username AS "host.username"`,
 }
 
 type gameModel struct {
@@ -69,7 +69,7 @@ func (db *Database) GamesCount(ctx context.Context, hostID uuid.UUID) (int, erro
 	// Count games with the host-ID.
 	var count int
 	err := sqlx.GetContext(ctx, db.tx, &count,
-		`SELECT COUNT(id) FROM games WHERE host_id = $1`,
+		`SELECT COUNT(*) FROM games WHERE host_id = $1`,
 		hostID,
 	)
 
@@ -87,7 +87,7 @@ func (db *Database) GamesCount(ctx context.Context, hostID uuid.UUID) (int, erro
 	return count, nil
 }
 
-func (db *Database) GetGamesByHost(ctx context.Context, hostID uuid.UUID, view domain.GameView) ([]*domain.Game, error) {
+func (db *Database) GetGamesForHost(ctx context.Context, hostID uuid.UUID, view domain.GameView) ([]*domain.Game, error) {
 
 	// Build a query to select games with the host-ID.
 	query := fmt.Sprintf(
@@ -117,10 +117,41 @@ func (db *Database) GetGamesByHost(ctx context.Context, hostID uuid.UUID, view d
 	return ret, nil
 }
 
+func (db *Database) GetJoinedGamesForUser(ctx context.Context, userID uuid.UUID, view domain.GameView) ([]*domain.Game, error) {
+
+	var joins string
+	if view == domain.GameViewWithHost {
+		joins = `LEFT JOIN users ON users.id = games.host_id`
+	}
+
+	// Build a query to select games with with the joined user.
+	query := fmt.Sprintf(
+		`SELECT %s FROM games %s
+		WHERE EXISTS (
+			SELECT * FROM game_joined_users WHERE game_joined_users.user_id = $1 AND game_joined_users.game_id = games.id
+		)`,
+		gameViewColumns[view], joins,
+	)
+
+	// Execute the query.
+	var models []*gameModel
+	if err := sqlx.SelectContext(ctx, db.tx, &models, query, userID); err != nil {
+		return nil, errors.Wrap(err, "cannot select games")
+	}
+
+	// Convert each model to domain.Game.
+	ret := make([]*domain.Game, len(models))
+	for i, m := range models {
+		ret[i] = m.domain()
+	}
+
+	return ret, nil
+}
+
 func (db *Database) GetGame(ctx context.Context, gameID uuid.UUID, view domain.GameView) (*domain.Game, error) {
 
 	var joins string
-	if view == domain.GameViewBasicInfo {
+	if view == domain.GameViewWithHost {
 		joins = `LEFT JOIN users ON users.id = games.host_id`
 	}
 
@@ -136,13 +167,12 @@ func (db *Database) GetGame(ctx context.Context, gameID uuid.UUID, view domain.G
 		if err == sql.ErrNoRows {
 			return nil, &domain.ProblemDetail{
 				Type:   domain.PDTypeGameNotFound,
-				Detail: fmt.Sprintf("Cannot find a game with the game-ID of (%s)", gameID),
+				Detail: fmt.Sprintf("Cannot find a game with the game-ID"),
 			}
 		}
 
 		return nil, errors.Wrap(err, "cannot select game")
 	}
-	fmt.Println(model)
 
 	return model.domain(), nil
 }

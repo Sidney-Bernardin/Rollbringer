@@ -36,7 +36,7 @@ func (h *Handler) err(w http.ResponseWriter, r *http.Request, err error) {
 			statusCode = http.StatusBadRequest
 
 		default:
-			h.Logger.Warn().Stack().Err(err).Msg("Received problem_detail with unknown type")
+			h.Logger.Error().Stack().Err(err).Msg("Received problem-detail with unknown type")
 		}
 	}
 

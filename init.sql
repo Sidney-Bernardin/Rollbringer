@@ -15,7 +15,7 @@ CREATE TABLE users (
 CREATE TABLE sessions (
     id UUID PRIMARY KEY,
 
-    user_id UUID NOT NULL REFERENCES users,
+    user_id UUID NOT NULL REFERENCES users ON DELETE CASCADE,
     csrf_token text NOT NULL,
 
     UNIQUE(user_id),
@@ -25,15 +25,15 @@ CREATE TABLE sessions (
 CREATE TABLE games (
     id UUID PRIMARY KEY,
 
-    host_id UUID NOT NULL REFERENCES users,
+    host_id UUID NOT NULL REFERENCES users ON DELETE CASCADE,
     name text NOT NULL
 );
 
 CREATE TABLE pdfs (
     id UUID PRIMARY KEY,
 
-    owner_id UUID NOT NULL REFERENCES users,
-    game_id UUID REFERENCES games,
+    owner_id UUID NOT NULL REFERENCES users ON DELETE CASCADE,
+    game_id UUID REFERENCES games ON DELETE SET NULL,
 
     name text NOT NULL,
     schema text NOT NULL,
@@ -43,7 +43,7 @@ CREATE TABLE pdfs (
 
 
 
-CREATE TABLE user_joined_games (
+CREATE TABLE game_joined_users (
     user_id UUID NOT NULL REFERENCES users,
     game_id UUID NOT NULL REFERENCES games
 )

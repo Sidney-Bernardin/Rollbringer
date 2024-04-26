@@ -77,13 +77,9 @@ func GamePDFs() templ.Component {
 					defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
 				}
 				for _, pdf := range page.Game.PDFs {
-					for _, player := range page.Game.Players {
-						if player.ID == pdf.OwnerID {
-							templ_7745c5c3_Err = GamePDFTableRow(pdf, player.Username).Render(ctx, templ_7745c5c3_Buffer)
-							if templ_7745c5c3_Err != nil {
-								return templ_7745c5c3_Err
-							}
-						}
+					templ_7745c5c3_Err = GamePDFTableRow(pdf, pdf.Owner.Username).Render(ctx, templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
 					}
 				}
 				if !templ_7745c5c3_IsBuffer {

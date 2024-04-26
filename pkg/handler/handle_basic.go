@@ -3,9 +3,11 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
+	"reflect"
 	"strings"
 
 	"github.com/google/uuid"
@@ -49,11 +51,12 @@ func (h *Handler) HandleWebSocket(conn *websocket.Conn) {
 		incomingChan = make(chan domain.Event)
 		outgoingChan = make(chan domain.Event)
 
+		session, _ = r.Context().Value("session").(*domain.Session)
 		gameID, _ = uuid.Parse(r.URL.Query().Get("g"))
 	)
 
 	// Process events in another go-routine.
-	go h.Service.DoEvents(r.Context(), gameID, incomingChan, outgoingChan, errChan)
+	go h.Service.DoEvents(r.Context(), session, gameID, incomingChan, outgoingChan, errChan)
 
 	// Respond with outoutgoing events in another go-routine.
 	go func() {
@@ -116,11 +119,15 @@ func (h *Handler) HandleWebSocket(conn *websocket.Conn) {
 			continue
 		}
 
-		event, err := baseEvent.GetOperationStruct()
-		if err != nil {
-			errChan <- errors.Wrap(err, "cannot get event operation struct")
+		event, ok := domain.OperationEvents[baseEvent.Operation]
+		if !ok {
+			errChan <- &domain.ProblemDetail{
+				Type:   domain.PDTypeInvalidEventOperation,
+				Detail: fmt.Sprintf("%s is an invalid event operation", baseEvent.Operation),
+			}
 			continue
 		}
+		event = reflect.New(reflect.TypeOf(event)).Interface().(domain.Event)
 
 		if err := json.Unmarshal(msg, &event); err != nil {
 			errChan <- &domain.ProblemDetail{

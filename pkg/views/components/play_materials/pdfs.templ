@@ -24,11 +24,7 @@ templ GamePDFs() {
                 "x-on:click": "$root.querySelector('.create-game-pdf-modal').showModal()",
             })) {
 				for _, pdf := range page.Game.PDFs {
-					for _, player := range page.Game.Players {
-						if player.ID == pdf.OwnerID {
-							@GamePDFTableRow(pdf, player.Username)
-						}
-					}
+					@GamePDFTableRow(pdf, pdf.Owner.Username)
 				}
 			}
 		</div>

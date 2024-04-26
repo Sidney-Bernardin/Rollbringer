@@ -18,12 +18,12 @@ func (svc *Service) CreatePDF(ctx context.Context, session *domain.Session, pdf 
 	return errors.Wrap(err, "cannot insert pdf")
 }
 
-func (svc *Service) GetPDF(ctx context.Context, pdfID uuid.UUID, pdfFields, ownerFields, gameFields []string) (*domain.PDF, error) {
-	pdf, err := svc.DB.GetPDF(ctx, pdfID, pdfFields, ownerFields, gameFields)
+func (svc *Service) GetPDF(ctx context.Context, pdfID uuid.UUID, view domain.PDFView) (*domain.PDF, error) {
+	pdf, err := svc.DB.GetPDF(ctx, pdfID, view)
 	return pdf, errors.Wrap(err, "cannot get pdf")
 }
 
-func (svc *Service) GetPDFFields(ctx context.Context, pdfID uuid.UUID, pageNum int) (map[string]string, error) {
+func (svc *Service) GetPDFPage(ctx context.Context, pdfID uuid.UUID, pageNum int) (map[string]string, error) {
 	if pageNum < 1 {
 		return nil, &domain.ProblemDetail{
 			Type:   domain.PDTypeInvalidPDFPageNumber,
@@ -31,7 +31,7 @@ func (svc *Service) GetPDFFields(ctx context.Context, pdfID uuid.UUID, pageNum i
 		}
 	}
 
-	fields, err := svc.DB.GetPDFFields(ctx, pdfID, pageNum-1)
+	fields, err := svc.DB.GetPDFPage(ctx, pdfID, pageNum-1)
 	return fields, errors.Wrap(err, "cannot get pdf fields")
 }
 

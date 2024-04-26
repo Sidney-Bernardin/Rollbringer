@@ -13,7 +13,7 @@ import (
 )
 
 var userViewColumns = map[domain.UserView]string{
-	domain.UserViewMain: "users.id, users.google_id, users.username",
+	domain.UserViewDefault: "users.id, users.google_id, users.username",
 }
 
 type userModel struct {
@@ -60,6 +60,32 @@ func (db *Database) InsertUser(ctx context.Context, user *domain.User) error {
 	return nil
 }
 
+func (db *Database) GetJoinedUsersForGame(ctx context.Context, gameID uuid.UUID, view domain.UserView) ([]*domain.User, error) {
+
+	// Build a query to select joined users with the game.
+	query := fmt.Sprintf(
+		`SELECT %s FROM users
+		WHERE EXISTS (
+			SELECT * FROM game_joined_users WHERE game_joined_users.game_id = $1 AND game_joined_users.user_id = users.id
+		)`,
+		userViewColumns[view],
+	)
+
+	// Execute the query.
+	var models []*userModel
+	if err := sqlx.SelectContext(ctx, db.tx, &models, query, gameID); err != nil {
+		return nil, errors.Wrap(err, "cannot select games")
+	}
+
+	// Convert each model to domain.User.
+	ret := make([]*domain.User, len(models))
+	for i, m := range models {
+		ret[i] = m.domain()
+	}
+
+	return ret, nil
+}
+
 func (db *Database) GetUser(ctx context.Context, userID uuid.UUID, view domain.UserView) (*domain.User, error) {
 
 	// Build a query to select a user with the user-ID.
@@ -74,7 +100,7 @@ func (db *Database) GetUser(ctx context.Context, userID uuid.UUID, view domain.U
 		if err == sql.ErrNoRows {
 			return nil, &domain.ProblemDetail{
 				Type:   domain.PDTypeUserNotFound,
-				Detail: fmt.Sprintf("Cannot find a user with the user-ID of (%s)", userID),
+				Detail: fmt.Sprintf("Cannot find a user with the user-ID"),
 			}
 		}
 

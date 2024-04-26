@@ -3,6 +3,7 @@ package pubsub
 import (
 	"context"
 	"encoding/json"
+	"reflect"
 
 	"github.com/pkg/errors"
 	"github.com/redis/go-redis/v9"
@@ -46,24 +47,17 @@ func (ps *PubSub) Sub(ctx context.Context, topic string, subChan chan domain.Eve
 
 		var baseEvent domain.BaseEvent
 		if err := json.Unmarshal([]byte(msg.Payload), &baseEvent); err != nil {
-			errChan <- &domain.ProblemDetail{
-				Type:   domain.PDTypeCannotDecodeEvent,
-				Detail: err.Error(),
-			}
 			continue
 		}
 
-		event, err := baseEvent.GetOperationStruct()
-		if err != nil {
-			errChan <- errors.Wrap(err, "cannot get event operation struct")
+		event, ok := domain.OperationEvents[baseEvent.Operation]
+		if !ok {
 			continue
 		}
+		event = reflect.New(reflect.TypeOf(event)).Interface().(domain.Event)
 
 		if err := json.Unmarshal([]byte(msg.Payload), &event); err != nil {
-			errChan <- &domain.ProblemDetail{
-				Type:   domain.PDTypeCannotDecodeEvent,
-				Detail: err.Error(),
-			}
+			errChan <- errors.Wrap(err, "cannot decode event")
 			continue
 		}
 

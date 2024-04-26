@@ -1,62 +1,52 @@
 package domain
 
 import (
-	"fmt"
-	"reflect"
-
 	"github.com/google/uuid"
 )
 
 type Event interface {
-	GetOperationStruct() (Event, error)
+	GetHeaders() map[string]any
 }
+
+// =====
 
 type BaseEvent struct {
-	Operation string `json:"OPERATION"`
+	Headers   map[string]any `json:"HEADERS"`
+	Operation string         `json:"OPERATION"`
 }
 
-var operationToStruct = map[string]Event{
+func (e BaseEvent) GetHeaders() map[string]any {
+	return e.Headers
+}
+
+// =====
+
+var OperationEvents = map[string]Event{
 	"SUB_TO_PDF":       EventSubToPDFPage{},
 	"UPDATE_PDF_FIELD": EventUpdatePDFField{},
 	"ERROR":            EventError{},
 }
 
-func (e BaseEvent) GetOperationStruct() (Event, error) {
+type EventSubToPDFPage struct {
+	BaseEvent
 
-	event, ok := operationToStruct[e.Operation]
-	if !ok {
-		return nil, &ProblemDetail{
-			Type:   PDTypeInvalidEventOperation,
-			Detail: fmt.Sprintf(`"%s" is an invlid event operation`, e.Operation),
-		}
-	}
-
-	event = reflect.New(reflect.TypeOf(event)).Interface().(Event)
-	return event, nil
+	PDFID uuid.UUID `json:"pdf_id"`
 }
 
-type (
-	EventSubToPDFPage struct {
-		BaseEvent
+type EventUpdatePDFField struct {
+	BaseEvent
 
-		PDFID uuid.UUID `json:"pdf_id"`
-	}
+	PDFID      uuid.UUID `json:"pdf_id"`
+	PageNum    int       `json:"page_num,string"`
+	FieldName  string    `json:"field_name"`
+	FieldValue string    `json:"field_value"`
+}
 
-	EventUpdatePDFField struct {
-		BaseEvent
+type EventError struct {
+	BaseEvent
 
-		PDFID      uuid.UUID `json:"pdf_id"`
-		PageNum    int       `json:"page_num,string"`
-		FieldName  string    `json:"field_name"`
-		FieldValue string    `json:"field_value"`
-	}
-
-	EventError struct {
-		BaseEvent
-
-		Err error `json:"err,omitempty"`
-	}
-)
+	Err error `json:"err,omitempty"`
+}
 
 func NewEventError(err error) error {
 	return &EventError{

@@ -86,15 +86,13 @@ func main() {
 	h.Router.Handle("/static/*", handleStaticDir())
 	h.Router.Get("/", h.HandleHomePage)
 
-	h.Router.Route("/", func(r chi.Router) {
-		r.Use(h.Authenticate)
+	h.Router.With(h.AuthenticatePage).Get("/play", h.HandlePlayPage)
+	h.Router.With(h.AuthenticatePage).Method("GET", "/ws", websocket.Handler(h.HandleWebSocket))
 
-		r.Get("/play", h.HandlePlayPage)
-		r.Method("GET", "/ws", websocket.Handler(h.HandleWebSocket))
+	h.Router.Route("/users", func(r chi.Router) {
+		r.Get("/login", h.HandleLogin)
+		r.Get("/consent-callback", h.HandleConsentCallback)
 	})
-
-	h.Router.Get("/users/login", h.HandleLogin)
-	h.Router.Get("/users/consent-callback", h.HandleConsentCallback)
 
 	h.Router.Route("/games", func(r chi.Router) {
 		r.Use(h.Authenticate)
@@ -108,7 +106,7 @@ func main() {
 
 		r.Post("/pdfs", h.HandleCreatePDF)
 		r.Get("/pdfs/{pdf_id}", h.HandleGetPDF)
-		r.Get("/pdfs/{pdf_id}/{page_num}", h.HandleGetPDFFields)
+		r.Get("/pdfs/{pdf_id}/{page_num}", h.HandleGetPDFPage)
 		r.Delete("/pdfs/{pdf_id}", h.HandleDeletePDF)
 	})
 
