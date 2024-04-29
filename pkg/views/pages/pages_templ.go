@@ -152,7 +152,7 @@ func Play() templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			if page := GetPlayPage(ctx); page.LoggedIn {
+			if GetPlayPage(ctx).LoggedIn {
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" hx-headers=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
@@ -182,21 +182,45 @@ func Play() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = StaticTabContainer("play-layout__bottom", map[string]templ.Component{
-				"Your PDFs": UserPDFs(),
-				"All PDFs":  GamePDFs(),
-				"Scenes":    templ.NopComponent,
-				"Combat":    templ.NopComponent,
-			}).Render(ctx, templ_7745c5c3_Buffer)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = StaticTabContainer("play-layout__right", map[string]templ.Component{
-				"Chat":    Chat(),
-				"Profile": Profile(),
-			}).Render(ctx, templ_7745c5c3_Buffer)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
+			if game := GetPlayPage(ctx).Game; game != nil {
+				templ_7745c5c3_Err = StaticTabContainer("play-layout__bottom", map[string]templ.Component{
+					"Your PDFs": UserPDFs(),
+					"All PDFs":  GamePDFs(),
+					"Scenes":    templ.NopComponent,
+					"Combat":    templ.NopComponent,
+				}).Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = StaticTabContainer("play-layout__right", map[string]templ.Component{
+					"Chat":    Chat(),
+					"Profile": Profile(),
+				}).Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else {
+				templ_7745c5c3_Err = StaticTabContainer("play-layout__bottom", map[string]templ.Component{
+					"Your PDFs": UserPDFs(),
+					"Scenes":    templ.NopComponent,
+				}).Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = StaticTabContainer("play-layout__right", map[string]templ.Component{
+					"Profile": Profile(),
+				}).Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<span class=\"play-layout__gutter-1\"></span> <span class=\"play-layout__gutter-2\"></span> <span class=\"play-layout__gutter-3\"></span> <span class=\"play-layout__gutter-4\"></span></div></body>")
 			if templ_7745c5c3_Err != nil {

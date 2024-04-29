@@ -13,7 +13,7 @@ import (
 )
 
 var sessionViewColumns = map[domain.SessionView]string{
-	domain.SessionViewDefault: "sessions.id, sessions.user_id, sessions.csrf_token",
+	domain.SessionViewAll: "sessions.id, sessions.user_id, sessions.csrf_token",
 }
 
 type sessionModel struct {

@@ -13,8 +13,8 @@ import (
 )
 
 var gameViewColumns = map[domain.GameView]string{
-	domain.GameViewDefault:  `games.*`,
-	domain.GameViewWithHost: `games.*, users.id AS "host.id", users.username AS "host.username"`,
+	domain.GameViewAll:          `games.*`,
+	domain.GameViewAll_HostInfo: `games.*, users.id AS "host.id", users.username AS "host.username"`,
 }
 
 type gameModel struct {
@@ -120,7 +120,7 @@ func (db *Database) GetGamesForHost(ctx context.Context, hostID uuid.UUID, view 
 func (db *Database) GetJoinedGamesForUser(ctx context.Context, userID uuid.UUID, view domain.GameView) ([]*domain.Game, error) {
 
 	var joins string
-	if view == domain.GameViewWithHost {
+	if view == domain.GameViewAll_HostInfo {
 		joins = `LEFT JOIN users ON users.id = games.host_id`
 	}
 
@@ -151,7 +151,7 @@ func (db *Database) GetJoinedGamesForUser(ctx context.Context, userID uuid.UUID,
 func (db *Database) GetGame(ctx context.Context, gameID uuid.UUID, view domain.GameView) (*domain.Game, error) {
 
 	var joins string
-	if view == domain.GameViewWithHost {
+	if view == domain.GameViewAll_HostInfo {
 		joins = `LEFT JOIN users ON users.id = games.host_id`
 	}
 

@@ -32,7 +32,7 @@ func (svc *Service) Login(ctx context.Context, googleID string) (*domain.Session
 }
 
 func (svc *Service) Authenticate(ctx context.Context, sessionID uuid.UUID, checkCSRFToken bool, csrfToken string) (*domain.Session, error) {
-	session, err := svc.DB.GetSession(ctx, sessionID, domain.SessionViewDefault)
+	session, err := svc.DB.GetSession(ctx, sessionID, domain.SessionViewAll)
 	if err != nil {
 		if domain.IsProblemDetail(err, domain.PDTypeSessionNotFound) {
 			return nil, &domain.ProblemDetail{

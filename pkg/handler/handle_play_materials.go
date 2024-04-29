@@ -19,6 +19,14 @@ func (h *Handler) HandleCreatePDF(w http.ResponseWriter, r *http.Request) {
 
 	var session, _ = r.Context().Value("session").(*domain.Session)
 
+	view, ok := domain.PDFViews[r.URL.Query().Get("view")]
+	if !ok {
+		h.err(w, r, &domain.ProblemDetail{
+			Type:   domain.PDTypeUnknownView,
+			Detail: "The given PDF view is unknown.",
+		})
+	}
+
 	pdf := &domain.PDF{
 		OwnerID: session.UserID,
 		Name:    r.FormValue("name"),
@@ -29,7 +37,8 @@ func (h *Handler) HandleCreatePDF(w http.ResponseWriter, r *http.Request) {
 		pdf.GameID = &gameID
 	}
 
-	if err := h.Service.CreatePDF(r.Context(), session, pdf); err != nil {
+	err := h.Service.CreatePDF(r.Context(), session, pdf, view)
+	if err != nil {
 		h.err(w, r, errors.Wrap(err, "cannot create pdf"))
 		return
 	}
@@ -41,7 +50,7 @@ func (h *Handler) HandleGetPDF(w http.ResponseWriter, r *http.Request) {
 
 	var pdfID, _ = uuid.Parse(chi.URLParam(r, "pdf_id"))
 
-	pdf, err := h.Service.GetPDF(r.Context(), pdfID, domain.PDFViewDefault)
+	pdf, err := h.Service.GetPDF(r.Context(), pdfID, domain.PDFViewAll)
 	if err != nil {
 		h.err(w, r, errors.Wrap(err, "cannot get pdf"))
 		return

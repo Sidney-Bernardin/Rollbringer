@@ -23,30 +23,30 @@ type Service struct {
 func (svc *Service) GetPlayPage(ctx context.Context, session *domain.Session, gameID uuid.UUID) (page *domain.PlayPage, err error) {
 	page = &domain.PlayPage{}
 
-	page.User, err = svc.DB.GetUser(ctx, session.UserID, domain.UserViewDefault)
+	page.User, err = svc.DB.GetUser(ctx, session.UserID, domain.UserViewAll)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot get user")
 	}
 
 	page.LoggedIn = true
 
-	page.User.PDFs, err = svc.DB.GetPDFsForOwner(ctx, session.UserID, domain.PDFViewWithGame)
+	page.User.PDFs, err = svc.DB.GetPDFsForOwner(ctx, session.UserID, domain.PDFViewAll_GameInfo)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot get user pdfs")
 	}
 
-	page.User.HostedGames, err = svc.DB.GetGamesForHost(ctx, session.UserID, domain.GameViewDefault)
+	page.User.HostedGames, err = svc.DB.GetGamesForHost(ctx, session.UserID, domain.GameViewAll)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot get user hosted games")
 	}
 
-	page.User.JoinedGames, err = svc.DB.GetJoinedGamesForUser(ctx, session.UserID, domain.GameViewWithHost)
+	page.User.JoinedGames, err = svc.DB.GetJoinedGamesForUser(ctx, session.UserID, domain.GameViewAll_HostInfo)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot get games joined by user")
 	}
 
 	if gameID != uuid.Nil {
-		page.Game, err = svc.DB.GetGame(ctx, gameID, domain.GameViewDefault)
+		page.Game, err = svc.DB.GetGame(ctx, gameID, domain.GameViewAll)
 		if err != nil {
 			return nil, errors.Wrap(err, "cannot get game")
 		}
@@ -55,12 +55,12 @@ func (svc *Service) GetPlayPage(ctx context.Context, session *domain.Session, ga
 			page.IsHost = true
 		}
 
-		page.Game.PDFs, err = svc.DB.GetPDFsForGame(ctx, gameID, domain.PDFViewWithOwner)
+		page.Game.PDFs, err = svc.DB.GetPDFsForGame(ctx, gameID, domain.PDFViewAll_OwnerInfo)
 		if err != nil {
 			return nil, errors.Wrap(err, "cannot get game pdfs")
 		}
 
-		page.Game.Players, err = svc.DB.GetJoinedUsersForGame(ctx, session.UserID, domain.UserViewDefault)
+		page.Game.Players, err = svc.DB.GetJoinedUsersForGame(ctx, session.UserID, domain.UserViewAll)
 		if err != nil {
 			return nil, errors.Wrap(err, "cannot get game players")
 		}
@@ -91,7 +91,7 @@ func (svc *Service) DoEvents(
 	if gameID != uuid.Nil {
 
 		// TODO: Replace with a GameExists function.
-		_, err := svc.DB.GetGame(ctx, gameID, domain.GameViewDefault)
+		_, err := svc.DB.GetGame(ctx, gameID, domain.GameViewAll)
 		if err != nil {
 			errChan <- errors.Wrap(err, "cannot get game")
 			return
@@ -123,7 +123,7 @@ func (svc *Service) DoEvents(
 			case *domain.EventSubToPDFPage:
 				cancelPDFSubscriptionCtx()
 
-				pdf, err := svc.DB.GetPDF(ctx, event.PDFID, domain.PDFViewDefault)
+				pdf, err := svc.DB.GetPDF(ctx, event.PDFID, domain.PDFViewAll)
 				if err != nil {
 					errChan <- errors.Wrap(err, "cannot get pdf")
 					continue
@@ -149,10 +149,10 @@ func (svc *Service) DoEvents(
 					return
 				}
 
-				if strings.Contains(event.FieldName, " ") {
+				if event.FieldName == "" || strings.Contains(event.FieldName, " ") {
 					errChan <- &domain.ProblemDetail{
 						Type:   domain.PDTypeInvalidPDFFieldName,
-						Detail: "Field name cannot contain spaces.",
+						Detail: "Field name cannot be empty or contain spaces.",
 					}
 					return
 				}

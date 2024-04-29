@@ -1,76 +1,61 @@
 package play_materials
 
 import (
+	"slices"
+
 	"rollbringer/pkg/domain"
 	. "rollbringer/pkg/views"
 	. "rollbringer/pkg/views/components"
 )
 
-templ GamePDFs() {
-	if page := GetPlayPage(ctx); page.LoggedIn && page.Game != nil {
-		<div class="game-pdfs">
-			@Modal("create-game-pdf-modal", "Create PDF") {
-				<form hx-post="/play-materials/pdfs">
-					<input type="hidden" name="schema" value="DND_CHARACTER_SHEET"/>
-					<input type="hidden" name="game_id" value={ page.Game.ID.String() }/>
-					<label for="name">
-						<p>Name:</p>
-						<input type="text" name="name"/>
-					</label>
-					<input type="submit" value="Create"/>
-				</form>
-			}
-			@Table("Character Sheets", IconButton("", "material-symbols:add", templ.Attributes{
-                "x-on:click": "$root.querySelector('.create-game-pdf-modal').showModal()",
-            })) {
-				for _, pdf := range page.Game.PDFs {
-					@GamePDFTableRow(pdf, pdf.Owner.Username)
-				}
-			}
-		</div>
-	}
-}
-
 templ UserPDFs() {
-	if page := GetPlayPage(ctx); page.LoggedIn {
-		<div class="user-pdfs">
-			@Modal("create-user-pdf-modal", "Create PDF") {
-				<form hx-post="/play-materials/pdfs">
-					<input type="hidden" name="schema" value="DND_CHARACTER_SHEET"/>
-					<label for="name">
-						<p>Name:</p>
-						<input type="text" name="name"/>
-					</label>
-					<input type="submit" value="Create"/>
-				</form>
+	<div class="user-pdfs">
+		//
+		// A modal with a form to create a PDF.
+		@Modal("create-pdf-modal", "Create PDF") {
+			<form
+				x-data="{ view: 'All_GameInfo' }"
+				x-init="$watch('view', () => htmx.process($el))"
+				x-bind:hx-post="`/play-materials/pdfs?view=${view}`"
+			>
+				<input type="hidden" name="schema" value="DND_CHARACTER_SHEET"/>
+				//
+				<label for="game_id">
+					<p>Game:</p>
+					<select
+						name="game_id"
+						if game := GetPlayPage(ctx).Game; game != nil {
+							x-on:change={ F("$event.target.value === '%s' ? view = 'All_OwnerInfo_GameInfo' : view = 'All_GameInfo'", game.ID) }
+						}
+					>
+						<option value="">None</option>
+						for _, game := range slices.Concat(GetPlayPage(ctx).User.HostedGames, GetPlayPage(ctx).User.JoinedGames) {
+							<option value={ game.ID.String() }>{ game.Name }</option>
+						}
+					</select>
+				</label>
+				//
+				<label for="name">
+					<p>Name:</p>
+					<input type="text" name="name"/>
+				</label>
+				//
+				<input type="submit" value="Create"/>
+			</form>
+		}
+		//
+		// A table for the user's D&D character sheets.
+		@Table("Character Sheets", IconButton("", "material-symbols:add", templ.Attributes{
+            "x-on:click": "$root.querySelector('.create-pdf-modal').showModal()",
+        })) {
+			for _, pdf := range GetPlayPage(ctx).User.PDFs {
+				@UserPDFTableRow(pdf)
 			}
-			@Table("Character Sheets", IconButton("", "material-symbols:add", templ.Attributes{
-                "x-on:click": "$root.querySelector('.create-user-pdf-modal').showModal()",
-            })) {
-				for _, pdf := range page.User.PDFs {
-					@UserPDFTableRow(pdf, pdf.Game.Name)
-				}
-			}
-		</div>
-	}
+		}
+	</div>
 }
 
-templ NewPDFTableRow(pdf *domain.PDF) {
-	if pdf.Game != nil {
-		<div hx-swap-oob="beforeend:.user-pdfs .table tbody">
-			@GamePDFTableRow(pdf, pdf.Game.Name)
-		</div>
-		<div hx-swap-oob="beforeend:.game-pdfs .table tbody">
-			@GamePDFTableRow(pdf, pdf.Owner.Username)
-		</div>
-	} else {
-		<div hx-swap-oob="beforeend:.user-pdfs .table tbody">
-			@GamePDFTableRow(pdf, "")
-		</div>
-	}
-}
-
-templ UserPDFTableRow(pdf *domain.PDF, info string) {
+templ UserPDFTableRow(pdf *domain.PDF) {
 	@TableRow(
 	    templ.Attributes{ 
             "hx-get": F("/play-materials/pdfs/%s", pdf.ID),
@@ -78,7 +63,7 @@ templ UserPDFTableRow(pdf *domain.PDF, info string) {
             "hx-swap": "none",
         },
         pdf.Name,
-        info,
+        pdf.Game.Name,
         IconButton("", "material-symbols:delete", templ.Attributes{ 
             "x-on:click.stop": true,
             "hx-delete": F("/play-materials/pdfs/%s", pdf.ID),
@@ -91,7 +76,19 @@ templ UserPDFTableRow(pdf *domain.PDF, info string) {
 	)
 }
 
-templ GamePDFTableRow(pdf *domain.PDF, info string) {
+templ GamePDFs() {
+	<div class="game-pdfs">
+		//
+		// A table for the current game's D&D character sheets.
+		@Table("Character Sheets", templ.NopComponent) {
+			for _, pdf := range GetPlayPage(ctx).Game.PDFs {
+				@GamePDFTableRow(pdf)
+			}
+		}
+	</div>
+}
+
+templ GamePDFTableRow(pdf *domain.PDF) {
 	@TableRow(
 	    templ.Attributes{ 
             "hx-get": F("/play-materials/pdfs/%s", pdf.ID),
@@ -99,6 +96,17 @@ templ GamePDFTableRow(pdf *domain.PDF, info string) {
             "hx-swap": "none",
         },
         pdf.Name,
-        info,
+        pdf.Owner.Username,
 	)
+}
+
+templ NewPDFTableRow(pdf *domain.PDF) {
+	<tbody hx-swap-oob="beforeend:.user-pdfs .table tbody">
+		@UserPDFTableRow(pdf)
+	</tbody>
+	if pdf.Owner != nil {
+		<tbody hx-swap-oob="beforeend:.game-pdfs .table tbody">
+			@GamePDFTableRow(pdf)
+		</tbody>
+	}
 }

@@ -8,7 +8,8 @@ const (
 	PDTypeServerError           pdType = "server error"
 	PDTypeCannotDecodeEvent     pdType = "cannot decode event"
 	PDTypeUnauthorized          pdType = "unauthorized"
-	PDTypeInvalidEventOperation pdType = "invalid event operation"
+	PDTypeUnknownView           pdType = "unknown view"
+	PDTypeUnknownEventOperation pdType = "unknown event operation"
 
 	PDTypeUserNotFound    pdType = "user not found"
 	PDTypeSessionNotFound pdType = "session not found"

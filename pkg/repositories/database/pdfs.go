@@ -14,9 +14,10 @@ import (
 )
 
 var pdfViewColumns = map[domain.PDFView]string{
-	domain.PDFViewDefault:   `pdfs.id, pdfs.owner_id, pdfs.game_id, pdfs.name, pdfs.schema`,
-	domain.PDFViewWithOwner: `pdfs.id, pdfs.owner_id, pdfs.game_id, pdfs.name, pdfs.schema, users.id AS "owner.id", COALESCE(users.username, '') AS "owner.username"`,
-	domain.PDFViewWithGame:  `pdfs.id, pdfs.owner_id, pdfs.game_id, pdfs.name, pdfs.schema, games.id AS "game.id", COALESCE(games.name, '') AS "game.name"`,
+	domain.PDFViewAll:                    `pdfs.id, pdfs.owner_id, pdfs.game_id, pdfs.name, pdfs.schema`,
+	domain.PDFViewAll_OwnerInfo:          `pdfs.id, pdfs.owner_id, pdfs.game_id, pdfs.name, pdfs.schema, users.id AS "owner.id", COALESCE(users.username, '') AS "owner.username"`,
+	domain.PDFViewAll_GameInfo:           `pdfs.id, pdfs.owner_id, pdfs.game_id, pdfs.name, pdfs.schema, games.id AS "game.id", COALESCE(games.name, '') AS "game.name"`,
+	domain.PDFViewAll_OwnerInfo_GameInfo: `pdfs.id, pdfs.owner_id, pdfs.game_id, pdfs.name, pdfs.schema, users.id AS "owner.id", COALESCE(users.username, '') AS "owner.username", games.id AS "game.id", COALESCE(games.name, '') AS "game.name"`,
 }
 
 type pdfModel struct {
@@ -71,9 +72,9 @@ func (db *Database) GetPDFsForOwner(ctx context.Context, ownerID uuid.UUID, view
 	var joins string
 
 	switch view {
-	case domain.PDFViewWithOwner:
+	case domain.PDFViewAll_OwnerInfo:
 		joins = `LEFT JOIN users ON users.id = pdfs.owner_id`
-	case domain.PDFViewWithGame:
+	case domain.PDFViewAll_GameInfo:
 		joins = `LEFT JOIN games ON games.id = pdfs.game_id`
 	}
 
@@ -103,9 +104,9 @@ func (db *Database) GetPDFsForGame(ctx context.Context, gameID uuid.UUID, view d
 	var joins string
 
 	switch view {
-	case domain.PDFViewWithOwner:
+	case domain.PDFViewAll_OwnerInfo:
 		joins = `LEFT JOIN users ON users.id = pdfs.owner_id`
-	case domain.PDFViewWithGame:
+	case domain.PDFViewAll_GameInfo:
 		joins = `LEFT JOIN games ON games.id = pdfs.game_id`
 	}
 
@@ -135,10 +136,12 @@ func (db *Database) GetPDF(ctx context.Context, pdfID uuid.UUID, view domain.PDF
 	var joins string
 
 	switch view {
-	case domain.PDFViewWithOwner:
+	case domain.PDFViewAll_OwnerInfo:
 		joins = `LEFT JOIN users ON users.id = pdfs.owner_id`
-	case domain.PDFViewWithGame:
+	case domain.PDFViewAll_GameInfo:
 		joins = `LEFT JOIN games ON games.id = pdfs.game_id`
+	case domain.PDFViewAll_OwnerInfo_GameInfo:
+		joins = `LEFT JOIN users ON users.id = pdfs.owner_id LEFT JOIN games ON games.id = pdfs.game_id`
 	}
 
 	// Build a query to select a PDF with the PDF-ID.

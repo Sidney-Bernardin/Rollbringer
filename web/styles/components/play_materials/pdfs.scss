@@ -3,7 +3,7 @@
 .game-pdfs,
 .user-pdfs {
     .table {
-        &:first-child {
+        &:nth-child(2) {
             border-top: none;
             margin-top: 0;
 
@@ -14,11 +14,14 @@
 
         tr {
             cursor: pointer;
+
+            button {
+                padding: 0;
+            }
         }
     }
 
-    .create-user-pdf-modal,
-    .create-game-pdf-modal {
+    .create-pdf-modal {
         .panel__body form {
             display: flex;
             flex-direction: column;

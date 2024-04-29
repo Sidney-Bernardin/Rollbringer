@@ -13,7 +13,7 @@ import (
 )
 
 var userViewColumns = map[domain.UserView]string{
-	domain.UserViewDefault: "users.id, users.google_id, users.username",
+	domain.UserViewAll: "users.id, users.google_id, users.username",
 }
 
 type userModel struct {

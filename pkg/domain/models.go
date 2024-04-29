@@ -12,11 +12,15 @@ type PlayPage struct {
 
 // =====
 
-type UserView string
+type UserView int
 
 const (
-	UserViewDefault UserView = "default"
+	UserViewAll UserView = iota
 )
+
+var UserViews = map[string]UserView{
+	"All": UserViewAll,
+}
 
 type User struct {
 	ID uuid.UUID `json:"id,omitempty"`
@@ -31,11 +35,15 @@ type User struct {
 
 // =====
 
-type SessionView string
+type SessionView int
 
 const (
-	SessionViewDefault SessionView = "default"
+	SessionViewAll SessionView = iota
 )
+
+var SessionViews = map[string]SessionView{
+	"All": SessionViewAll,
+}
 
 type Session struct {
 	ID uuid.UUID `json:"id,omitempty"`
@@ -46,12 +54,17 @@ type Session struct {
 
 // =====
 
-type GameView string
+type GameView int
 
 const (
-	GameViewDefault  GameView = "default"
-	GameViewWithHost GameView = "with_host"
+	GameViewAll GameView = iota
+	GameViewAll_HostInfo
 )
+
+var GameViews = map[string]GameView{
+	"All":   GameViewAll,
+	"All_HostInfo": GameViewAll_HostInfo,
+}
 
 type Game struct {
 	ID uuid.UUID `json:"id,omitempty"`
@@ -67,13 +80,21 @@ type Game struct {
 
 // =====
 
-type PDFView string
+type PDFView int
 
 const (
-	PDFViewDefault   PDFView = "default"
-	PDFViewWithOwner PDFView = "with_owner"
-	PDFViewWithGame  PDFView = "with_game"
+	PDFViewAll PDFView = iota
+	PDFViewAll_OwnerInfo_GameInfo
+	PDFViewAll_OwnerInfo
+	PDFViewAll_GameInfo
 )
+
+var PDFViews = map[string]PDFView{
+	"All":                    PDFViewAll,
+	"All_OwnerInfo_GameInfo": PDFViewAll_OwnerInfo_GameInfo,
+	"All_OwnerInfo":          PDFViewAll_OwnerInfo,
+	"All_GameInfo":           PDFViewAll_GameInfo,
+}
 
 type PDF struct {
 	ID uuid.UUID `json:"id,omitempty"`

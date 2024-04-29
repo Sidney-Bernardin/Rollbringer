@@ -122,7 +122,7 @@ func (h *Handler) HandleWebSocket(conn *websocket.Conn) {
 		event, ok := domain.OperationEvents[baseEvent.Operation]
 		if !ok {
 			errChan <- &domain.ProblemDetail{
-				Type:   domain.PDTypeInvalidEventOperation,
+				Type:   domain.PDTypeUnknownEventOperation,
 				Detail: fmt.Sprintf("%s is an invalid event operation", baseEvent.Operation),
 			}
 			continue
