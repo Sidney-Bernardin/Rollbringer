@@ -1,45 +1,30 @@
-@use "../../global.scss" as *;
+@use "../../colors.scss" as *;
+@use "../../mixins.scss" as *;
 
 .game-pdfs,
 .user-pdfs {
-    .table {
-        &:nth-child(2) {
-            border-top: none;
-            margin-top: 0;
+  .table {
+    &:nth-child(2) {
+      border-top: none;
+      margin-top: 0;
 
-            .header {
-                padding-top: 0;
-            }
-        }
-
-        tr {
-            cursor: pointer;
-
-            button {
-                padding: 0;
-            }
-        }
+      .header {
+        padding-top: 0;
+      }
     }
 
-    .create-pdf-modal {
-        .panel__body form {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
+    tr {
+      cursor: pointer;
 
-            label {
-                display: flex;
-                justify-content: space-between;
-
-                p {
-                    color: $txt1;
-                }
-            }
-
-            input[type="submit"] {
-                cursor: pointer;
-                width: 100%;
-            }
-        }
+      button {
+        padding: 0;
+      }
     }
+  }
+
+  .create-pdf-modal {
+    .panel__body form {
+      @include form;
+    }
+  }
 }

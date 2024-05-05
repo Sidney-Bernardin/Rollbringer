@@ -1,13 +1,17 @@
 package components
 
 templ Modal(class, title string) {
-	<dialog class={ "modal", class } x-data="modal" x-on:click="close">
-        @Panel("modal-panel", ModalHeader(title), nil) {
-            { children... }
-        }
+	<dialog
+        class={ "modal", class }
+        x-data="modal"
+        x-on:click="tryClosing"
+    >
+		@Panel("modal-panel", ModalHeader(title), nil) {
+			{ children... }
+		}
 	</dialog>
 }
 
 templ ModalHeader(txt string) {
-    <h1>{ txt }</h1>
+	<h1>{ txt }</h1>
 }

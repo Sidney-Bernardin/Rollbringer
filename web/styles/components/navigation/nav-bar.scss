@@ -1,83 +1,32 @@
-@use "../../global.scss" as *;
+@use "../../colors.scss" as *;
+@use "../../mixins.scss" as *;
 
 .nav-bar {
-    display: flex;
-    gap: 5px;
-    align-items: center;
+  display: flex;
+  gap: 5px;
+  align-items: center;
 
-    .games-btn {
-        font-size: 1.5rem;
-        padding: 5px;
+  .games-btn {
+    font-size: 1.5rem;
+    padding: 5px;
+  }
+
+  .games-modal {
+    .table:first-child {
+      border-top: none;
+      margin-top: 0;
+
+      .header {
+        padding-top: 0;
+      }
     }
 
-    .games-modal {
-        .table:first-child {
-            border-top: none;
-            margin-top: 0;
-
-            .header {
-                padding-top: 0;
-            }
-        }
-
-        tr {
-            cursor: pointer;
-        }
+    tr {
+      cursor: pointer;
     }
+  }
 
-    .rolls {
-        display: flex;
-        gap: 5px;
-        margin: 0;
-        padding: 0;
-        align-items: center;
-        list-style-type: none;
-        flex: 2;
-
-        li {
-            display: flex;
-            gap: 10px;
-            border: 2px solid $bg0;
-            background: $bg2;
-            padding: 5px;
-            align-items: center;
-
-            p {
-                margin: 0;
-            }
-
-            span {
-                color: $bg4;
-                font-size: 1.5rem;
-            }
-
-            .result {
-                color: $yellow;
-                font-size: 1.5rem;
-                font-weight: bolder;
-            }
-
-            .die,
-            .modifier {
-                display: flex;
-                align-items: center;
-
-                span {
-                    font-size: 1rem;
-                }
-
-                .result {
-                    font-size: 1rem;
-                }
-
-                .expression {
-                    color: $purple1;
-                }
-            }
-
-            .die .expression {
-                font-size: 1.5rem;
-            }
-        }
-    }
+  .create-game-modal form {
+    @include form;
+  }
 }

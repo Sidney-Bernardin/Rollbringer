@@ -1,5 +1,5 @@
 window.alpine.data("modal", () => ({
-    close(e) {
+    tryClosing(e: MouseEvent) {
         const dimentions: DOMRect = this.$el.getBoundingClientRect();
 
         if (
@@ -7,6 +7,10 @@ window.alpine.data("modal", () => ({
             e.clientX > dimentions.right ||
             e.clientY < dimentions.top ||
             e.clientY > dimentions.bottom
-        ) this.$el.close();
+        ) this.closeModal()
+    },
+
+    closeModal() {
+        this.$root.close();
     },
 }));

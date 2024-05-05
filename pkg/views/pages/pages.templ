@@ -30,13 +30,13 @@ templ Play() {
 	@page("Play", "play.js") {
 		<body
 			hx-ext="ws"
-			if game := GetPlayPage(ctx).Game; game != nil {
+			if game :=GetPlayPage(ctx).Game; game !=nil {
 				ws-connect={ F("/ws?g=%s", game.ID) }
 			} else {
 				ws-connect="/ws"
 			}
 			if GetPlayPage(ctx).LoggedIn {
-				hx-headers={ F(`{"CSRF-Token": "%s"}`, GetSession(ctx).CSRFToken) }
+				hx-headers={ F(`{"CSRF-Token": "%s" }`, GetSession(ctx).CSRFToken) }
 			}
 		>
 			<div class="play-layout">
@@ -45,23 +45,23 @@ templ Play() {
 				@DynamicTabContainer("play-layout__left", "No PDF selected")
 				if game := GetPlayPage(ctx).Game; game != nil {
 					@StaticTabContainer("play-layout__bottom", map[string]templ.Component{
-                        "Your PDFs": UserPDFs(),
-                        "All PDFs": GamePDFs(),
-                        "Scenes": templ.NopComponent,
-                        "Combat": templ.NopComponent,
-                    })
+						"Your PDFs": UserPDFs(),
+						"All PDFs":  GamePDFs(),
+						"Scenes":    templ.NopComponent,
+						"Combat":    templ.NopComponent,
+					})
 					@StaticTabContainer("play-layout__right", map[string]templ.Component{
-                        "Chat": Chat(),
-                        "Profile": Profile(),
-                    })
+						"Chat":    Chat(),
+						"Profile": Profile(),
+					})
 				} else {
 					@StaticTabContainer("play-layout__bottom", map[string]templ.Component{
-                        "Your PDFs": UserPDFs(),
-                        "Scenes": templ.NopComponent,
-                    })
+						"Your PDFs": UserPDFs(),
+						"Scenes":    templ.NopComponent,
+					})
 					@StaticTabContainer("play-layout__right", map[string]templ.Component{
-                        "Profile": Profile(),
-                    })
+						"Profile": Profile(),
+					})
 				}
 				<span class="play-layout__gutter-1"></span>
 				<span class="play-layout__gutter-2"></span>

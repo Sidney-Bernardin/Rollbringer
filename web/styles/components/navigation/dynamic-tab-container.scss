@@ -1,48 +1,48 @@
-@use "../../global.scss" as *;
+@use "../../colors.scss" as *;
 
 .dynamic-tab-container {
+  display: flex;
+  flex-direction: column;
+
+  &__panel {
+    flex: 5;
+    margin: 2px;
+
+    .panel__body {
+      position: relative;
+      padding: 0;
+
+      .default-msg {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        color: $bg4;
+        transform: translate(-50%, -50%);
+      }
+    }
+  }
+
+  &__tab-buttons {
     display: flex;
-    flex-direction: column;
+    gap: 2px;
+    transform: translateY(3px);
 
-    &__panel {
-        flex: 5;
-        margin: 2px;
+    p {
+      display: flex;
+      z-index: 10;
+      cursor: pointer;
+      gap: 5px;
+      border: 2px solid $bg1;
+      border-bottom: none;
+      opacity: 0.5;
+      background: $bg3;
+      padding: 5px;
 
-        .panel__body {
-            position: relative;
-            padding: 0;
-
-            .default-msg {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                color: $bg4;
-                transform: translate(-50%, -50%);
-            }
-        }
+      &.active {
+        border: 2px solid $bg0;
+        border-bottom: none;
+        opacity: 1;
+      }
     }
-
-    &__tab-buttons {
-        display: flex;
-        gap: 2px;
-        transform: translateY(3px);
-
-        p {
-            display: flex;
-            z-index: 10;
-            cursor: pointer;
-            gap: 5px;
-            border: 2px solid $bg1;
-            border-bottom: none;
-            opacity: 0.5;
-            background: $bg3;
-            padding: 5px;
-
-            &.active {
-                border: 2px solid $bg0;
-                border-bottom: none;
-                opacity: 1;
-            }
-        }
-    }
+  }
 }

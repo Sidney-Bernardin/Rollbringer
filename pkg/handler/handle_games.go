@@ -23,7 +23,7 @@ func (h *Handler) HandleCreateGame(w http.ResponseWriter, r *http.Request) {
 	}
 
 	game := &domain.Game{
-		Name: "abc",
+		Name: r.FormValue("name"),
 	}
 
 	if err := h.Service.CreateGame(r.Context(), session, game); err != nil {

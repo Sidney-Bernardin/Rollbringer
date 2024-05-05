@@ -21,11 +21,11 @@ templ UserPDFs() {
 				<input type="hidden" name="schema" value="DND_CHARACTER_SHEET"/>
 				//
 				<label for="game_id">
-					<p>Game:</p>
+					Game:
 					<select
 						name="game_id"
-						if game := GetPlayPage(ctx).Game; game != nil {
-							x-on:change={ F("$event.target.value === '%s' ? view = 'All_OwnerInfo_GameInfo' : view = 'All_GameInfo'", game.ID) }
+						if game :=GetPlayPage(ctx).Game; game !=nil {
+							x-on:change={ F("$event.target.value==='%s' ? view='All_OwnerInfo_GameInfo' : view='All_GameInfo'", game.ID) }
 						}
 					>
 						<option value="">None</option>
@@ -36,7 +36,7 @@ templ UserPDFs() {
 				</label>
 				//
 				<label for="name">
-					<p>Name:</p>
+					Name:
 					<input type="text" name="name"/>
 				</label>
 				//
@@ -46,8 +46,8 @@ templ UserPDFs() {
 		//
 		// A table for the user's D&D character sheets.
 		@Table("Character Sheets", IconButton("", "material-symbols:add", templ.Attributes{
-            "x-on:click": "$root.querySelector('.create-pdf-modal').showModal()",
-        })) {
+			"x-on:click": "$root.querySelector('.create-pdf-modal').showModal()",
+		})) {
 			for _, pdf := range GetPlayPage(ctx).User.PDFs {
 				@UserPDFTableRow(pdf)
 			}
@@ -57,22 +57,22 @@ templ UserPDFs() {
 
 templ UserPDFTableRow(pdf *domain.PDF) {
 	@TableRow(
-	    templ.Attributes{ 
-            "hx-get": F("/play-materials/pdfs/%s", pdf.ID),
-            "hx-target": "this",
-            "hx-swap": "none",
-        },
-        pdf.Name,
-        pdf.Game.Name,
-        IconButton("", "material-symbols:delete", templ.Attributes{ 
-            "x-on:click.stop": true,
-            "hx-delete": F("/play-materials/pdfs/%s", pdf.ID),
-            "hx-target": "closest tr",
-            "hx-swap": "outerHTML",
-        }),
-	    IconButton("", "material-symbols:edit", templ.Attributes{ 
-            "x-on:click.stop": true,
-        }),
+		templ.Attributes{
+			"hx-get":    F("/play-materials/pdfs/%s", pdf.ID),
+			"hx-target": "this",
+			"hx-swap":   "none",
+		},
+		pdf.Name,
+		pdf.Game.Name,
+		IconButton("", "material-symbols:delete", templ.Attributes{
+			"x-on:click.stop": true,
+			"hx-delete":       F("/play-materials/pdfs/%s", pdf.ID),
+			"hx-target":       "closest tr",
+			"hx-swap":         "outerHTML",
+		}),
+		IconButton("", "material-symbols:edit", templ.Attributes{
+			"x-on:click.stop": true,
+		}),
 	)
 }
 
@@ -90,13 +90,13 @@ templ GamePDFs() {
 
 templ GamePDFTableRow(pdf *domain.PDF) {
 	@TableRow(
-	    templ.Attributes{ 
-            "hx-get": F("/play-materials/pdfs/%s", pdf.ID),
-            "hx-target": "this",
-            "hx-swap": "none",
-        },
-        pdf.Name,
-        pdf.Owner.Username,
+		templ.Attributes{
+			"hx-get":    F("/play-materials/pdfs/%s", pdf.ID),
+			"hx-target": "this",
+			"hx-swap":   "none",
+		},
+		pdf.Name,
+		pdf.Owner.Username,
 	)
 }
 

@@ -3,7 +3,7 @@ module rollbringer
 go 1.22.0
 
 require (
-	github.com/a-h/templ v0.2.513
+	github.com/a-h/templ v0.2.663
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/google/uuid v1.4.0

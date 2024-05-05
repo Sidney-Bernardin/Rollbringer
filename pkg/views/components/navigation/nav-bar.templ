@@ -7,26 +7,53 @@ import (
 )
 
 templ NavBar(class string) {
-	<div class={ "nav-bar", class } x-data>
+	<div
+		class={ "nav-bar", class }
+		x-data="{
+            gamesModal: document.querySelector('.games-modal'),
+            createGameModal: document.querySelector('.create-game-modal'),
+        }"
+	>
 		if GetPlayPage(ctx).LoggedIn {
+			//
+			// A button to open the modal.
 			@IconButton("games-btn", "ic:baseline-meeting-room", templ.Attributes{
-                    "x-on:click": "$root.querySelector('.games-modal').showModal()",
-                    })
+				"x-on:click": "gamesModal.showModal()",
+			})
+			//
+			// A modal listing the user's games.
 			@Modal("games-modal", "Games") {
-				@Table("Your Games", IconButton("", "material-symbols:add", templ.Attributes{
-                            "hx-post": "/games",
-                            "hx-target": "next table",
-                            "hx-swap": "beforeend",
-                            })) {
+				//
+				// A table for hosted games.
+				@Table(
+					"Your Games",
+					IconButton("", "material-symbols:add", templ.Attributes{
+						"x-on:click": "closeModal(); createGameModal.showModal()",
+					}),
+				) {
 					for _, game := range GetPlayPage(ctx).User.HostedGames {
 						@HostedGameTableRow(game)
 					}
 				}
+				//
+				// A table for joined games.
 				@Table("Other Games", nil) {
 					for _, game := range GetPlayPage(ctx).User.JoinedGames {
 						@JoinedGameTableRow(game)
 					}
 				}
+			}
+			//
+			// A modal for creating games.
+			@Modal("create-game-modal", "Create Game") {
+				<form hx-post="/games" hx-target=".games-modal tbody">
+					<label for="name">
+						Name:
+						<input type="text" name="name"/>
+					</label>
+					//
+					<input type="submit" value="Create"/>
+				</form>
 			}
 		}
 	</div>
@@ -34,32 +61,40 @@ templ NavBar(class string) {
 
 templ HostedGameTableRow(game *domain.Game) {
 	@TableRow(
-        templ.Attributes{
-    	    "x-on:click": F("window.location.href = '/play?g=%s'", game.ID),
-        },
-        game.Name,
-        "",
-        IconButton("", "material-symbols:delete", templ.Attributes{
-            "x-on:click.stop": true,
-            "hx-delete": F("/games/%s", game.ID),
-            "hx-target": "closest tr",
-            "hx-swap": "outerHTML",
-        }),
-        IconButton("", "material-symbols:edit", templ.Attributes{
-            "x-on:click.stop": true,
-        }),
+		templ.Attributes{
+			"x-on:click": F("window.location.href = '/play?g=%s'", game.ID),
+		},
+	
+		game.Name,
+		"",
+	
+		// An icon button for deleting the game.
+		IconButton("", "material-symbols:delete", templ.Attributes{
+			"x-on:click.stop": true,
+			"hx-delete":       F("/games/%s", game.ID),
+			"hx-target":       "closest tr",
+			"hx-swap":         "outerHTML",
+		}),
+	
+		// An icon button for editing the game.
+		IconButton("", "material-symbols:edit", templ.Attributes{
+			"x-on:click.stop": true,
+		}),
 	)
 }
 
 templ JoinedGameTableRow(game *domain.Game) {
 	@TableRow(
-        templ.Attributes{
-    	    "x-on:click": F("window.location.href = '/play?g=%s'", game.ID),
-        },
-        game.Name,
-        "",
-        IconButton("", "fluent-mdl2:leave", templ.Attributes{
-            "x-on:click.stop": true,
-        }),
+		templ.Attributes{
+			"x-on:click": F("window.location.href = '/play?g=%s'", game.ID),
+		},
+	
+		game.Name,
+		"",
+	
+		// An icon button for leaving the game.
+		IconButton("", "fluent-mdl2:leave", templ.Attributes{
+			"x-on:click.stop": true,
+		}),
 	)
 }
