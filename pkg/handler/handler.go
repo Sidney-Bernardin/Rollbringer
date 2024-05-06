@@ -5,7 +5,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog"
-	"golang.org/x/oauth2"
 
 	"rollbringer/pkg/domain/service"
 )
@@ -14,8 +13,7 @@ type Handler struct {
 	Router  *chi.Mux
 	Service *service.Service
 
-	Logger            *zerolog.Logger
-	GoogleOAuthConfig *oauth2.Config
+	Logger *zerolog.Logger
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

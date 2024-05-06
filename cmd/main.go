@@ -17,6 +17,7 @@ import (
 	"rollbringer/pkg/domain/service"
 	"rollbringer/pkg/handler"
 	"rollbringer/pkg/repositories/database"
+	"rollbringer/pkg/repositories/oauth"
 	"rollbringer/pkg/repositories/pubsub"
 )
 
@@ -61,10 +62,22 @@ func main() {
 		logger.Fatal().Stack().Err(err).Msg("Cannot create pub-sub repository")
 	}
 
+	// Create an OAuth repository.
+	oa := &oauth.OAuth{
+		GoogleConfig: &oauth2.Config{
+			Endpoint:     google.Endpoint,
+			ClientID:     cfg.GoogleClientID,
+			ClientSecret: cfg.GoogleClientSecret,
+			RedirectURL:  cfg.RedirectURL,
+			Scopes:       []string{"openid", "profile", "email"},
+		},
+	}
+
 	// Create a Service
 	svc := &service.Service{
 		DB:     db,
 		PS:     ps,
+		OA:     oa,
 		Logger: &logger,
 	}
 
@@ -73,13 +86,6 @@ func main() {
 		Router:  chi.NewRouter(),
 		Service: svc,
 		Logger:  &logger,
-		GoogleOAuthConfig: &oauth2.Config{
-			Endpoint:     google.Endpoint,
-			ClientID:     cfg.GoogleClientID,
-			ClientSecret: cfg.GoogleClientSecret,
-			RedirectURL:  cfg.RedirectURL,
-			Scopes:       []string{"openid", "email"},
-		},
 	}
 
 	h.Router.Use(h.Log)

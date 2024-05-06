@@ -5,19 +5,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/pkg/errors"
-	"golang.org/x/oauth2"
-
 	"rollbringer/pkg/domain"
 )
 
 func (h *Handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 
-	var (
-		state        = mustGetRandHexStr()
-		codeVerifier = oauth2.GenerateVerifier()
-	)
+	consentURL, state, codeVerifier := h.Service.StartLogin()
 
 	// Store the state and code-verifier in a cookie.
 	http.SetCookie(w, &http.Cookie{
@@ -27,8 +20,6 @@ func (h *Handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 	})
 
-	// Generate and redirect to the consent URL.
-	consentURL := h.GoogleOAuthConfig.AuthCodeURL(state, oauth2.S256ChallengeOption(codeVerifier))
 	http.Redirect(w, r, consentURL, http.StatusTemporaryRedirect)
 }
 
@@ -52,47 +43,12 @@ func (h *Handler) HandleConsentCallback(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Verify both state.
-	if r.FormValue("state") != state_and_verifier[0] {
-		h.renderErr(w, r, http.StatusUnauthorized, &domain.ProblemDetail{
-			Type: domain.PDTypeUnauthorized,
-		})
-		return
-	}
-
-	// Exchange the code for an oauth token.
-	token, err := h.GoogleOAuthConfig.Exchange(
-		r.Context(),
+	session, err := h.Service.FinishLogin(r.Context(),
+		state_and_verifier[0],
+		r.FormValue("state"),
 		r.FormValue("code"),
-		oauth2.VerifierOption(state_and_verifier[1]))
-
-	if err != nil {
-		h.renderErr(w, r, http.StatusUnauthorized, &domain.ProblemDetail{
-			Type: domain.PDTypeUnauthorized,
-		})
-		return
-	}
-
-	// Get the ID-token from the oauth token.
-	idTokenStr, ok := token.Extra("id_token").(string)
-	if !ok {
-		h.renderErr(w, r, http.StatusInternalServerError, errors.New("id_token should be string, but is not"))
-		return
-	}
-
-	// Parse the ID-token.
-	idToken, _, err := jwt.NewParser().ParseUnverified(idTokenStr, &openIDConnectClaims{})
-	if err != nil {
-		h.renderErr(w, r, http.StatusInternalServerError, errors.Wrap(err, "cannot parse ID token"))
-		return
-	}
-
-	// Login the user.
-	session, err := h.Service.Login(r.Context(), idToken.Claims.(*openIDConnectClaims).Subject)
-	if err != nil {
-		h.err(w, r, errors.Wrap(err, "cannot login user"))
-		return
-	}
+		state_and_verifier[1],
+	)
 
 	// Store the session-ID in a cookie.
 	http.SetCookie(w, &http.Cookie{

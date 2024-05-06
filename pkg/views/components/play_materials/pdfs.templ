@@ -11,6 +11,15 @@ import (
 templ UserPDFs() {
 	<div class="user-pdfs">
 		//
+		// A table for the user's D&D character sheets.
+		@Table("Character Sheets", IconButton("", "material-symbols:add", templ.Attributes{
+			"x-on:click": "$root.querySelector('.create-pdf-modal').showModal()",
+		})) {
+			for _, pdf := range GetPlayPage(ctx).User.PDFs {
+				@UserPDFTableRow(pdf)
+			}
+		}
+		//
 		// A modal with a form to create a PDF.
 		@Modal("create-pdf-modal", "Create PDF") {
 			<form
@@ -42,15 +51,6 @@ templ UserPDFs() {
 				//
 				<input type="submit" value="Create"/>
 			</form>
-		}
-		//
-		// A table for the user's D&D character sheets.
-		@Table("Character Sheets", IconButton("", "material-symbols:add", templ.Attributes{
-			"x-on:click": "$root.querySelector('.create-pdf-modal').showModal()",
-		})) {
-			for _, pdf := range GetPlayPage(ctx).User.PDFs {
-				@UserPDFTableRow(pdf)
-			}
 		}
 	</div>
 }

@@ -10,12 +10,14 @@ import (
 
 	"rollbringer/pkg/domain"
 	"rollbringer/pkg/repositories/database"
+	"rollbringer/pkg/repositories/oauth"
 	"rollbringer/pkg/repositories/pubsub"
 )
 
 type Service struct {
 	DB *database.Database
 	PS *pubsub.PubSub
+	OA *oauth.OAuth
 
 	Logger *zerolog.Logger
 }

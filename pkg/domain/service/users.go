@@ -3,16 +3,28 @@ package service
 import (
 	"context"
 	"rollbringer/pkg/domain"
+	"rollbringer/pkg/repositories/oauth"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
 
-func (svc *Service) Login(ctx context.Context, googleID string) (*domain.Session, error) {
+func (svc *Service) StartLogin() (consentURL, state, codeVerifier string) {
+	state = oauth.NewOauthState()
+	codeVerifier = svc.OA.NewCodeVerifier()
+	return svc.OA.GetConsentURL(state, codeVerifier), state, codeVerifier
+}
+
+func (svc *Service) FinishLogin(ctx context.Context, stateA, stateB, code, codeVerifier string) (*domain.Session, error) {
+
+	claims, err := svc.OA.AuthenticateConsent(ctx, stateA, stateB, code, codeVerifier)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot authenticate consent")
+	}
 
 	user := &domain.User{
-		GoogleID: &googleID,
-		Username: "new-user_123",
+		GoogleID: &claims.Subject,
+		Username: claims.GivenName,
 	}
 
 	if err := svc.DB.InsertUser(ctx, user); err != nil {
@@ -32,6 +44,7 @@ func (svc *Service) Login(ctx context.Context, googleID string) (*domain.Session
 }
 
 func (svc *Service) Authenticate(ctx context.Context, sessionID uuid.UUID, checkCSRFToken bool, csrfToken string) (*domain.Session, error) {
+
 	session, err := svc.DB.GetSession(ctx, sessionID, domain.SessionViewAll)
 	if err != nil {
 		if domain.IsProblemDetail(err, domain.PDTypeSessionNotFound) {
