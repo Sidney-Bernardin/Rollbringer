@@ -1,16 +1,6 @@
 package pages
 
-import (
-	"rollbringer/pkg/domain"
-
-	. "rollbringer/pkg/views"
-	. "rollbringer/pkg/views/components"
-	. "rollbringer/pkg/views/components/navigation"
-	. "rollbringer/pkg/views/components/play_materials"
-	. "rollbringer/pkg/views/components/social"
-)
-
-templ page(title, script string) {
+templ Page(title, script string) {
 	<html lang="en">
 		<head>
 			<meta charset="UTF-8"/>
@@ -24,62 +14,4 @@ templ page(title, script string) {
 		</head>
 		{ children... }
 	</html>
-}
-
-templ Play() {
-	@page("Play", "play.js") {
-		<body
-			hx-ext="ws"
-			if game :=GetPlayPage(ctx).Game; game !=nil {
-				ws-connect={ F("/ws?g=%s", game.ID) }
-			} else {
-				ws-connect="/ws"
-			}
-			if GetPlayPage(ctx).LoggedIn {
-				hx-headers={ F(`{"CSRF-Token": "%s" }`, GetSession(ctx).CSRFToken) }
-			}
-		>
-			<div class="play-layout">
-				@NavBar("play-layout__nav-bar")
-				@DynamicTabContainer("play-layout__top", "No scenes selected")
-				@DynamicTabContainer("play-layout__left", "No PDF selected")
-				if game := GetPlayPage(ctx).Game; game != nil {
-					@StaticTabContainer("play-layout__bottom", map[string]templ.Component{
-						"Your PDFs": UserPDFs(),
-						"All PDFs":  GamePDFs(),
-						"Scenes":    templ.NopComponent,
-						"Combat":    templ.NopComponent,
-					})
-					@StaticTabContainer("play-layout__right", map[string]templ.Component{
-						"Chat":    Chat(),
-						"Profile": Profile(),
-					})
-				} else {
-					@StaticTabContainer("play-layout__bottom", map[string]templ.Component{
-						"Your PDFs": UserPDFs(),
-						"Scenes":    templ.NopComponent,
-					})
-					@StaticTabContainer("play-layout__right", map[string]templ.Component{
-						"Profile": Profile(),
-					})
-				}
-				<span class="play-layout__gutter-1"></span>
-				<span class="play-layout__gutter-2"></span>
-				<span class="play-layout__gutter-3"></span>
-				<span class="play-layout__gutter-4"></span>
-			</div>
-		</body>
-	}
-}
-
-templ PDFViewerTab(pdf *domain.PDF) {
-	<div hx-swap-oob="beforeend:.play-layout__left .dynamic-tab-container__tab-buttons">
-		@DynamicTabButton(pdf.ID.String(), pdf.Name, F(`$dispatch('pdf-opened', '%s')`, pdf.ID))
-	</div>
-	<div hx-swap-oob="beforeend:.play-layout__left .dynamic-tab-container__panel .panel__header">
-		@DynamicTabCloak(pdf.ID.String(), PDFViewerPageButtons(pdf))
-	</div>
-	<div hx-swap-oob="beforeend:.play-layout__left .dynamic-tab-container__panel .panel__body">
-		@DynamicTabCloak(pdf.ID.String(), PDFViewer(pdf))
-	</div>
 }

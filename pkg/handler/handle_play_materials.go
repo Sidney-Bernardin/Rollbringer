@@ -2,7 +2,6 @@ package handler
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
@@ -10,9 +9,7 @@ import (
 	"github.com/pkg/errors"
 
 	"rollbringer/pkg/domain"
-	"rollbringer/pkg/views/components"
-	"rollbringer/pkg/views/components/play_materials"
-	"rollbringer/pkg/views/pages"
+	"rollbringer/pkg/views/pages/play"
 )
 
 func (h *Handler) HandleCreatePDF(w http.ResponseWriter, r *http.Request) {
@@ -21,8 +18,8 @@ func (h *Handler) HandleCreatePDF(w http.ResponseWriter, r *http.Request) {
 
 	view, ok := domain.PDFViews[r.URL.Query().Get("view")]
 	if !ok {
-		h.err(w, r, &domain.ProblemDetail{
-			Type:   domain.PDTypeUnknownView,
+		h.err(w, r, &domain.NormalError{
+			Type:   domain.NETypeInvalidView,
 			Detail: "The given PDF view is unknown.",
 		})
 	}
@@ -43,7 +40,7 @@ func (h *Handler) HandleCreatePDF(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.render(w, r, http.StatusOK, play_materials.NewPDFTableRow(pdf))
+	// h.render(w, r, http.StatusOK, play.NewPDFTableRow(pdf))
 }
 
 func (h *Handler) HandleGetPDF(w http.ResponseWriter, r *http.Request) {
@@ -56,28 +53,7 @@ func (h *Handler) HandleGetPDF(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.render(w, r, http.StatusOK, pages.PDFViewerTab(pdf))
-}
-
-func (h *Handler) HandleGetPDFPage(w http.ResponseWriter, r *http.Request) {
-
-	pdfID, _ := uuid.Parse(chi.URLParam(r, "pdf_id"))
-	pageNum, err := strconv.Atoi(chi.URLParam(r, "page_num"))
-	if err != nil {
-		h.err(w, r, &domain.ProblemDetail{
-			Type:   domain.PDTypeInvalidPDFPageNumber,
-			Detail: "Page number must resemble an integer.",
-		})
-		return
-	}
-
-	fields, err := h.Service.GetPDFPage(r.Context(), pdfID, pageNum)
-	if err != nil {
-		h.err(w, r, errors.Wrap(err, "cannot get pdf fields"))
-		return
-	}
-
-	h.render(w, r, http.StatusOK, components.PDFFields(pdfID, fields))
+	h.render(w, r, http.StatusOK, play.PDFTab(pdf))
 }
 
 func (h *Handler) HandleDeletePDF(w http.ResponseWriter, r *http.Request) {

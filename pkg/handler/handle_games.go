@@ -8,7 +8,6 @@ import (
 	"github.com/pkg/errors"
 
 	"rollbringer/pkg/domain"
-	"rollbringer/pkg/views/components/navigation"
 )
 
 func (h *Handler) HandleCreateGame(w http.ResponseWriter, r *http.Request) {
@@ -16,8 +15,8 @@ func (h *Handler) HandleCreateGame(w http.ResponseWriter, r *http.Request) {
 	var session, _ = r.Context().Value("session").(*domain.Session)
 
 	if session == nil {
-		h.err(w, r, &domain.ProblemDetail{
-			Type: domain.PDTypeUnauthorized,
+		h.err(w, r, &domain.NormalError{
+			Type: domain.NETypeUnauthorized,
 		})
 		return
 	}
@@ -31,7 +30,8 @@ func (h *Handler) HandleCreateGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.render(w, r, http.StatusOK, navigation.HostedGameTableRow(game))
+	_ = game
+	// h.render(w, r, http.StatusOK, play.HostedGameTableRow(game))
 }
 
 func (h *Handler) HandleDeleteGame(w http.ResponseWriter, r *http.Request) {
@@ -42,8 +42,8 @@ func (h *Handler) HandleDeleteGame(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if session == nil {
-		h.err(w, r, &domain.ProblemDetail{
-			Type: domain.PDTypeUnauthorized,
+		h.err(w, r, &domain.NormalError{
+			Type: domain.NETypeUnauthorized,
 		})
 		return
 	}

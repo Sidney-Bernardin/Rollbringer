@@ -3,7 +3,7 @@ package pubsub
 import (
 	"context"
 	"encoding/json"
-	"reflect"
+	"fmt"
 
 	"github.com/pkg/errors"
 	"github.com/redis/go-redis/v9"
@@ -32,7 +32,7 @@ func New(addr, passw string) (*PubSub, error) {
 	return &PubSub{client}, nil
 }
 
-func (ps *PubSub) Sub(ctx context.Context, topic string, subChan chan domain.Event, errChan chan error) {
+func (ps *PubSub) Sub(ctx context.Context, topic string, responseChan chan domain.Event, errChan chan error) {
 
 	sub := ps.client.Subscribe(ctx, topic)
 	defer sub.Close()
@@ -45,23 +45,13 @@ func (ps *PubSub) Sub(ctx context.Context, topic string, subChan chan domain.Eve
 			return
 		}
 
-		var baseEvent domain.BaseEvent
-		if err := json.Unmarshal([]byte(msg.Payload), &baseEvent); err != nil {
-			continue
+		event, err := domain.DecodeJSONEvent(ctx, []byte(msg.Payload))
+		if err != nil {
+			errChan <- fmt.Errorf("cannot decode event from pubsub server: %v", err)
+			return
 		}
 
-		event, ok := domain.OperationEvents[baseEvent.Operation]
-		if !ok {
-			continue
-		}
-		event = reflect.New(reflect.TypeOf(event)).Interface().(domain.Event)
-
-		if err := json.Unmarshal([]byte(msg.Payload), &event); err != nil {
-			errChan <- errors.Wrap(err, "cannot decode event")
-			continue
-		}
-
-		subChan <- event
+		responseChan <- event
 	}
 }
 

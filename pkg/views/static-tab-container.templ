@@ -1,0 +1,35 @@
+package views
+
+templ StaticTabContainer(class string, tabNames ...string) {
+	<div
+		class={ "static-tab-container", class }
+		data-default-tab={ tabNames[0] }
+		x-data="{
+            currentStaticTab: $el.dataset.defaultTab,
+        }"
+	>
+		<div class="buttons">
+			for _, name := range tabNames {
+				<button
+					:class="(currentStaticTab === $el.innerText) && 'active'"
+					@click="currentStaticTab = $el.innerText"
+				>
+					{ name }
+				</button>
+			}
+		</div>
+		<div class="contents">
+			{ children... }
+		</div>
+	</div>
+}
+
+templ StaticTabContent(tabName string) {
+	<div
+		class="static-tab-content"
+		data-tab-name={ tabName }
+		x-show="currentStaticTab === $el.dataset.tabName"
+	>
+		{ children... }
+	</div>
+}

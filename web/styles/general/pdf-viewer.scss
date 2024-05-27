@@ -1,0 +1,70 @@
+@use "../colors.scss" as *;
+@import "~pdfjs-dist/web/pdf_viewer.css";
+
+.pdf-viewer {
+  display: flex;
+  position: relative;
+  height: 100%;
+  flex-direction: column;
+
+  .page-buttons {
+    display: flex;
+    width: 100%;
+    background: $bg3;
+    padding-bottom: 5px;
+    justify-content: space-around;
+
+    button {
+      cursor: pointer;
+      border: none;
+      color: $txt4;
+      background: transparent;
+      font-weight: bolder;
+
+      &.active {
+        color: $yellow;
+      }
+    }
+  }
+
+  .wrapper {
+    position: relative;
+    background: $bg0;
+    overflow: hidden;
+
+    .viewer {
+      position: absolute;
+
+      .annotationLayer {
+
+        input,
+        textarea {
+          border: 2px solid transparent;
+          color: #000;
+          background: rgba(0, 0, 0, 0);
+          font-weight: bolder;
+
+          &:focus {
+            border: 2px solid #000;
+          }
+
+          &:hover {
+            border: 2px solid #000;
+          }
+
+          &.rolling {
+            cursor: crosshair;
+          }
+        }
+
+        input {
+          text-align: center;
+        }
+      }
+
+      .textLayer {
+        user-select: none;
+      }
+    }
+  }
+}

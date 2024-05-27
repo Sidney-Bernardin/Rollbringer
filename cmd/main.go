@@ -88,7 +88,7 @@ func main() {
 		Logger:  &logger,
 	}
 
-	h.Router.Use(h.Log)
+	h.Router.Use(h.Log, h.Instance)
 	h.Router.Handle("/static/*", handleStaticDir())
 	h.Router.Get("/", h.HandleHomePage)
 
@@ -112,7 +112,6 @@ func main() {
 
 		r.Post("/pdfs", h.HandleCreatePDF)
 		r.Get("/pdfs/{pdf_id}", h.HandleGetPDF)
-		r.Get("/pdfs/{pdf_id}/{page_num}", h.HandleGetPDFPage)
 		r.Delete("/pdfs/{pdf_id}", h.HandleDeletePDF)
 	})
 

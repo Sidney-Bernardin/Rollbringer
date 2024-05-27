@@ -28,8 +28,8 @@ func (h *Handler) HandleConsentCallback(w http.ResponseWriter, r *http.Request) 
 	// Get the state/code-verifier cookie.
 	cookie, err := r.Cookie("STATE_AND_VERIFIER")
 	if err != nil {
-		h.renderErr(w, r, http.StatusUnauthorized, &domain.ProblemDetail{
-			Type: domain.PDTypeUnauthorized,
+		h.err(w, r, &domain.NormalError{
+			Type: domain.NETypeUnauthorized,
 		})
 		return
 	}
@@ -37,8 +37,8 @@ func (h *Handler) HandleConsentCallback(w http.ResponseWriter, r *http.Request) 
 	// Get the state and code-verifier from the cookie.
 	state_and_verifier := strings.Split(cookie.Value, ",")
 	if len(state_and_verifier) != 2 {
-		h.renderErr(w, r, http.StatusUnauthorized, &domain.ProblemDetail{
-			Type: domain.PDTypeUnauthorized,
+		h.err(w, r, &domain.NormalError{
+			Type: domain.NETypeUnauthorized,
 		})
 		return
 	}

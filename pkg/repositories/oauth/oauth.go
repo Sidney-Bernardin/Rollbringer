@@ -42,16 +42,16 @@ func (oa *OAuth) AuthenticateConsent(ctx context.Context, stateA, stateB, code, 
 
 	// Verify the state.
 	if stateA != stateB {
-		return nil, &domain.ProblemDetail{
-			Type: domain.PDTypeUnauthorized,
+		return nil, &domain.NormalError{
+			Type: domain.NETypeUnauthorized,
 		}
 	}
 
 	// Exchange the code for an oauth-token.
 	token, err := oa.GoogleConfig.Exchange(ctx, code, oauth2.VerifierOption(codeVerifier))
 	if err != nil {
-		return nil, &domain.ProblemDetail{
-			Type: domain.PDTypeUnauthorized,
+		return nil, &domain.NormalError{
+			Type: domain.NETypeUnauthorized,
 		}
 	}
 

@@ -98,8 +98,8 @@ func (db *Database) GetUser(ctx context.Context, userID uuid.UUID, view domain.U
 	var model userModel
 	if err := sqlx.GetContext(ctx, db.tx, &model, query, userID); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, &domain.ProblemDetail{
-				Type:   domain.PDTypeUserNotFound,
+			return nil, &domain.NormalError{
+				Type:   domain.NETypeUserNotFound,
 				Detail: fmt.Sprintf("Cannot find a user with the user-ID"),
 			}
 		}

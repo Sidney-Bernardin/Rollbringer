@@ -1,0 +1,36 @@
+package views
+
+import (
+	"fmt"
+
+	"rollbringer/pkg/domain"
+)
+
+templ PDFViewer(pdf *domain.PDF, pages []string) {
+	<div
+		class="pdf-viewer"
+		data-pdf-id={ pdf.ID.String() }
+		data-pdf-schema={ pdf.Schema }
+		x-data="pdfViewer($el.dataset.pdfId, $el.dataset.pdfSchema)"
+	>
+		<form ws-send x-ref="subscribe_form" name="sub_to_pdf_form">
+			<input type="hidden" name="OPERATION" value="SUB_TO_PDF"/>
+			<input type="hidden" name="pdf_id" :value="$root.dataset.pdfId"/>
+			<input type="hidden" name="page_num" :value="currentPage"/>
+		</form>
+		<div class="page-buttons">
+			for i, page := range pages {
+				<button
+					:class="(currentPage === +$el.dataset.pageNum) && 'active'"
+					data-page-num={ fmt.Sprint(i + 1) }
+					@click="openPage(+$el.dataset.pageNum)"
+				>
+					{ page }
+				</button>
+			}
+		</div>
+		<div class="wrapper">
+			<div class="viewer"></div>
+		</div>
+	</div>
+}

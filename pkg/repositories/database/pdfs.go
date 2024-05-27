@@ -31,7 +31,7 @@ type pdfModel struct {
 
 	Name   string          `db:"name"`
 	Schema string          `db:"schema"`
-	Pages  pq.GenericArray `db:"pages"`
+	Fields pq.GenericArray `db:"fields"`
 }
 
 func (pdf *pdfModel) domain() *domain.PDF {
@@ -51,17 +51,17 @@ func (pdf *pdfModel) domain() *domain.PDF {
 
 func (db *Database) InsertPDF(ctx context.Context, pdf *domain.PDF, pageCount int) error {
 
-	hstorePages := make([]hstore.Hstore, pageCount)
+	hstoreFields := make([]hstore.Hstore, pageCount)
 	for i := range pageCount {
-		hstorePages[i].Map = map[string]sql.NullString{}
+		hstoreFields[i].Map = map[string]sql.NullString{}
 	}
 
 	// Insert the PDF.
 	err := db.tx.QueryRowxContext(ctx,
-		`INSERT INTO pdfs (id, owner_id, game_id, name, schema, pages)
+		`INSERT INTO pdfs (id, owner_id, game_id, name, schema, fields)
 			VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING id`,
-		uuid.New(), pdf.OwnerID, pdf.GameID, pdf.Name, pdf.Schema, pq.Array(hstorePages),
+		uuid.New(), pdf.OwnerID, pdf.GameID, pdf.Name, pdf.Schema, pq.Array(hstoreFields),
 	).Scan(&pdf.ID)
 
 	return errors.Wrap(err, "cannot insert PDF")
@@ -154,8 +154,8 @@ func (db *Database) GetPDF(ctx context.Context, pdfID uuid.UUID, view domain.PDF
 	var model pdfModel
 	if err := sqlx.GetContext(ctx, db.tx, &model, query, pdfID); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, &domain.ProblemDetail{
-				Type:   domain.PDTypePDFNotFound,
+			return nil, &domain.NormalError{
+				Type:   domain.NETypePDFNotFound,
 				Detail: fmt.Sprintf("Cannot find a PDF with the PDF-ID"),
 			}
 		}
@@ -166,24 +166,24 @@ func (db *Database) GetPDF(ctx context.Context, pdfID uuid.UUID, view domain.PDF
 	return model.domain(), nil
 }
 
-func (db *Database) GetPDFPage(ctx context.Context, pdfID uuid.UUID, pageIdx int) (map[string]string, error) {
+func (db *Database) GetPDFFields(ctx context.Context, pdfID uuid.UUID, pageIdx int) (map[string]string, error) {
 
-	// Execute a query to select a page for a PDF with the PDF-ID.
+	// Execute a query to select the fields of a PDF with the PDF-ID.
 	var hstorePage hstore.Hstore
 	err := db.tx.QueryRowxContext(ctx,
-		`SELECT pages[$1] FROM pdfs WHERE id = $2`,
+		`SELECT fields[$1] FROM pdfs WHERE id = $2`,
 		pageIdx+1, pdfID,
 	).Scan(&hstorePage)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, &domain.ProblemDetail{
-				Type:   domain.PDTypePDFNotFound,
+			return nil, &domain.NormalError{
+				Type:   domain.NETypePDFNotFound,
 				Detail: "Cannot find a PDF with the PDF-ID",
 			}
 		}
 
-		return nil, errors.Wrap(err, "cannot get PDF page")
+		return nil, errors.Wrap(err, "cannot get PDF fields")
 	}
 
 	// Convert the hstore to a map without null-strings.
@@ -195,15 +195,15 @@ func (db *Database) GetPDFPage(ctx context.Context, pdfID uuid.UUID, pageIdx int
 	return ret, nil
 }
 
-func (db *Database) UpdatePDFPage(ctx context.Context, pdfID uuid.UUID, pageIdx int, fieldName, fieldValue string) error {
+func (db *Database) UpdatePDFFields(ctx context.Context, pdfID uuid.UUID, pageIdx int, fieldName, fieldValue string) error {
 
-	// Execute a query to update a page of a PDF with the PDF-ID.
+	// Execute a query to update the fields of a PDF with the PDF-ID.
 	_, err := db.tx.ExecContext(ctx,
-		`UPDATE pdfs SET pages[$1] = pages[$1] || hstore($2, $3) WHERE id = $4`,
+		`UPDATE pdfs SET fields[$1] = fields[$1] || hstore($2, $3) WHERE id = $4`,
 		pageIdx+1, fieldName, fieldValue, pdfID,
 	)
 
-	return errors.Wrap(err, "cannot update PDF page")
+	return errors.Wrap(err, "cannot update PDF fields")
 }
 
 func (db *Database) DeletePDF(ctx context.Context, pdfID, ownerID uuid.UUID) error {

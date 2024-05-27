@@ -1,0 +1,108 @@
+package play
+
+import (
+	"rollbringer/pkg/domain"
+
+	. "rollbringer/pkg/views"
+	. "rollbringer/pkg/views/pages"
+)
+
+templ Play() {
+	@Page("Play", "play.js") {
+		<body
+			hx-ext="ws"
+			hx-headers={ F(`{"CSRF-Token": "%s" }`, GetSession(ctx).CSRFToken) }
+			if game := GetPlayPage(ctx).Game; game != nil {
+				ws-connect={ F("/ws?g=%s", game.ID) }
+			} else {
+				ws-connect="/ws"
+			}
+		>
+			<div class="play-layout">
+				<div class="nav-bar">
+					<h1>Nav Bar</h1>
+				</div>
+				@DynamicTabContainer("pdfs", "pdfs")
+				@DynamicTabContainer("maps", "maps")
+				@StaticTabContainer("play-materials", "Your PDFs", "Maps") {
+					@StaticTabContent("Your PDFs") {
+						<h1>Character Sheets</h1>
+						<table>
+							<tbody>
+								for _, pdf := range GetPlayPage(ctx).User.PDFs {
+									@PDFTableRow(pdf)
+								}
+							</tbody>
+						</table>
+					}
+					@StaticTabContent("Game PDFs") {
+						if GetPlayPage(ctx).Game != nil {
+							<h1>Character Sheets</h1>
+							<table>
+								<tbody>
+									for _, pdf := range GetPlayPage(ctx).Game.PDFs {
+										@PDFTableRow(pdf)
+									}
+								</tbody>
+							</table>
+						}
+					}
+					@StaticTabContent("Maps") {
+						<h1>Maps</h1>
+					}
+				}
+				@StaticTabContainer("social", "Chat", "Profile") {
+					@StaticTabContent("Chat") {
+						<h1>Chat</h1>
+					}
+					@StaticTabContent("Profile") {
+						<h1>Profile</h1>
+					}
+				}
+				<span class="gutter-2"></span>
+				<span class="gutter-3"></span>
+				<span class="gutter-4"></span>
+			</div>
+		</body>
+	}
+}
+
+templ PDFTableRow(pdf *domain.PDF) {
+	<tr>
+		<td>
+			<button
+				class="underline-btn"
+				data-pdf-id={ pdf.ID.String() }
+				@click="alpine.evaluate($refs.pdfs, '$data').currentDynamicTab = $el.dataset.pdfId"
+				hx-get={ F("/play-materials/pdfs/%s", pdf.ID) }
+				hx-swap="none"
+			>
+				{ pdf.Name }
+			</button>
+		</td>
+		if pdf.Game != nil {
+			<td>{ pdf.Game.Name }</td>
+		} else {
+			<td>{ pdf.Owner.Username }</td>
+		}
+		<td>
+			<button class="icon-btn">
+				<iconify-icon icon="material-symbols:delete"></iconify-icon>
+			</button>
+			<button class="icon-btn">
+				<iconify-icon icon="material-symbols:edit"></iconify-icon>
+			</button>
+		</td>
+	</tr>
+}
+
+templ PDFTab(pdf *domain.PDF) {
+	<div hx-swap-oob="beforeend:.pdfs .buttons">
+		@DynamicTabButton(pdf.Name, pdf.ID.String())
+	</div>
+	<div hx-swap-oob="beforeend:.pdfs .contents">
+		@DynamicTabContent(pdf.ID.String()) {
+			@PDFViewer(pdf, []string{"main", "info", "spells"})
+		}
+	</div>
+}

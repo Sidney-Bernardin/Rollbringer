@@ -2,8 +2,6 @@ package database
 
 import (
 	"context"
-	"slices"
-	"strings"
 
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	"github.com/jmoiron/sqlx"
@@ -49,11 +47,4 @@ func (db *Database) Transaction(ctx context.Context, txFunc func(db *Database) e
 
 	err = tx.Commit()
 	return errors.Wrap(err, "cannot commit transaction")
-}
-
-func parseColumns(columns ...string) string {
-	columns = slices.DeleteFunc(columns, func(c string) bool {
-		return c == ""
-	})
-	return strings.Join(columns, ", ")
 }

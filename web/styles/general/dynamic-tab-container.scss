@@ -1,0 +1,46 @@
+@use "../colors.scss" as *;
+
+.dynamic-tab-container {
+  display: flex;
+  flex-direction: column;
+
+  .buttons {
+    z-index: 1000;
+    display: flex;
+    gap: 2px;
+    transform: translateY(3px);
+
+    button {
+      cursor: pointer;
+      display: flex;
+      gap: 5px;
+      border: 2px solid $bg1;
+      border-bottom: none;
+      opacity: 0.5;
+      background: $bg3;
+      padding: 5px;
+
+      &.active {
+        border: 2px solid $bg0;
+        border-bottom: none;
+        opacity: 1;
+      }
+    }
+  }
+
+  .wrapper {
+    height: 100%;
+    border: 2px solid $bg0;
+
+    .contents {
+      height: 100%;
+      border: 5px solid $bg3;
+      background: $bg2;
+      overflow: scroll;
+
+      .dynamic-tab-content {
+        height: 100%;
+      }
+    }
+  }
+}

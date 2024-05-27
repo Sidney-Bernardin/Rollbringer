@@ -1,41 +1,43 @@
 package domain
 
-import "github.com/pkg/errors"
-
-type pdType string
-
-const (
-	PDTypeServerError           pdType = "server error"
-	PDTypeCannotDecodeEvent     pdType = "cannot decode event"
-	PDTypeUnauthorized          pdType = "unauthorized"
-	PDTypeUnknownView           pdType = "unknown view"
-	PDTypeUnknownEventOperation pdType = "unknown event operation"
-
-	PDTypeUserNotFound    pdType = "user not found"
-	PDTypeSessionNotFound pdType = "session not found"
-
-	PDTypeMaxGames     pdType = "max games reached"
-	PDTypeGameNotFound pdType = "game not found"
-
-	PDTypePDFNotFound          pdType = "pdf not found"
-	PDTypePDFPageNotFound      pdType = "pdf page not found"
-	PDTypeInvalidPDFName       pdType = "invalid pdf name"
-	PDTypeInvalidPDFFieldName  pdType = "invalid pdf field name"
-	PDTypeInvalidPDFPageNumber pdType = "invalid pdf page number"
-	PDTypeNotSubscribedToPDF   pdType = "invalid pdf field value"
+import (
+	"github.com/pkg/errors"
 )
 
-type ProblemDetail struct {
-	Type   pdType `json:"type"`
-	Detail string `json:"detail,omitempty"`
+type NEType string
+
+const (
+	NETypeServerError           NEType = "server_error"
+	NETypeCannotDecodeRequest   NEType = "cannot_decode_event"
+	NETypeUnauthorized          NEType = "unauthorized"
+	NETypeInvalidView           NEType = "invalid_view"
+	NETypeInvalidEventOperation NEType = "invalid_event_type"
+
+	NETypeUserNotFound    NEType = "user_not_found"
+	NETypeSessionNotFound NEType = "session_not_found"
+
+	NETypeMaxGames     NEType = "max_games_reached"
+	NETypeGameNotFound NEType = "game_not_found"
+
+	NETypePDFNotFound          NEType = "pdf_not_found"
+	NETypeInvalidPDFName       NEType = "invalid_pdf_name"
+	NETypeInvalidPDFPageNumber NEType = "invalid_pdf_page_number"
+	NETypeInvalidPDFFieldName  NEType = "invalid_pdf_field_name"
+	NETypeNotSubscribedToPDF   NEType = "not_subscribed_to_pdf"
+)
+
+type NormalError struct {
+	Instance string `json:"instance,omitempty"`
+	Type     NEType `json:"type"`
+	Detail   string `json:"detail,omitempty"`
 }
 
-func (pd *ProblemDetail) Error() string {
+func (pd *NormalError) Error() string {
 	return string(pd.Type)
 }
 
-// IsProblemDetail checks if the error is a problem-detail with the pdType.
-func IsProblemDetail(err error, t pdType) bool {
-	pd, ok := errors.Cause(err).(*ProblemDetail)
+// IsNormal checks if the error is a NormalError and has the NEType.
+func IsNormal(err error, t NEType) bool {
+	pd, ok := errors.Cause(err).(*NormalError)
 	return ok && pd.Type == t
 }

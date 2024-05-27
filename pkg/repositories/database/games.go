@@ -48,11 +48,9 @@ func (db *Database) InsertGame(ctx context.Context, game *domain.Game) error {
 
 	// Insert the game.
 	err := sqlx.GetContext(ctx, db.tx, &model,
-		`
-			INSERT INTO games (id, host_id, name)
-				VALUES ($1, $2, $3)
-			RETURNING id
-		`,
+		`INSERT INTO games (id, host_id, name)
+			VALUES ($1, $2, $3)
+		RETURNING id`,
 		model.ID, model.HostID, model.Name,
 	)
 
@@ -75,8 +73,8 @@ func (db *Database) GamesCount(ctx context.Context, hostID uuid.UUID) (int, erro
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return 0, &domain.ProblemDetail{
-				Type:   domain.PDTypeGameNotFound,
+			return 0, &domain.NormalError{
+				Type:   domain.NETypeGameNotFound,
 				Detail: "Cannot find a game hosted by a user with the user-ID.",
 			}
 		}
@@ -99,8 +97,8 @@ func (db *Database) GetGamesForHost(ctx context.Context, hostID uuid.UUID, view 
 	var models []*gameModel
 	if err := sqlx.SelectContext(ctx, db.tx, &models, query, hostID); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, &domain.ProblemDetail{
-				Type:   domain.PDTypeGameNotFound,
+			return nil, &domain.NormalError{
+				Type:   domain.NETypeGameNotFound,
 				Detail: "Cannot find a game hosted by a user with the user-ID",
 			}
 		}
@@ -165,8 +163,8 @@ func (db *Database) GetGame(ctx context.Context, gameID uuid.UUID, view domain.G
 	var model gameModel
 	if err := sqlx.GetContext(ctx, db.tx, &model, query, gameID); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, &domain.ProblemDetail{
-				Type:   domain.PDTypeGameNotFound,
+			return nil, &domain.NormalError{
+				Type:   domain.NETypeGameNotFound,
 				Detail: fmt.Sprintf("Cannot find a game with the game-ID"),
 			}
 		}

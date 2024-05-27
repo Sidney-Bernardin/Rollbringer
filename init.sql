@@ -38,7 +38,7 @@ CREATE TABLE pdfs (
     name text NOT NULL,
     schema text NOT NULL,
 
-    pages hstore[] NOT NULL
+    fields hstore[] NOT NULL
 );
 
 

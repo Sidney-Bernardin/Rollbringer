@@ -62,7 +62,7 @@ const (
 )
 
 var GameViews = map[string]GameView{
-	"All":   GameViewAll,
+	"All":          GameViewAll,
 	"All_HostInfo": GameViewAll_HostInfo,
 }
 
@@ -107,5 +107,5 @@ type PDF struct {
 
 	Name   string              `json:"name,omitempty"`
 	Schema string              `json:"schema,omitempty"`
-	Pages  []map[string]string `json:"pages,omitempty"`
+	Fields []map[string]string `json:"fields,omitempty"`
 }

@@ -22,6 +22,13 @@ func (h *Handler) Log(next http.Handler) http.Handler {
 	})
 }
 
+func (h *Handler) Instance(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		r = r.WithContext(context.WithValue(r.Context(), domain.CtxKeyInstance, r.URL.Path))
+		next.ServeHTTP(w, r)
+	})
+}
+
 func (h *Handler) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -29,22 +36,22 @@ func (h *Handler) Authenticate(next http.Handler) http.Handler {
 		stCookie, err := r.Cookie("SESSION_ID")
 		if err != nil {
 			if err == http.ErrNoCookie {
-				h.renderErr(w, r, http.StatusUnauthorized, &domain.ProblemDetail{
-					Type: domain.PDTypeUnauthorized,
+				h.err(w, r, &domain.NormalError{
+					Type: domain.NETypeUnauthorized,
 				})
 				return
 			}
 
-			h.renderErr(w, r, http.StatusInternalServerError, errors.Wrap(err, "cannot get SESSION_ID cookie"))
+			h.err(w, r, errors.Wrap(err, "cannot get SESSION_ID cookie"))
 			return
 		}
 		sessionID, _ := uuid.Parse(stCookie.Value)
 
 		session, err := h.Service.Authenticate(r.Context(), sessionID, true, r.Header.Get("CSRF-Token"))
 		if err != nil {
-			if domain.IsProblemDetail(err, domain.PDTypeUnauthorized) {
-				h.err(w, r, &domain.ProblemDetail{
-					Type: domain.PDTypeUnauthorized,
+			if domain.IsNormal(err, domain.NETypeUnauthorized) {
+				h.err(w, r, &domain.NormalError{
+					Type: domain.NETypeUnauthorized,
 				})
 				return
 			}
@@ -69,14 +76,14 @@ func (h *Handler) AuthenticatePage(next http.Handler) http.Handler {
 				return
 			}
 
-			h.renderErr(w, r, http.StatusInternalServerError, errors.Wrap(err, "cannot get SESSION_ID cookie"))
+			h.err(w, r, errors.Wrap(err, "cannot get SESSION_ID cookie"))
 			return
 		}
 		sessionID, _ := uuid.Parse(stCookie.Value)
 
 		session, err := h.Service.Authenticate(r.Context(), sessionID, false, r.Header.Get("CSRF-Token"))
 		if err != nil {
-			if domain.IsProblemDetail(err, domain.PDTypeUnauthorized) {
+			if domain.IsNormal(err, domain.NETypeUnauthorized) {
 				http.Redirect(w, r, "/users/login", http.StatusTemporaryRedirect)
 				return
 			}

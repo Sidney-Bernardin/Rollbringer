@@ -34,18 +34,6 @@ func (svc *Service) GetPDF(ctx context.Context, pdfID uuid.UUID, view domain.PDF
 	return pdf, errors.Wrap(err, "cannot get pdF")
 }
 
-func (svc *Service) GetPDFPage(ctx context.Context, pdfID uuid.UUID, pageNum int) (map[string]string, error) {
-	if pageNum < 1 {
-		return nil, &domain.ProblemDetail{
-			Type:   domain.PDTypeInvalidPDFPageNumber,
-			Detail: "Page number must be greater than zero.",
-		}
-	}
-
-	fields, err := svc.DB.GetPDFPage(ctx, pdfID, pageNum-1)
-	return fields, errors.Wrap(err, "cannot get PDF fields")
-}
-
 func (svc *Service) DeletePDF(ctx context.Context, session *domain.Session, pdfID uuid.UUID) error {
 	err := svc.DB.DeletePDF(ctx, pdfID, session.UserID)
 	return errors.Wrap(err, "cannot delete PDF")

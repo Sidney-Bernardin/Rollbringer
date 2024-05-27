@@ -84,8 +84,8 @@ func (db *Database) GetSession(ctx context.Context, sessionID uuid.UUID, view do
 	var model sessionModel
 	if err := sqlx.GetContext(ctx, db.tx, &model, query, sessionID); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, &domain.ProblemDetail{
-				Type:   domain.PDTypeSessionNotFound,
+			return nil, &domain.NormalError{
+				Type:   domain.NETypeSessionNotFound,
 				Detail: fmt.Sprintf("Cannot find a session with the session-ID"),
 			}
 		}

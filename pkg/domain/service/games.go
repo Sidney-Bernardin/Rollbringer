@@ -18,8 +18,8 @@ func (svc *Service) CreateGame(ctx context.Context, session *domain.Session, gam
 	}
 
 	if count >= 5 {
-		return &domain.ProblemDetail{
-			Type:   domain.PDTypeMaxGames,
+		return &domain.NormalError{
+			Type:   domain.NETypeMaxGames,
 			Detail: "You cannot host more than 5 games at a time.",
 		}
 	}

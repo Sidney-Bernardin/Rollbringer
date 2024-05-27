@@ -47,9 +47,9 @@ func (svc *Service) Authenticate(ctx context.Context, sessionID uuid.UUID, check
 
 	session, err := svc.DB.GetSession(ctx, sessionID, domain.SessionViewAll)
 	if err != nil {
-		if domain.IsProblemDetail(err, domain.PDTypeSessionNotFound) {
-			return nil, &domain.ProblemDetail{
-				Type: domain.PDTypeUnauthorized,
+		if domain.IsNormal(err, domain.NETypeSessionNotFound) {
+			return nil, &domain.NormalError{
+				Type: domain.NETypeUnauthorized,
 			}
 		}
 
@@ -57,8 +57,8 @@ func (svc *Service) Authenticate(ctx context.Context, sessionID uuid.UUID, check
 	}
 
 	if checkCSRFToken && session.CSRFToken != csrfToken {
-		return nil, &domain.ProblemDetail{
-			Type: domain.PDTypeUnauthorized,
+		return nil, &domain.NormalError{
+			Type: domain.NETypeUnauthorized,
 		}
 	}
 

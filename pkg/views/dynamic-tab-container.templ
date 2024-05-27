@@ -1,0 +1,42 @@
+package views
+
+templ DynamicTabContainer(class, id string) {
+	<div
+		class={ "dynamic-tab-container", class }
+		id={ id }
+		x-ref={ id }
+		x-data="{
+            currentDynamicTab: '',
+        }"
+	>
+		<div class="buttons"></div>
+		<div class="wrapper">
+			<div class="contents"></div>
+		</div>
+	</div>
+}
+
+templ DynamicTabButton(name, tabID string) {
+	<button
+		data-tab-id={ tabID }
+		:class="(currentDynamicTab === $el.dataset.tabId) && 'active'"
+		@click="currentDynamicTab = $el.dataset.tabId"
+		@remove-tab="$el.remove()"
+	>
+		{ name }
+		<p @click="$dispatch('remove-tab', { tabID: $el.parentElement.dataset.tabId })">
+			<iconify-icon icon="material-symbols:close"></iconify-icon>
+		</p>
+	</button>
+}
+
+templ DynamicTabContent(tabID string) {
+	<div
+		class="dynamic-tab-content"
+		data-tab-id={ tabID }
+		x-show="currentDynamicTab === $el.dataset.tabId"
+		@remove-tab.window="($event.detail.tabID === $el.dataset.tabId) && $el.remove()"
+	>
+		{ children... }
+	</div>
+}

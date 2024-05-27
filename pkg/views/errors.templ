@@ -1,0 +1,10 @@
+package views
+
+import "rollbringer/pkg/domain"
+
+templ NormalError(err *domain.NormalError) {
+}
+
+templ EventNormalError(event *domain.EventNormalError) {
+	<div class="error">{ event.Detail }</div>
+}

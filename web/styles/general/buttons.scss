@@ -1,0 +1,16 @@
+@use "../colors.scss" as *;
+
+.icon-btn {
+  cursor: pointer;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.underline-btn {
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  font-weight: bolder;
+  text-decoration: underline;
+}

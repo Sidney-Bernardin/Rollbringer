@@ -1,78 +1,50 @@
-import { GlobalWorkerOptions, PDFDocumentProxy, PDFPageProxy, getDocument } from "pdfjs-dist";
-import { EventBus, PDFPageView } from "pdfjs-dist/web/pdf_viewer";
-import panzoom from "panzoom";
+import { GlobalWorkerOptions, PDFDocumentProxy, PDFPageProxy, getDocument } from "pdfjs-dist"
+import { EventBus, PDFPageView } from "pdfjs-dist/web/pdf_viewer"
+import panzoom from "panzoom"
 import htmx from "htmx.org";
 
-GlobalWorkerOptions.workerSrc = "static/pdf.worker.js";
+GlobalWorkerOptions.workerSrc = "static/pdf.worker.js"
 
-window.alpine.data("pdfViewer", (pdfURL: string, pdfID: string) => ({
+const pdfDocuments = {}
+const pdfViews = {}
+
+window.alpine.data("pdfViewer", (pdfID: string, pdfSchema: string) => ({
     currentPage: 0,
-    pageViewer: null,
-    subscribeForm: null,
+    pdfPageView: null,
 
-    init() {
-        this.subscribeForm = this.$el.querySelector("form#SUB_TO_PDF");
-        const viewerContainer: HTMLDivElement = this.$el.querySelector(".pdf-viewer__viewer-container");
+    async init() {
+        const container = this.$el.querySelector(".viewer")
 
-        panzoom(viewerContainer, {
+        panzoom(container, {
             bounds: true,
             minZoom: 0.25,
             maxZoom: 2,
             smoothScroll: false,
             filterKey: () => true,
-        });
+        })
 
-        this.pageViewer = new PDFPageViewer(pdfURL, viewerContainer);
-    },
-
-    async changePage(e: CustomEvent<number>) {
-        if ((e.target as HTMLElement).dataset.pdfId !== pdfID) return;
-
-        this.currentPage = e.detail;
-        await this.pageViewer.renderPage(e.detail);
-
-        Array.from(this.$el.querySelectorAll(".annotationLayer input, .annotationLayer textarea"))
-            .forEach(
-                (elem: HTMLInputElement, idx: number) => {
-                    // <temporary
-                    const prefix: string = elem.tagName === "TEXTAREA" ? "textarea" : elem.type;
-                    elem.name = `${prefix}__${elem.name}`;
-                    // temporary>
-
-                    elem.id = elem.name.replace(/\s/g, "");
-                    elem.name = "field_value_" + idx;
-                    elem.removeAttribute("style");
-                    elem.setAttribute("ws-send", "");
-                    elem.setAttribute("hx-trigger", "change");
-                    elem.setAttribute("hx-include", `.pdf-viewer[data-pdf-id="${pdfID}"] #UPDATE_PDF_FIELD-params`);
-
-                    htmx.process(elem);
-                },
-            );
-
-        htmx.ajax("GET", `/play-materials/pdfs/${pdfID}/${e.detail}`, { swap: "none" });
-    },
-
-    subToPDF(e: CustomEvent<string>) {
-        if (e.detail === pdfID)
-            htmx.trigger(this.subscribeForm, "submit", null)
-    },
-}));
-
-function PDFPageViewer(pdfURL: string, viewerContainer: HTMLDivElement) {
-    getDocument(pdfURL).promise.then(async (res) => {
-        this.doc = res;
-        this.pageView = new PDFPageView({
+        pdfDocuments[pdfID] = await getDocument(`/static/${pdfSchema}.pdf`).promise
+        pdfViews[pdfID] = new PDFPageView({
             id: 1,
-            container: viewerContainer,
+            container: container,
             eventBus: new EventBus(),
-            defaultViewport: (await res.getPage(1)).getViewport({ scale: 1.0 }),
+            defaultViewport: (await pdfDocuments[pdfID].getPage(1)).getViewport({ scale: 1.0 }),
             scale: 1,
-        });
-    });
+        })
 
-    this.renderPage = async (num: number) => {
-        await this.pageView.setPdfPage(await this.doc.getPage(num));
-        await this.pageView.draw();
-    };
-}
+        this.$watch("currentDynamicTab", (newVal) => {
+            if (newVal === pdfID && this.currentPage !== 0) {
+                htmx.trigger(this.$refs.subscribe_form, "submit", null)
+            }
+        })
+    },
+
+    async openPage(pageNum: number) {
+        this.currentPage = pageNum
+
+        await pdfViews[pdfID].setPdfPage(await pdfDocuments[pdfID].getPage(pageNum))
+        await pdfViews[pdfID].draw()
+
+        htmx.trigger(this.$refs.subscribe_form, "submit", null)
+    }
+}))

@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"strings"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -74,20 +74,17 @@ func (svc *Service) GetPlayPage(ctx context.Context, session *domain.Session, ga
 // DoEvents processes events. errChan closes before returning.
 func (svc *Service) DoEvents(
 	ctx context.Context,
-	session *domain.Session,
 	gameID uuid.UUID,
-	incomingChan, outgoingChan chan domain.Event,
+	incomingChan <-chan domain.Event,
+	outgoingChan chan domain.Event,
 	errChan chan error,
 ) {
 	defer close(errChan)
 
 	var (
-		gameSubscriptionCtx       context.Context
-		cancelGameSubscriptionCtx context.CancelFunc
-
-		pdfID                    uuid.UUID
-		pdfSubscriptionCtx       context.Context
-		cancelPDFSubscriptionCtx context.CancelFunc = func() {}
+		pdfCtx       context.Context
+		cancelPDFCtx context.CancelFunc = func() {}
+		pdfID        uuid.UUID
 	)
 
 	if gameID != uuid.Nil {
@@ -99,76 +96,76 @@ func (svc *Service) DoEvents(
 			return
 		}
 
-		gameSubscriptionCtx, cancelGameSubscriptionCtx = context.WithCancel(context.Background())
-		defer cancelGameSubscriptionCtx()
-
-		go svc.PS.Sub(gameSubscriptionCtx, gameID.String(), outgoingChan, errChan)
+		go svc.PS.Sub(ctx, gameID.String(), outgoingChan, errChan)
 	}
 
 	// Process incoming events.
 	for {
 		select {
 		case <-ctx.Done():
+			cancelPDFCtx()
 			return
 
 		case e := <-incomingChan:
-
-			if e.GetHeaders()["CSRF-Token"] != session.CSRFToken {
-				errChan <- &domain.ProblemDetail{
-					Type: domain.PDTypeUnauthorized,
-				}
+			if err := e.Validate(ctx); err != nil {
+				errChan <- errors.Wrap(err, "invalid event")
 				continue
 			}
 
 			switch event := e.(type) {
+			case *domain.EventSubToPDF:
+				cancelPDFCtx()
+				eventCtx := context.WithValue(ctx, domain.CtxKeyInstance, domain.OperationSubToPDF)
 
-			case *domain.EventSubToPDFPage:
-				cancelPDFSubscriptionCtx()
-
-				pdf, err := svc.DB.GetPDF(ctx, event.PDFID, domain.PDFViewAll)
+				fields, err := svc.DB.GetPDFFields(eventCtx, event.PDFID, event.PageNum-1)
 				if err != nil {
 					errChan <- errors.Wrap(err, "cannot get pdf")
 					continue
 				}
-				pdfID = pdf.ID
 
-				pdfSubscriptionCtx, cancelPDFSubscriptionCtx = context.WithCancel(context.Background())
-				defer cancelPDFSubscriptionCtx()
+				pdfID = event.PDFID
+				pdfCtx, cancelPDFCtx = context.WithCancel(eventCtx)
 
-				go svc.PS.Sub(pdfSubscriptionCtx, pdfID.String(), outgoingChan, errChan)
+				topic := fmt.Sprintf("%s_%v", pdfID, event.PageNum)
+				go svc.PS.Sub(pdfCtx, topic, outgoingChan, errChan)
+
+				outgoingChan <- &domain.EventPDFFields{
+					BaseEvent: domain.BaseEvent{Operation: domain.OperationPDFFields},
+					PDFID:     pdfID,
+					PageNum:   event.PageNum,
+					Fields:    fields,
+				}
 
 			case *domain.EventUpdatePDFField:
+				eventCtx := context.WithValue(ctx, domain.CtxKeyInstance, domain.OperationUpdatePDFField)
 
 				if pdfID == uuid.Nil {
-					errChan <- &domain.ProblemDetail{
-						Type:   domain.PDTypeNotSubscribedToPDF,
-						Detail: "You must be subscribed to a PDF before updating it's field.",
+					errChan <- &domain.NormalError{
+						Instance: eventCtx.Value(domain.CtxKeyInstance).(string),
+						Type:     domain.NETypeNotSubscribedToPDF,
+						Detail:   "You must be subscribed to a PDF before updating it's field.",
 					}
 					continue
 				}
 
-				if event.PageNum-1 < 0 {
-					return
-				}
-
-				if event.FieldName == "" || strings.Contains(event.FieldName, " ") {
-					errChan <- &domain.ProblemDetail{
-						Type:   domain.PDTypeInvalidPDFFieldName,
-						Detail: "Field name cannot be empty or contain spaces.",
-					}
-					return
-				}
-
-				err := svc.DB.UpdatePDFPage(ctx, pdfID, event.PageNum-1, event.FieldName, event.FieldValue)
+				err := svc.DB.UpdatePDFFields(eventCtx, pdfID, event.PageNum-1, event.FieldName, event.FieldValue)
 				if err != nil {
 					errChan <- errors.Wrap(err, "cannot update pdf field")
 					continue
 				}
 
-				event.PDFID = pdfID
+				pubEvent := domain.EventPDFFields{
+					BaseEvent: domain.BaseEvent{Operation: domain.OperationPDFFields},
+					PDFID:     pdfID,
+					PageNum:   event.PageNum,
+					Fields: map[string]string{
+						event.FieldName: event.FieldValue,
+					},
+				}
 
-				if err := svc.PS.Pub(ctx, pdfID.String(), event); err != nil {
+				if err := svc.PS.Pub(ctx, pdfID.String(), pubEvent); err != nil {
 					svc.Logger.Error().Stack().Err(err).Msg("Cannot publish event")
+					cancelPDFCtx()
 					return
 				}
 			}
