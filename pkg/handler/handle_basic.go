@@ -104,15 +104,8 @@ func (h *Handler) HandleWebSocket(conn *websocket.Conn) {
 func (h *Handler) eventToComponent(e domain.Event) templ.Component {
 	switch event := e.(type) {
 
-	case *domain.EventUpdatePDFField:
-
-		_ = event
-		// Respond with a PDF-field component.
-		// h.render(conn, r, 0, general.PDFViewerField(
-		// 	event.PDFID,
-		// 	event.FieldName,
-		// 	event.FieldValue,
-		// ))
+	case *domain.EventPDFFields:
+		return views.PDFViewerFields(event.PDFID, event.Fields)
 	}
 
 	return templ.NopComponent

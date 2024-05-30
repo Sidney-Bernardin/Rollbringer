@@ -2,6 +2,9 @@ package views
 
 import (
 	"fmt"
+	"strings"
+
+	"github.com/google/uuid"
 
 	"rollbringer/pkg/domain"
 )
@@ -13,11 +16,17 @@ templ PDFViewer(pdf *domain.PDF, pages []string) {
 		data-pdf-schema={ pdf.Schema }
 		x-data="pdfViewer($el.dataset.pdfId, $el.dataset.pdfSchema)"
 	>
-		<form ws-send x-ref="subscribe_form" name="sub_to_pdf_form">
+		<div class="update-pdf-info">
+			<input type="hidden" name="OPERATION" value="UPDATE_PDF_FIELD"/>
+			<input type="hidden" name="page_num" :value="currentPage"/>
+		</div>
+		//
+		<form ws-send x-ref="subscribe_form">
 			<input type="hidden" name="OPERATION" value="SUB_TO_PDF"/>
 			<input type="hidden" name="pdf_id" :value="$root.dataset.pdfId"/>
 			<input type="hidden" name="page_num" :value="currentPage"/>
 		</form>
+		//
 		<div class="page-buttons">
 			for i, page := range pages {
 				<button
@@ -29,8 +38,50 @@ templ PDFViewer(pdf *domain.PDF, pages []string) {
 				</button>
 			}
 		</div>
+		//
 		<div class="wrapper">
-			<div class="viewer"></div>
+			<div class="viewer" x-ref="viewer" hx-include="previous .update-pdf-info"></div>
 		</div>
 	</div>
+}
+
+templ PDFViewerFields(pdfID uuid.UUID, fields map[string]string) {
+	for k, v := range fields {
+		@pdfViewerField(pdfID, k, v)
+	}
+}
+
+templ pdfViewerField(pdfID uuid.UUID, name, value string) {
+	<div hx-swap-oob={ F("outerHTML:.pdf-viewer[data-pdf-id='%s'] #%s", pdfID, name) }>
+		if fieldType := getFieldType(name); fieldType == "textarea" {
+			<textarea
+				id={ name }
+				name="field_value"
+				value={ value }
+				ws-send
+				hx-trigger="change"
+			>
+				{ value }
+			</textarea>
+		} else if fieldType == "text" || fieldType == "checkbox" {
+			<input
+				type={ fieldType }
+				id={ name }
+				name="field_value"
+				value={ value }
+				if fieldType == "checkbox" && value == "on" {
+					checked
+				}
+				ws-send
+				hx-trigger="change"
+			/>
+		}
+	</div>
+}
+
+func getFieldType(fieldName string) string {
+	if ret := strings.Split(fieldName, "__"); len(ret) > 1 {
+		return ret[0]
+	}
+	return ""
 }

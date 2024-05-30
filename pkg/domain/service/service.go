@@ -148,7 +148,7 @@ func (svc *Service) DoEvents(
 					continue
 				}
 
-				err := svc.DB.UpdatePDFFields(eventCtx, pdfID, event.PageNum-1, event.FieldName, event.FieldValue)
+				err := svc.DB.UpdatePDFField(eventCtx, pdfID, event.PageNum-1, event.FieldName, event.FieldValue)
 				if err != nil {
 					errChan <- errors.Wrap(err, "cannot update pdf field")
 					continue

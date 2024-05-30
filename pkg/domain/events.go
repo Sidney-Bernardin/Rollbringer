@@ -9,13 +9,11 @@ import (
 	"github.com/google/uuid"
 )
 
-type Operation string
-
 const (
-	OperationNormalError    Operation = "NORMAL_ERROR"
-	OperationPDFFields      Operation = "PDF_FIELDS"
-	OperationSubToPDF       Operation = "SUB_TO_PDF"
-	OperationUpdatePDFField Operation = "UPDATE_PDF_FIELD"
+	OperationNormalError    = "NORMAL_ERROR"
+	OperationPDFFields      = "PDF_FIELDS"
+	OperationSubToPDF       = "SUB_TO_PDF"
+	OperationUpdatePDFField = "UPDATE_PDF_FIELD"
 )
 
 type Event interface {
@@ -25,7 +23,7 @@ type Event interface {
 
 type BaseEvent struct {
 	Headers   map[string]any `json:"HEADERS"`
-	Operation Operation      `json:"OPERATION"`
+	Operation string         `json:"OPERATION"`
 }
 
 func (e BaseEvent) GetHeaders() map[string]any {

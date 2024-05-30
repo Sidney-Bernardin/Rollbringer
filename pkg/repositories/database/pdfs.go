@@ -195,7 +195,7 @@ func (db *Database) GetPDFFields(ctx context.Context, pdfID uuid.UUID, pageIdx i
 	return ret, nil
 }
 
-func (db *Database) UpdatePDFFields(ctx context.Context, pdfID uuid.UUID, pageIdx int, fieldName, fieldValue string) error {
+func (db *Database) UpdatePDFField(ctx context.Context, pdfID uuid.UUID, pageIdx int, fieldName, fieldValue string) error {
 
 	// Execute a query to update the fields of a PDF with the PDF-ID.
 	_, err := db.tx.ExecContext(ctx,

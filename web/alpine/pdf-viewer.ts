@@ -10,12 +10,11 @@ const pdfViews = {}
 
 window.alpine.data("pdfViewer", (pdfID: string, pdfSchema: string) => ({
     currentPage: 0,
-    pdfPageView: null,
 
-    async init() {
-        const container = this.$el.querySelector(".viewer")
+    async init(): Promise<void> {
 
-        panzoom(container, {
+        // Initialize Panzoom for the viewer container.
+        panzoom(this.$refs.viewer, {
             bounds: true,
             minZoom: 0.25,
             maxZoom: 2,
@@ -23,28 +22,58 @@ window.alpine.data("pdfViewer", (pdfID: string, pdfSchema: string) => ({
             filterKey: () => true,
         })
 
+        // Create a PDF view in the viewer container.
         pdfDocuments[pdfID] = await getDocument(`/static/${pdfSchema}.pdf`).promise
         pdfViews[pdfID] = new PDFPageView({
             id: 1,
-            container: container,
+            container: this.$refs.viewer,
             eventBus: new EventBus(),
             defaultViewport: (await pdfDocuments[pdfID].getPage(1)).getViewport({ scale: 1.0 }),
             scale: 1,
         })
 
+        // Subscribes when currentDynamicTab is changed.
         this.$watch("currentDynamicTab", (newVal) => {
             if (newVal === pdfID && this.currentPage !== 0) {
-                htmx.trigger(this.$refs.subscribe_form, "submit", null)
+                this.subscribe()
             }
         })
     },
 
-    async openPage(pageNum: number) {
+    // Submits the subscribe form.
+    subscribe(): void {
+        htmx.trigger(this.$refs.subscribe_form, "submit", null)
+    },
+
+    // Renders a new PDF page and prepares it's fields for live updating.
+    async openPage(pageNum: number): Promise<void> {
         this.currentPage = pageNum
 
+        // Render the new PDF page.
         await pdfViews[pdfID].setPdfPage(await pdfDocuments[pdfID].getPage(pageNum))
         await pdfViews[pdfID].draw()
 
-        htmx.trigger(this.$refs.subscribe_form, "submit", null)
-    }
+        // Prepare each field for live updating.
+        Array
+            .from(this.$root.querySelectorAll(".annotationLayer input, .annotationLayer textarea"))
+            .forEach(this.prepareField)
+
+        this.subscribe()
+    },
+
+    // Prepares a field for live updating.
+    prepareField(field: HTMLInputElement, hash: number): void {
+        // <temporary
+        const prefix: string = field.tagName === "TEXTAREA" ? "textarea" : field.type;
+        field.name = `${prefix}__${field.name}`;
+        // temporary>
+
+        field.id = field.name.replace(/\s/g, "");
+        field.name = "field_value_" + hash;
+        field.removeAttribute("style");
+        field.setAttribute("ws-send", "");
+        field.setAttribute("hx-trigger", "change");
+
+        htmx.process(field);
+    },
 }))
