@@ -1,0 +1,109 @@
+package play
+
+import (
+	. "rollbringer/pkg/views"
+
+	"rollbringer/pkg/domain"
+)
+
+templ NavBar() {
+	<div x-data class="nav-bar">
+		<dialog
+			class="games-modal modal"
+			x-data="modal"
+			@show-games-modal.window="$el.showModal()"
+			@click="close"
+		>
+			<h2>Games</h2>
+			<div class="wrapper">
+				<table>
+					<caption>
+						Your Games 
+						<button class="icon-btn" @click="$root.close(); $dispatch('show-create-game-modal')">
+							<iconify-icon icon="material-symbols:add"></iconify-icon>
+						</button>
+					</caption>
+					<tbody>
+						for _, game := range GetPlayPage(ctx).User.HostedGames {
+							@HostedGameRow(game)
+						}
+					</tbody>
+				</table>
+				<table>
+					<caption>
+						Joined Games 
+					</caption>
+					<tbody>
+						for _, game := range GetPlayPage(ctx).User.JoinedGames {
+							@JoinedGameRow(game)
+						}
+					</tbody>
+				</table>
+			</div>
+		</dialog>
+		<dialog
+			class="create-game-modal modal"
+			x-data="modal"
+			@show-create-game-modal.window="$el.showModal()"
+			@click="close"
+			@submit="$el.close()"
+		>
+			<h2>Create Game</h2>
+			<div class="wrapper">
+				<form hx-post="/games" hx-target=".games-modal tbody" hx-swap="beforeend">
+					<label for="name">
+						Name:
+						<input type="text" name="name"/>
+					</label>
+					//
+					<input type="submit" value="Create"/>
+				</form>
+			</div>
+		</dialog>
+		<button class="games-btn icon-btn" @click="$dispatch('show-games-modal')">
+			<iconify-icon icon="ic:baseline-meeting-room"></iconify-icon>
+		</button>
+	</div>
+}
+
+templ HostedGameRow(game *domain.Game) {
+	<tr x-data data-game-id={ game.ID.String() }>
+		<td>
+			<button class="underline-btn" @click="window.location.href = `/play?g=${$root.dataset.gameId}`">
+				{ game.Name }
+			</button>
+		</td>
+		<td>{ S(len(game.Players)) } players</td>
+		<td>
+			<button
+				class="icon-btn"
+				:hx-delete="`/games/${$root.dataset.gameId}`"
+				hx-target="closest tr"
+				hx-swap="outerHTML"
+			>
+				<iconify-icon icon="material-symbols:delete"></iconify-icon>
+			</button>
+			<button class="icon-btn">
+				<iconify-icon icon="material-symbols:edit"></iconify-icon>
+			</button>
+		</td>
+	</tr>
+}
+
+templ JoinedGameRow(game *domain.Game) {
+	<tr>
+		<td>
+			<a href="/abc">
+				<button class="underline-btn">
+					{ game.Name }
+				</button>
+			</a>
+		</td>
+		<td>{ S(len(game.Players)) } players</td>
+		<td>
+			<button class="icon-btn">
+				<iconify-icon icon="pepicons-pencil:leave"></iconify-icon>
+			</button>
+		</td>
+	</tr>
+}

@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 
 	"rollbringer/pkg/domain"
+	"rollbringer/pkg/views/pages/play"
 )
 
 func (h *Handler) HandleCreateGame(w http.ResponseWriter, r *http.Request) {
@@ -30,8 +31,7 @@ func (h *Handler) HandleCreateGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_ = game
-	// h.render(w, r, http.StatusOK, play.HostedGameTableRow(game))
+	h.render(w, r, http.StatusOK, play.HostedGameRow(game))
 }
 
 func (h *Handler) HandleDeleteGame(w http.ResponseWriter, r *http.Request) {

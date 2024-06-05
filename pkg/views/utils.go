@@ -1,12 +1,13 @@
 package views
 
 import (
+	"context"
 	"fmt"
-    "context"
 
 	"rollbringer/pkg/domain"
 )
 
+var S = fmt.Sprint
 var F = fmt.Sprintf
 
 func GetPlayPage(ctx context.Context) (page *domain.PlayPage) {

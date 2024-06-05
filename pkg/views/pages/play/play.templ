@@ -19,15 +19,18 @@ templ Play() {
 			}
 		>
 			<div class="play-layout">
-				<div class="nav-bar">
-					<h1>Nav Bar</h1>
-				</div>
+				@NavBar()
 				@DynamicTabContainer("pdfs", "pdfs")
 				@DynamicTabContainer("maps", "maps")
 				@StaticTabContainer("play-materials", "Your PDFs", "Maps") {
 					@StaticTabContent("Your PDFs") {
-						<h1>Character Sheets</h1>
 						<table>
+							<caption>
+								Character Sheets
+								<button class="icon-btn">
+									<iconify-icon icon="material-symbols:add"></iconify-icon>
+								</button>
+							</caption>
 							<tbody>
 								for _, pdf := range GetPlayPage(ctx).User.PDFs {
 									@PDFTableRow(pdf)
@@ -37,8 +40,13 @@ templ Play() {
 					}
 					@StaticTabContent("Game PDFs") {
 						if GetPlayPage(ctx).Game != nil {
-							<h1>Character Sheets</h1>
 							<table>
+								<caption>
+									Character Sheets
+									<button class="icon-btn">
+										<iconify-icon icon="material-symbols:add"></iconify-icon>
+									</button>
+								</caption>
 								<tbody>
 									for _, pdf := range GetPlayPage(ctx).Game.PDFs {
 										@PDFTableRow(pdf)

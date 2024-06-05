@@ -4,6 +4,23 @@ table {
   width: 100%;
   border-collapse: collapse;
 
+  caption {
+    position: relative;
+    width: 100%;
+    color: $txt4;
+    font-size: 2rem;
+    font-weight: bolder;
+    text-align: left;
+
+    button {
+      position: absolute;
+      top: 50%;
+      right: 0;
+      font-size: 1.5rem;
+      transform: translateY(-50%);
+    }
+  }
+
   tr {
     &:hover {
       background: $bg3;

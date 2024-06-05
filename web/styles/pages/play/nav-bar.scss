@@ -1,1 +1,24 @@
+@use "../../mixins.scss" as *;
 
+.nav-bar {
+  display: flex;
+  gap: 15px;
+
+  .games-btn {
+    font-size: 1.5rem;
+  }
+
+  .games-modal .wrapper table {
+    border: 2000px solid #fff;
+    margin-top: 30px;
+
+    &:nth-child(1) {
+      border: none;
+      margin-top: 0;
+    }
+  }
+
+  .create-game-modal .wrapper form {
+    @include basic-form;
+  }
+}
