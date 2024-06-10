@@ -1,13 +1,14 @@
 package views
 
-templ DynamicTabContainer(class, id string) {
+templ DynamicTabContainer(class, openTabEvent string) {
 	<div
 		class={ "dynamic-tab-container", class }
-		id={ id }
-		x-ref={ id }
 		x-data="{
             currentDynamicTab: '',
         }"
+		{ templ.Attributes{
+            "@"+openTabEvent+".window": "currentDynamicTab = $event.detail.tabID",
+        } ... }
 	>
 		<div class="buttons"></div>
 		<div class="wrapper">

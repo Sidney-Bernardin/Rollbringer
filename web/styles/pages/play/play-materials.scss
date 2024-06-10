@@ -1,7 +1,12 @@
 @use "../../colors.scss" as *;
+@use "../../mixins.scss" as *;
 
-.play-materials {
+.play-materials-tab-container {
   h1 {
     color: $txt4;
+  }
+
+  .create-pdf-modal .wrapper form {
+    @include basic-form;
   }
 }

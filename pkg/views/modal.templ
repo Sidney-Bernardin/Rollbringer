@@ -1,0 +1,18 @@
+package views
+
+templ Modal(class, title, openEvent string) {
+	<dialog
+		class={ "modal", class }
+		x-data="modal"
+		@click="close"
+		@submit="$el.close()"
+		{ templ.Attributes{
+            "@"+openEvent+".window": "$el.showModal()",
+        } ... }
+	>
+		<h2>{ title }</h2>
+		<div class="wrapper">
+			{ children... }
+		</div>
+	</dialog>
+}

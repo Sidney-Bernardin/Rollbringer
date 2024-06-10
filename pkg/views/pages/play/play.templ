@@ -1,6 +1,8 @@
 package play
 
 import (
+	"slices"
+
 	"rollbringer/pkg/domain"
 
 	. "rollbringer/pkg/views"
@@ -13,6 +15,7 @@ templ Play() {
 			hx-ext="ws"
 			hx-headers={ F(`{"CSRF-Token": "%s" }`, GetSession(ctx).CSRFToken) }
 			if game := GetPlayPage(ctx).Game; game != nil {
+				data-game-id={ game.ID.String() }
 				ws-connect={ F("/ws?g=%s", game.ID) }
 			} else {
 				ws-connect="/ws"
@@ -20,14 +23,14 @@ templ Play() {
 		>
 			<div class="play-layout">
 				@NavBar()
-				@DynamicTabContainer("pdfs", "pdfs")
-				@DynamicTabContainer("maps", "maps")
-				@StaticTabContainer("play-materials", "Your PDFs", "Maps") {
+				@DynamicTabContainer("pdf-tab-container", "show-pdf-tab-container")
+				@DynamicTabContainer("map-tab-container", "show-map-tab-container")
+				@StaticTabContainer("play-materials-tab-container", "Your PDFs", "Maps") {
 					@StaticTabContent("Your PDFs") {
 						<table>
 							<caption>
 								Character Sheets
-								<button class="icon-btn">
+								<button class="icon-btn" @click="$dispatch('show-create-pdf-modal')">
 									<iconify-icon icon="material-symbols:add"></iconify-icon>
 								</button>
 							</caption>
@@ -37,6 +40,32 @@ templ Play() {
 								}
 							</tbody>
 						</table>
+						@Modal("create-pdf-modal", "Create PDF", "show-create-pdf-modal") {
+							<form
+								x-data="{ view: 'All_GameInfo' }"
+								x-init="$watch('view', () => htmx.process($el))"
+								:hx-post="`/play-materials/pdfs?view=${view}`"
+							>
+								<input type="hidden" name="schema" value="DND_CHARACTER_SHEET"/>
+								//
+								<label for="game_id">
+									Game:
+									<select name="game_id" @change="view = ($event.target.value === $store.game?.id) ? 'All_OwnerInfo_GameInfo' : 'All_GameInfo'">
+										<option value="">None</option>
+										for _, game := range slices.Concat(GetPlayPage(ctx).User.HostedGames, GetPlayPage(ctx).User.JoinedGames) {
+											<option value={ game.ID.String() }>{ game.Name }</option>
+										}
+									</select>
+								</label>
+								//
+								<label for="name">
+									Name:
+									<input type="text" name="name"/>
+								</label>
+								//
+								<input type="submit" value="Create"/>
+							</form>
+						}
 					}
 					@StaticTabContent("Game PDFs") {
 						if GetPlayPage(ctx).Game != nil {
@@ -59,7 +88,7 @@ templ Play() {
 						<h1>Maps</h1>
 					}
 				}
-				@StaticTabContainer("social", "Chat", "Profile") {
+				@StaticTabContainer("social-tab-container", "Chat", "Profile") {
 					@StaticTabContent("Chat") {
 						<h1>Chat</h1>
 					}
@@ -81,7 +110,7 @@ templ PDFTableRow(pdf *domain.PDF) {
 			<button
 				class="underline-btn"
 				data-pdf-id={ pdf.ID.String() }
-				@click="alpine.evaluate($refs.pdfs, '$data').currentDynamicTab = $el.dataset.pdfId"
+				@click="$dispatch('show-pdf-tab-container', { tabID: $el.dataset.pdfId })"
 				hx-get={ F("/play-materials/pdfs/%s", pdf.ID) }
 				hx-swap="none"
 			>
@@ -105,10 +134,10 @@ templ PDFTableRow(pdf *domain.PDF) {
 }
 
 templ PDFTab(pdf *domain.PDF) {
-	<div hx-swap-oob="beforeend:.pdfs .buttons">
+	<div hx-swap-oob="beforeend:.pdf-tab-container .buttons">
 		@DynamicTabButton(pdf.Name, pdf.ID.String())
 	</div>
-	<div hx-swap-oob="beforeend:.pdfs .contents">
+	<div hx-swap-oob="beforeend:.pdf-tab-container .contents">
 		@DynamicTabContent(pdf.ID.String()) {
 			@PDFViewer(pdf, []string{"main", "info", "spells"})
 		}

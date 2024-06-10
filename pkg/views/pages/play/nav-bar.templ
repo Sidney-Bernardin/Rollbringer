@@ -41,25 +41,16 @@ templ NavBar() {
 				</table>
 			</div>
 		</dialog>
-		<dialog
-			class="create-game-modal modal"
-			x-data="modal"
-			@show-create-game-modal.window="$el.showModal()"
-			@click="close"
-			@submit="$el.close()"
-		>
-			<h2>Create Game</h2>
-			<div class="wrapper">
-				<form hx-post="/games" hx-target=".games-modal tbody" hx-swap="beforeend">
-					<label for="name">
-						Name:
-						<input type="text" name="name"/>
-					</label>
-					//
-					<input type="submit" value="Create"/>
-				</form>
-			</div>
-		</dialog>
+		@Modal("create-game-modal", "Create Game", "show-create-game-modal") {
+			<form hx-post="/games" hx-target=".games-modal tbody" hx-swap="beforeend">
+				<label for="name">
+					Name:
+					<input type="text" name="name"/>
+				</label>
+				//
+				<input type="submit" value="Create"/>
+			</form>
+		}
 		<button class="games-btn icon-btn" @click="$dispatch('show-games-modal')">
 			<iconify-icon icon="ic:baseline-meeting-room"></iconify-icon>
 		</button>
