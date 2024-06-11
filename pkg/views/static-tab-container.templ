@@ -24,9 +24,9 @@ templ StaticTabContainer(class string, tabNames ...string) {
 	</div>
 }
 
-templ StaticTabContent(tabName string) {
+templ StaticTabContent(class, tabName string) {
 	<div
-		class="static-tab-content"
+		class={ "static-tab-content", class }
 		data-tab-name={ tabName }
 		x-show="currentStaticTab === $el.dataset.tabName"
 	>

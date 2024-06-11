@@ -8,39 +8,34 @@ import (
 
 templ NavBar() {
 	<div x-data class="nav-bar">
-		<dialog
-			class="games-modal modal"
-			x-data="modal"
-			@show-games-modal.window="$el.showModal()"
-			@click="close"
-		>
-			<h2>Games</h2>
-			<div class="wrapper">
-				<table>
-					<caption>
-						Your Games 
-						<button class="icon-btn" @click="$root.close(); $dispatch('show-create-game-modal')">
-							<iconify-icon icon="material-symbols:add"></iconify-icon>
-						</button>
-					</caption>
-					<tbody>
-						for _, game := range GetPlayPage(ctx).User.HostedGames {
-							@HostedGameRow(game)
-						}
-					</tbody>
-				</table>
-				<table>
-					<caption>
-						Joined Games 
-					</caption>
-					<tbody>
-						for _, game := range GetPlayPage(ctx).User.JoinedGames {
-							@JoinedGameRow(game)
-						}
-					</tbody>
-				</table>
-			</div>
-		</dialog>
+		<button class="games-btn icon-btn" @click="$dispatch('show-games-modal')">
+			<iconify-icon icon="ic:baseline-meeting-room"></iconify-icon>
+		</button>
+		@Modal("games-modal", "Games", "show-games-modal") {
+			<table>
+				<caption>
+					Your Games 
+					<button class="icon-btn" @click="$root.close(); $dispatch('show-create-game-modal')">
+						<iconify-icon icon="material-symbols:add"></iconify-icon>
+					</button>
+				</caption>
+				<tbody>
+					for _, game := range GetPlayPage(ctx).User.HostedGames {
+						@HostedGameRow(game)
+					}
+				</tbody>
+			</table>
+			<table>
+				<caption>
+					Joined Games 
+				</caption>
+				<tbody>
+					for _, game := range GetPlayPage(ctx).User.JoinedGames {
+						@JoinedGameRow(game)
+					}
+				</tbody>
+			</table>
+		}
 		@Modal("create-game-modal", "Create Game", "show-create-game-modal") {
 			<form hx-post="/games" hx-target=".games-modal tbody" hx-swap="beforeend">
 				<label for="name">
@@ -51,9 +46,6 @@ templ NavBar() {
 				<input type="submit" value="Create"/>
 			</form>
 		}
-		<button class="games-btn icon-btn" @click="$dispatch('show-games-modal')">
-			<iconify-icon icon="ic:baseline-meeting-room"></iconify-icon>
-		</button>
 	</div>
 }
 

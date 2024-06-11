@@ -3,7 +3,6 @@ package handler
 import (
 	"net/http"
 
-	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -40,7 +39,7 @@ func (h *Handler) HandleCreatePDF(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// h.render(w, r, http.StatusOK, play.NewPDFTableRow(pdf))
+	h.render(w, r, http.StatusOK, play.NewPDFTableRow(pdf))
 }
 
 func (h *Handler) HandleGetPDF(w http.ResponseWriter, r *http.Request) {
@@ -68,5 +67,5 @@ func (h *Handler) HandleDeletePDF(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.render(w, r, http.StatusOK, templ.NopComponent)
+	h.render(w, r, http.StatusOK, play.DeletePDF(pdfID))
 }

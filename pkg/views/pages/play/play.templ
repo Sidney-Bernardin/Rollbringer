@@ -3,8 +3,9 @@ package play
 import (
 	"slices"
 
-	"rollbringer/pkg/domain"
+    "github.com/google/uuid"
 
+	"rollbringer/pkg/domain"
 	. "rollbringer/pkg/views"
 	. "rollbringer/pkg/views/pages"
 )
@@ -25,8 +26,8 @@ templ Play() {
 				@NavBar()
 				@DynamicTabContainer("pdf-tab-container", "show-pdf-tab-container")
 				@DynamicTabContainer("map-tab-container", "show-map-tab-container")
-				@StaticTabContainer("play-materials-tab-container", "Your PDFs", "Maps") {
-					@StaticTabContent("Your PDFs") {
+				@StaticTabContainer("play-materials-tab-container", "Your PDFs", "Game PDFs", "Maps") {
+					@StaticTabContent("user-pdfs", "Your PDFs") {
 						<table>
 							<caption>
 								Character Sheets
@@ -67,7 +68,7 @@ templ Play() {
 							</form>
 						}
 					}
-					@StaticTabContent("Game PDFs") {
+					@StaticTabContent("game-pdfs", "Game PDFs") {
 						if GetPlayPage(ctx).Game != nil {
 							<table>
 								<caption>
@@ -84,15 +85,15 @@ templ Play() {
 							</table>
 						}
 					}
-					@StaticTabContent("Maps") {
+					@StaticTabContent("maps", "Maps") {
 						<h1>Maps</h1>
 					}
 				}
 				@StaticTabContainer("social-tab-container", "Chat", "Profile") {
-					@StaticTabContent("Chat") {
+					@StaticTabContent("chat", "Chat") {
 						<h1>Chat</h1>
 					}
-					@StaticTabContent("Profile") {
+					@StaticTabContent("profile", "Profile") {
 						<h1>Profile</h1>
 					}
 				}
@@ -104,14 +105,24 @@ templ Play() {
 	}
 }
 
+templ NewPDFTableRow(pdf *domain.PDF) {
+	<tbody hx-swap-oob="beforeend:.user-pdfs tbody">
+		@PDFTableRow(pdf)
+	</tbody>
+	if pdf.Owner != nil {
+		<tbody hx-swap-oob="beforeend:.game-pdfs tbody">
+			@PDFTableRow(pdf)
+		</tbody>
+	}
+}
+
 templ PDFTableRow(pdf *domain.PDF) {
-	<tr>
+	<tr x-data data-pdf-id={ pdf.ID.String() }>
 		<td>
 			<button
 				class="underline-btn"
-				data-pdf-id={ pdf.ID.String() }
-				@click="$dispatch('show-pdf-tab-container', { tabID: $el.dataset.pdfId })"
-				hx-get={ F("/play-materials/pdfs/%s", pdf.ID) }
+				@click="$dispatch('show-pdf-tab-container', { tabID: $root.dataset.pdfId })"
+				:hx-get="`/play-materials/pdfs/${$root.dataset.pdfId}`"
 				hx-swap="none"
 			>
 				{ pdf.Name }
@@ -123,7 +134,7 @@ templ PDFTableRow(pdf *domain.PDF) {
 			<td>{ pdf.Owner.Username }</td>
 		}
 		<td>
-			<button class="icon-btn">
+			<button class="icon-btn" :hx-delete="`/play-materials/pdfs/${$root.dataset.pdfId}`">
 				<iconify-icon icon="material-symbols:delete"></iconify-icon>
 			</button>
 			<button class="icon-btn">
@@ -142,4 +153,9 @@ templ PDFTab(pdf *domain.PDF) {
 			@PDFViewer(pdf, []string{"main", "info", "spells"})
 		}
 	</div>
+}
+
+templ DeletePDF(pdfID uuid.UUID) {
+    <div hx-swap-oob={ F("outerHTML:.pdf-tab-container [data-tab-id='%s']", pdfID) }></div>
+    <div hx-swap-oob={ F("outerHTML:[data-pdf-id='%s']", pdfID) }></div>
 }
