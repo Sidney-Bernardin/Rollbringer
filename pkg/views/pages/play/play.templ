@@ -3,9 +3,6 @@ package play
 import (
 	"slices"
 
-    "github.com/google/uuid"
-
-	"rollbringer/pkg/domain"
 	. "rollbringer/pkg/views"
 	. "rollbringer/pkg/views/pages"
 )
@@ -28,61 +25,11 @@ templ Play() {
 				@DynamicTabContainer("map-tab-container", "show-map-tab-container")
 				@StaticTabContainer("play-materials-tab-container", "Your PDFs", "Game PDFs", "Maps") {
 					@StaticTabContent("user-pdfs", "Your PDFs") {
-						<table>
-							<caption>
-								Character Sheets
-								<button class="icon-btn" @click="$dispatch('show-create-pdf-modal')">
-									<iconify-icon icon="material-symbols:add"></iconify-icon>
-								</button>
-							</caption>
-							<tbody>
-								for _, pdf := range GetPlayPage(ctx).User.PDFs {
-									@PDFTableRow(pdf)
-								}
-							</tbody>
-						</table>
-						@Modal("create-pdf-modal", "Create PDF", "show-create-pdf-modal") {
-							<form
-								x-data="{ view: 'All_GameInfo' }"
-								x-init="$watch('view', () => htmx.process($el))"
-								:hx-post="`/play-materials/pdfs?view=${view}`"
-							>
-								<input type="hidden" name="schema" value="DND_CHARACTER_SHEET"/>
-								//
-								<label for="game_id">
-									Game:
-									<select name="game_id" @change="view = ($event.target.value === $store.game?.id) ? 'All_OwnerInfo_GameInfo' : 'All_GameInfo'">
-										<option value="">None</option>
-										for _, game := range slices.Concat(GetPlayPage(ctx).User.HostedGames, GetPlayPage(ctx).User.JoinedGames) {
-											<option value={ game.ID.String() }>{ game.Name }</option>
-										}
-									</select>
-								</label>
-								//
-								<label for="name">
-									Name:
-									<input type="text" name="name"/>
-								</label>
-								//
-								<input type="submit" value="Create"/>
-							</form>
-						}
+						@userPDFs()
 					}
-					@StaticTabContent("game-pdfs", "Game PDFs") {
-						if GetPlayPage(ctx).Game != nil {
-							<table>
-								<caption>
-									Character Sheets
-									<button class="icon-btn">
-										<iconify-icon icon="material-symbols:add"></iconify-icon>
-									</button>
-								</caption>
-								<tbody>
-									for _, pdf := range GetPlayPage(ctx).Game.PDFs {
-										@PDFTableRow(pdf)
-									}
-								</tbody>
-							</table>
+					if GetPlayPage(ctx).Game != nil {
+						@StaticTabContent("game-pdfs", "Game PDFs") {
+							@gamePDFs()
 						}
 					}
 					@StaticTabContent("maps", "Maps") {
@@ -105,57 +52,60 @@ templ Play() {
 	}
 }
 
-templ NewPDFTableRow(pdf *domain.PDF) {
-	<tbody hx-swap-oob="beforeend:.user-pdfs tbody">
-		@PDFTableRow(pdf)
-	</tbody>
-	if pdf.Owner != nil {
-		<tbody hx-swap-oob="beforeend:.game-pdfs tbody">
-			@PDFTableRow(pdf)
+templ userPDFs() {
+	<table>
+		<caption>
+			Character Sheets
+			<button class="icon-btn" @click="$dispatch('show-create-pdf-modal')">
+				<iconify-icon icon="material-symbols:add"></iconify-icon>
+			</button>
+		</caption>
+		<tbody>
+			for _, pdf := range GetPlayPage(ctx).User.PDFs {
+				@PDFTableRow(pdf)
+			}
 		</tbody>
+	</table>
+	@Modal("create-pdf-modal", "Create PDF", "show-create-pdf-modal") {
+		<form
+			x-data="{ view: 'All_GameInfo' }"
+			x-init="$watch('view', () => htmx.process($el))"
+			:hx-post="`/play-materials/pdfs?view=${view}`"
+		>
+			<input type="hidden" name="schema" value="DND_CHARACTER_SHEET"/>
+			//
+			<label for="game_id">
+				Game:
+				<select name="game_id" @change="view = ($event.target.value === $store.game?.id) ? 'All_OwnerInfo_GameInfo' : 'All_GameInfo'">
+					<option value="">None</option>
+					for _, game := range slices.Concat(GetPlayPage(ctx).User.HostedGames, GetPlayPage(ctx).User.JoinedGames) {
+						<option value={ game.ID.String() }>{ game.Name }</option>
+					}
+				</select>
+			</label>
+			//
+			<label for="name">
+				Name:
+				<input type="text" name="name"/>
+			</label>
+			//
+			<input type="submit" value="Create"/>
+		</form>
 	}
 }
 
-templ PDFTableRow(pdf *domain.PDF) {
-	<tr x-data data-pdf-id={ pdf.ID.String() }>
-		<td>
-			<button
-				class="underline-btn"
-				@click="$dispatch('show-pdf-tab-container', { tabID: $root.dataset.pdfId })"
-				:hx-get="`/play-materials/pdfs/${$root.dataset.pdfId}`"
-				hx-swap="none"
-			>
-				{ pdf.Name }
-			</button>
-		</td>
-		if pdf.Game != nil {
-			<td>{ pdf.Game.Name }</td>
-		} else {
-			<td>{ pdf.Owner.Username }</td>
-		}
-		<td>
-			<button class="icon-btn" :hx-delete="`/play-materials/pdfs/${$root.dataset.pdfId}`">
-				<iconify-icon icon="material-symbols:delete"></iconify-icon>
-			</button>
+templ gamePDFs() {
+	<table>
+		<caption>
+			Character Sheets
 			<button class="icon-btn">
-				<iconify-icon icon="material-symbols:edit"></iconify-icon>
+				<iconify-icon icon="material-symbols:add"></iconify-icon>
 			</button>
-		</td>
-	</tr>
-}
-
-templ PDFTab(pdf *domain.PDF) {
-	<div hx-swap-oob="beforeend:.pdf-tab-container .buttons">
-		@DynamicTabButton(pdf.Name, pdf.ID.String())
-	</div>
-	<div hx-swap-oob="beforeend:.pdf-tab-container .contents">
-		@DynamicTabContent(pdf.ID.String()) {
-			@PDFViewer(pdf, []string{"main", "info", "spells"})
-		}
-	</div>
-}
-
-templ DeletePDF(pdfID uuid.UUID) {
-    <div hx-swap-oob={ F("outerHTML:.pdf-tab-container [data-tab-id='%s']", pdfID) }></div>
-    <div hx-swap-oob={ F("outerHTML:[data-pdf-id='%s']", pdfID) }></div>
+		</caption>
+		<tbody>
+			for _, pdf := range GetPlayPage(ctx).Game.PDFs {
+				@PDFTableRow(pdf)
+			}
+		</tbody>
+	</table>
 }

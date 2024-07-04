@@ -73,7 +73,7 @@ func main() {
 		},
 	}
 
-	// Create a Service
+	// Create a Service.
 	svc := &service.Service{
 		DB:     db,
 		PS:     ps,
