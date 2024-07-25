@@ -1,11 +1,20 @@
+@use "../../colors.scss" as *;
 @use "../../mixins.scss" as *;
 
 .nav-bar {
+  position: relative;
   display: flex;
-  gap: 15px;
+  gap: 10px;
+  align-items: center;
 
   .games-btn {
-    font-size: 1.5rem;
+    font-size: 2rem;
+  }
+
+  .rolls {
+    height: 100%;
+    background: $bg2;
+    flex: 2;
   }
 
   .games-modal .wrapper table {
@@ -20,5 +29,53 @@
 
   .create-game-modal .wrapper form {
     @include basic-form;
+  }
+
+  .roll-calculator {
+    display: flex;
+    gap: 10px;
+    height: 100%;
+    align-items: center;
+    transition: 0.2s;
+
+    &:hover {
+      .expander {
+        grid-template-columns: 1fr;
+        transition-delay: 0s;
+      }
+    }
+
+    .submit-btn {
+      font-size: 2rem;
+    }
+
+    .expander {
+      display: grid;
+      height: 100%;
+      grid-template-columns: 0fr;
+      transition: grid-template-columns 0.2s ease-out;
+      transition-delay: 1s;
+
+      .inner {
+        display: flex;
+        gap: 10px;
+        overflow: hidden;
+        align-items: center;
+
+        input,
+        select {
+          height: 100%;
+        }
+
+        .dice-preview {
+          display: flex;
+          align-items: center;
+
+          .icon-btn {
+            font-size: 1.5rem;
+          }
+        }
+      }
+    }
   }
 }
