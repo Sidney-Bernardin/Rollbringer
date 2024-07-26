@@ -12,9 +12,20 @@
   }
 
   .rolls {
+    display: flex;
+    gap: 10px;
+    width: 100%;
     height: 100%;
     background: $bg2;
+    overflow-x: scroll;
     flex: 2;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+
+    .roll {
+      display: flex;
+      gap: 2px;
+    }
   }
 
   .games-modal .wrapper table {

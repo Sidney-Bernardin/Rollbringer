@@ -44,16 +44,17 @@ func (h *Handler) HandleWebSocket(conn *websocket.Conn) {
 		r              = conn.Request()
 		ctx, cancelCtx = context.WithCancel(r.Context())
 
+		session, _ = r.Context().Value("session").(*domain.Session)
+		gameID, _  = uuid.Parse(r.URL.Query().Get("g"))
+
 		incomingChan = make(chan domain.Event)
 		outgoingChan = make(chan domain.Event)
 		errChan      = make(chan error)
-
-		gameID, _ = uuid.Parse(r.URL.Query().Get("g"))
 	)
 
 	defer cancelCtx()
 
-	go h.Service.DoEvents(ctx, gameID, incomingChan, outgoingChan, errChan)
+	go h.Service.DoEvents(ctx, session, gameID, incomingChan, outgoingChan, errChan)
 
 	go func() {
 		defer cancelCtx()
@@ -106,6 +107,8 @@ func (h *Handler) eventToComponent(e domain.Event) templ.Component {
 
 	case *domain.EventPDFFields:
 		return views.PDFViewerFields(event.PDFID, event.Fields)
+	case *domain.EventRoll:
+		return play.Roll(event.Roll)
 	}
 
 	return templ.NopComponent

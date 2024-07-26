@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -14,6 +15,8 @@ const (
 	OperationPDFFields      = "PDF_FIELDS"
 	OperationSubToPDF       = "SUB_TO_PDF"
 	OperationUpdatePDFField = "UPDATE_PDF_FIELD"
+	OperationCreateRoll     = "CREATE_ROLL"
+	OperationRoll           = "ROLL"
 )
 
 type Event interface {
@@ -51,6 +54,10 @@ func DecodeJSONEvent(ctx context.Context, eventBytes []byte) (Event, error) {
 		event = &EventSubToPDF{}
 	case OperationUpdatePDFField:
 		event = &EventUpdatePDFField{}
+	case OperationCreateRoll:
+		event = &EventCreateRoll{}
+	case OperationRoll:
+		event = &EventRoll{}
 	default:
 		return nil, &NormalError{
 			Instance: ctx.Value(CtxKeyInstance).(string),
@@ -73,9 +80,9 @@ func DecodeJSONEvent(ctx context.Context, eventBytes []byte) (Event, error) {
 type EventPDFFields struct {
 	BaseEvent
 
-	PDFID   uuid.UUID         `json:"pdf_id"`
-	PageNum int               `json:"page_num,string"`
-	Fields  map[string]string `json:"fields"`
+	PDFID   uuid.UUID         `json:"pdf_id,omitempty"`
+	PageNum int               `json:"page_num,string,omitempty"`
+	Fields  map[string]string `json:"fields,omitempty"`
 }
 
 func (event *EventPDFFields) Validate(ctx context.Context) error {
@@ -93,8 +100,8 @@ func (event *EventPDFFields) Validate(ctx context.Context) error {
 type EventSubToPDF struct {
 	BaseEvent
 
-	PDFID   uuid.UUID `json:"pdf_id"`
-	PageNum int       `json:"page_num,string"`
+	PDFID   uuid.UUID `json:"pdf_id,omitempty"`
+	PageNum int       `json:"page_num,string,omitempty"`
 }
 
 func (event *EventSubToPDF) Validate(ctx context.Context) error {
@@ -112,10 +119,10 @@ func (event *EventSubToPDF) Validate(ctx context.Context) error {
 type EventUpdatePDFField struct {
 	BaseEvent
 
-	PDFID      uuid.UUID `json:"pdf_id"`
-	PageNum    int       `json:"page_num,string"`
-	FieldName  string    `json:"field_name"`
-	FieldValue string    `json:"field_value"`
+	PDFID      uuid.UUID `json:"pdf_id,omitempty"`
+	PageNum    int       `json:"page_num,string,omitempty"`
+	FieldName  string    `json:"field_name,omitempty"`
+	FieldValue string    `json:"field_value,omitempty"`
 }
 
 func (event *EventUpdatePDFField) Validate(ctx context.Context) error {
@@ -141,6 +148,30 @@ func (event *EventUpdatePDFField) Validate(ctx context.Context) error {
 			Type:     NETypeInvalidPDFFieldName,
 			Detail:   "Field name cannot have spaces.",
 		}
+	}
+
+	return nil
+}
+
+type EventCreateRoll struct {
+	BaseEvent
+
+	Dice     string `json:"dice,omitempty"`
+	Modifier string `json:"modifier,omitempty"`
+}
+
+func (*EventCreateRoll) Validate(ctx context.Context) error {
+	return nil
+}
+
+type EventRoll struct {
+	BaseEvent
+	*Roll
+}
+
+func (event *EventRoll) Validate(ctx context.Context) error {
+	if err := event.Roll.validate(ctx); err != nil {
+		return errors.Wrap(err, "invalid roll")
 	}
 
 	return nil

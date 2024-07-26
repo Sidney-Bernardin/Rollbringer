@@ -7,8 +7,10 @@ import (
 
 templ NavBar() {
 	<div x-data class="nav-bar">
-		@rollCalculator()
-		@rolls()
+		if GetPlayPage(ctx).Game != nil {
+			@rollCalculator()
+			@rolls()
+		}
 		<button class="games-btn icon-btn" @click="$dispatch('show-games-modal')">
 			<iconify-icon icon="ic:baseline-meeting-room"></iconify-icon>
 		</button>
@@ -79,14 +81,26 @@ templ rollCalculator() {
 				</div>
 				//
 				<input type="hidden" name="dice" :value="selectedDice"/>
-				<input type="text" name="modifire" placeholder="Modifire"/>
+				<input type="text" name="modifier" placeholder="Modifier"/>
 			</div>
 		</div>
 	</form>
 }
 
 templ rolls() {
-	<div class="rolls"></div>
+	<div class="rolls">
+		for _, roll := range GetPlayPage(ctx).Game.Rolls {
+			@Roll(roll)
+		}
+	</div>
+}
+
+templ Roll(roll *domain.Roll) {
+	<div class="roll" hx-swap-oob="beforeend:.nav-bar .rolls">
+		for _, result := range roll.DiceResults {
+			<p>{ S(result) }</p>
+		}
+	</div>
 }
 
 templ HostedGameRow(game *domain.Game) {

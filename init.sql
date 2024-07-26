@@ -41,6 +41,16 @@ CREATE TABLE pdfs (
     fields hstore[] NOT NULL
 );
 
+CREATE TABLE rolls (
+    id UUID PRIMARY KEY,
+
+    owner_id UUID NOT NULL REFERENCES users ON DELETE CASCADE,
+    game_id UUID NOT NULL REFERENCES games ON DELETE CASCADE,
+
+    dice_names int32[] NOT NULL,
+    dice_results int32[] NOT NULL
+);
+
 
 
 CREATE TABLE game_joined_users (

@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"fmt"
+	"math/rand"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -20,6 +22,23 @@ type Service struct {
 	OA *oauth.OAuth
 
 	Logger *zerolog.Logger
+
+	random *rand.Rand
+}
+
+func NewService(
+	db *database.Database,
+	ps *pubsub.PubSub,
+	oa *oauth.OAuth,
+	logger *zerolog.Logger,
+) *Service {
+	return &Service{
+		DB:     db,
+		PS:     ps,
+		OA:     oa,
+		Logger: logger,
+		random: rand.New(rand.NewSource(time.Now().UnixNano())),
+	}
 }
 
 func (svc *Service) GetPlayPage(ctx context.Context, session *domain.Session, gameID uuid.UUID) (page *domain.PlayPage, err error) {
@@ -66,6 +85,11 @@ func (svc *Service) GetPlayPage(ctx context.Context, session *domain.Session, ga
 		if err != nil {
 			return nil, errors.Wrap(err, "cannot get game players")
 		}
+
+		page.Game.Rolls, err = svc.DB.GetRollsForGame(ctx, gameID)
+		if err != nil {
+			return nil, errors.Wrap(err, "cannot get game rolls")
+		}
 	}
 
 	return page, nil
@@ -74,6 +98,7 @@ func (svc *Service) GetPlayPage(ctx context.Context, session *domain.Session, ga
 // DoEvents processes events. errChan closes before returning.
 func (svc *Service) DoEvents(
 	ctx context.Context,
+	session *domain.Session,
 	gameID uuid.UUID,
 	incomingChan <-chan domain.Event,
 	outgoingChan chan domain.Event,
@@ -154,16 +179,41 @@ func (svc *Service) DoEvents(
 					continue
 				}
 
-				pubEvent := domain.EventPDFFields{
+				err = svc.PS.Pub(ctx, pdfID.String(), &domain.EventPDFFields{
 					BaseEvent: domain.BaseEvent{Operation: domain.OperationPDFFields},
 					PDFID:     pdfID,
 					PageNum:   event.PageNum,
 					Fields: map[string]string{
 						event.FieldName: event.FieldValue,
 					},
+				})
+
+				if err != nil {
+					svc.Logger.Error().Stack().Err(err).Msg("Cannot publish event")
+					cancelPDFCtx()
+					return
 				}
 
-				if err := svc.PS.Pub(ctx, pdfID.String(), pubEvent); err != nil {
+			case *domain.EventCreateRoll:
+				eventCtx := context.WithValue(ctx, domain.CtxKeyInstance, domain.OperationCreateRoll)
+
+				roll, err := domain.NewRoll(ctx, svc.random, session.UserID, gameID, event.Dice)
+				if err != nil {
+					errChan <- errors.Wrap(err, "cannot insert roll")
+					continue
+				}
+
+				if err := svc.DB.InsertRoll(eventCtx, roll); err != nil {
+					errChan <- errors.Wrap(err, "cannot insert roll")
+					continue
+				}
+
+				err = svc.PS.Pub(ctx, gameID.String(), &domain.EventRoll{
+					BaseEvent: domain.BaseEvent{Operation: domain.OperationRoll},
+					Roll:      roll,
+				})
+
+				if err != nil {
 					svc.Logger.Error().Stack().Err(err).Msg("Cannot publish event")
 					cancelPDFCtx()
 					return

@@ -24,6 +24,8 @@ const (
 	NETypeInvalidPDFPageNumber NEType = "invalid_pdf_page_number"
 	NETypeInvalidPDFFieldName  NEType = "invalid_pdf_field_name"
 	NETypeNotSubscribedToPDF   NEType = "not_subscribed_to_pdf"
+
+	NETypeInvalidDie NEType = "invalid_die"
 )
 
 type NormalError struct {

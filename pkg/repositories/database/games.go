@@ -106,7 +106,7 @@ func (db *Database) GetGamesForHost(ctx context.Context, hostID uuid.UUID, view 
 		return nil, errors.Wrap(err, "cannot select games")
 	}
 
-	// Convert each model to domain.Game.
+	// Convert each model to a domain.Game.
 	ret := make([]*domain.Game, len(models))
 	for i, m := range models {
 		ret[i] = m.domain()
@@ -137,7 +137,7 @@ func (db *Database) GetJoinedGamesForUser(ctx context.Context, userID uuid.UUID,
 		return nil, errors.Wrap(err, "cannot select games")
 	}
 
-	// Convert each model to domain.Game.
+	// Convert each model to a domain.Game.
 	ret := make([]*domain.Game, len(models))
 	for i, m := range models {
 		ret[i] = m.domain()
@@ -149,7 +149,9 @@ func (db *Database) GetJoinedGamesForUser(ctx context.Context, userID uuid.UUID,
 func (db *Database) GetGame(ctx context.Context, gameID uuid.UUID, view domain.GameView) (*domain.Game, error) {
 
 	var joins string
-	if view == domain.GameViewAll_HostInfo {
+
+	switch view {
+	case domain.GameViewAll_HostInfo:
 		joins = `LEFT JOIN users ON users.id = games.host_id`
 	}
 

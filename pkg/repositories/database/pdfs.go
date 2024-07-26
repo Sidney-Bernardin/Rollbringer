@@ -90,7 +90,7 @@ func (db *Database) GetPDFsForOwner(ctx context.Context, ownerID uuid.UUID, view
 		return nil, errors.Wrap(err, "cannot select PDFs")
 	}
 
-	// Convert each model to domain.PDF.
+	// Convert each model to a domain.PDF.
 	ret := make([]*domain.PDF, len(models))
 	for i, m := range models {
 		ret[i] = m.domain()
@@ -122,7 +122,7 @@ func (db *Database) GetPDFsForGame(ctx context.Context, gameID uuid.UUID, view d
 		return nil, errors.Wrap(err, "cannot select PDFs")
 	}
 
-	// Convert each model to domain.PDF.
+	// Convert each model to a domain.PDF.
 	ret := make([]*domain.PDF, len(models))
 	for i, m := range models {
 		ret[i] = m.domain()

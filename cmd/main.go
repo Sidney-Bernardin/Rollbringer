@@ -51,19 +51,19 @@ func main() {
 	}
 
 	// Create a Database repository.
-	db, err := database.New(cfg.PostgresAddress)
+	dbRepo, err := database.New(cfg.PostgresAddress)
 	if err != nil {
 		logger.Fatal().Stack().Err(err).Msg("Cannot create database repository")
 	}
 
 	// Create a PubSub repository.
-	ps, err := pubsub.New(cfg.RedisAddress, cfg.RedisPassword)
+	pubsubRepo, err := pubsub.New(cfg.RedisAddress, cfg.RedisPassword)
 	if err != nil {
 		logger.Fatal().Stack().Err(err).Msg("Cannot create pub-sub repository")
 	}
 
 	// Create an OAuth repository.
-	oa := &oauth.OAuth{
+	oauthRepo := &oauth.OAuth{
 		GoogleConfig: &oauth2.Config{
 			Endpoint:     google.Endpoint,
 			ClientID:     cfg.GoogleClientID,
@@ -74,12 +74,7 @@ func main() {
 	}
 
 	// Create a Service.
-	svc := &service.Service{
-		DB:     db,
-		PS:     ps,
-		OA:     oa,
-		Logger: &logger,
-	}
+	svc := service.NewService(dbRepo, pubsubRepo, oauthRepo, &logger)
 
 	// Create a Handler.
 	h := &handler.Handler{

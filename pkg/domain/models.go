@@ -1,6 +1,15 @@
 package domain
 
-import "github.com/google/uuid"
+import (
+	"context"
+	"fmt"
+	"math/rand"
+	"slices"
+	"strconv"
+	"strings"
+
+	"github.com/google/uuid"
+)
 
 type PlayPage struct {
 	LoggedIn bool
@@ -76,6 +85,7 @@ type Game struct {
 
 	Players []*User `json:"players,omitempty"`
 	PDFs    []*PDF  `json:"pdfs,omitempty"`
+	Rolls   []*Roll `json:"rolls,omitempty"`
 }
 
 // =====
@@ -108,4 +118,74 @@ type PDF struct {
 	Name   string              `json:"name,omitempty"`
 	Schema string              `json:"schema,omitempty"`
 	Fields []map[string]string `json:"fields,omitempty"`
+}
+
+// =====
+
+type RollView int
+
+const (
+	RollViewAll RollView = iota
+)
+
+var RollViews = map[string]RollView{
+	"All": RollViewAll,
+}
+
+type Roll struct {
+	ID uuid.UUID `json:"id,omitempty"`
+
+	OwnerID uuid.UUID `json:"owner_id,omitempty"`
+	Owner   *User     `json:"owner,omitempty"`
+
+	GameID uuid.UUID `json:"game_id,omitempty"`
+	Game   *Game     `json:"game,omitempty"`
+
+	DiceNames   []int32 `json:"dice_names,omitempty"`
+	DiceResults []int32 `json:"dice_results,omitempty"`
+}
+
+var validDiceNames = []int{4, 6, 8, 10, 12, 20}
+
+func NewRoll(ctx context.Context, random *rand.Rand, ownerID, gameID uuid.UUID, diceNamesStr string) (*Roll, error) {
+
+	roll := &Roll{
+		OwnerID:     ownerID,
+		GameID:      gameID,
+		DiceNames:   []int32{},
+		DiceResults: []int32{},
+	}
+
+	for _, dieNameStr := range strings.Split(diceNamesStr, "d")[1:] {
+		dName, err := strconv.ParseInt(dieNameStr, 10, 32)
+		if err != nil {
+			return nil, &NormalError{
+				Instance: ctx.Value(CtxKeyInstance).(string),
+				Type:     NETypeInvalidDie,
+				Detail:   "Dice names must resemble 32-bit integers.",
+			}
+		}
+
+		roll.DiceNames = append(roll.DiceNames, int32(dName))
+	}
+
+	for _, dieName := range roll.DiceNames {
+		roll.DiceResults = append(roll.DiceResults, random.Int31n(dieName)+1)
+	}
+
+	return roll, nil
+}
+
+func (r *Roll) validate(ctx context.Context) error {
+	for die := range r.DiceNames {
+		if !slices.Contains(validDiceNames, die) {
+			return &NormalError{
+				Instance: ctx.Value(CtxKeyInstance).(string),
+				Type:     NETypeInvalidDie,
+				Detail:   fmt.Sprintf("d%v is an invalid dice.", die),
+			}
+		}
+	}
+
+	return nil
 }
