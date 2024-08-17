@@ -50,10 +50,3 @@ CREATE TABLE rolls (
     dice_names int32[] NOT NULL,
     dice_results int32[] NOT NULL
 );
-
-
-
-CREATE TABLE game_joined_users (
-    user_id UUID NOT NULL REFERENCES users,
-    game_id UUID NOT NULL REFERENCES games
-)

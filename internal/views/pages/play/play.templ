@@ -1,0 +1,110 @@
+package play
+
+import (
+	. "rollbringer/internal/views"
+	. "rollbringer/pkg/views/pages"
+	"slices"
+)
+
+templ Play() {
+	@Page("Play", "play.js") {
+		<body
+			hx-ext="ws"
+			hx-headers={ F(`{"CSRF-Token": "%s" }`, GetSession(ctx).CSRFToken) }
+			if game := GetPlayPage(ctx).Game; game != nil {
+				data-game-id={ game.ID.String() }
+				ws-connect={ F("/ws?g=%s", game.ID) }
+			} else {
+				ws-connect="/ws"
+			}
+		>
+			<div class="play-layout">
+				@NavBar()
+				@DynamicTabContainer("pdf-tab-container", "show-pdf-tab-container")
+				@DynamicTabContainer("map-tab-container", "show-map-tab-container")
+				@StaticTabContainer("play-materials-tab-container", "Your PDFs", "Game PDFs", "Maps") {
+					@StaticTabContent("user-pdfs", "Your PDFs") {
+						@userPDFs()
+					}
+					if GetPlayPage(ctx).Game != nil {
+						@StaticTabContent("game-pdfs", "Game PDFs") {
+							@gamePDFs()
+						}
+					}
+					@StaticTabContent("maps", "Maps") {
+						<h1>Maps</h1>
+					}
+				}
+				@StaticTabContainer("social-tab-container", "Chat", "Profile") {
+					@StaticTabContent("chat", "Chat") {
+						<h1>Chat</h1>
+					}
+					@StaticTabContent("profile", "Profile") {
+						<h1>Profile</h1>
+					}
+				}
+				<span class="gutter-2"></span>
+				<span class="gutter-3"></span>
+				<span class="gutter-4"></span>
+			</div>
+		</body>
+	}
+}
+
+templ userPDFs() {
+	<table>
+		<caption>
+			Character Sheets
+			<button class="icon-btn" @click="$dispatch('show-create-pdf-modal')">
+				<iconify-icon icon="material-symbols:add"></iconify-icon>
+			</button>
+		</caption>
+		<tbody>
+			for _, pdf := range GetPlayPage(ctx).User.PDFs {
+				@PDFTableRow(pdf)
+			}
+		</tbody>
+	</table>
+	@Modal("create-pdf-modal", "Create PDF", "show-create-pdf-modal") {
+		<form
+			x-data="{ view: 'All_GameInfo' }"
+			x-init="$watch('view', () => htmx.process($el))"
+			:hx-post="`/play-materials/pdfs?view=${view}`"
+		>
+			<input type="hidden" name="schema" value="DND_CHARACTER_SHEET"/>
+			//
+			<label for="game_id">
+				Game:
+				<select name="game_id" @change="view = ($event.target.value === $store.game?.id) ? 'All_OwnerInfo_GameInfo' : 'All_GameInfo'">
+					<option value="">None</option>
+					for _, game := range slices.Concat(GetPlayPage(ctx).User.HostedGames, GetPlayPage(ctx).User.JoinedGames) {
+						<option value={ game.ID.String() }>{ game.Name }</option>
+					}
+				</select>
+			</label>
+			//
+			<label for="name">
+				Name:
+				<input type="text" name="name"/>
+			</label>
+			//
+			<input type="submit" value="Create"/>
+		</form>
+	}
+}
+
+templ gamePDFs() {
+	<table>
+		<caption>
+			Character Sheets
+			<button class="icon-btn">
+				<iconify-icon icon="material-symbols:add"></iconify-icon>
+			</button>
+		</caption>
+		<tbody>
+			for _, pdf := range GetPlayPage(ctx).Game.PDFs {
+				@PDFTableRow(pdf)
+			}
+		</tbody>
+	</table>
+}

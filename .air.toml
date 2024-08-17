@@ -1,5 +1,5 @@
 [build]
-pre_cmd = ["templ generate -path ./pkg/views"]
+pre_cmd = ["templ generate -path ./internal/views"]
 cmd = "go build -o ./tmp/main ./cmd"
 
 exclude_dir = ["Docker", "tmp", "web", "node_modules"]
