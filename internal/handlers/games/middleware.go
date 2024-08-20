@@ -1,4 +1,4 @@
-package handler
+package games
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"rollbringer/internal"
 )
 
-func (h *gamesHandler) Authenticate(next http.Handler) http.Handler {
+func (h *handler) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		stCookie, err := r.Cookie("SESSION_ID")

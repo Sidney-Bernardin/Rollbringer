@@ -1,4 +1,4 @@
-package service
+package games
 
 import (
 	"context"
@@ -9,16 +9,17 @@ import (
 	"time"
 
 	"rollbringer/internal"
-	"rollbringer/internal/services"
 	"rollbringer/internal/config"
 	database "rollbringer/internal/repositories/databases/games"
 	"rollbringer/internal/repositories/pubsub"
+	"rollbringer/internal/services"
 
 	"github.com/google/uuid"
 )
 
-type GamesService interface {
+type Service interface {
 	services.Servicer
+
 	Authenticate(ctx context.Context, sessionID uuid.UUID, csrfToken string) (*internal.Session, error)
 }
 
@@ -26,12 +27,12 @@ type service struct {
 	*services.Service
 
 	ps *pubsub.PubSub
-	db database.GamesDatabase
+	db *database.GamesDatabase
 
 	random *rand.Rand
 }
 
-func New(cfg *config.Config, logger *slog.Logger, ps *pubsub.PubSub, db database.GamesDatabase) GamesService {
+func NewService(cfg *config.Config, logger *slog.Logger, ps *pubsub.PubSub, db *database.GamesDatabase) Service {
 	return &service{
 		Service: &services.Service{
 			Config: cfg,

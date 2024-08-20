@@ -28,7 +28,7 @@ func init() {
 			return nil, errors.Wrap(err, "cannot create database repository")
 		}
 
-		svc := service.New(cfg, logger, ps, db)
-		return handler.New(cfg, logger, svc), nil
+		svc := service.NewService(cfg, logger, ps, db)
+		return handler.NewHandler(cfg, logger, svc), nil
 	}
 }

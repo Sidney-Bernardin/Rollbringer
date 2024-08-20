@@ -22,7 +22,7 @@ func init() {
 			return nil, errors.Wrap(err, "cannot create pubsub repository")
 		}
 
-		svc := service.New(cfg, logger, ps)
-		return handler.New(cfg, logger, svc), nil
+		svc := service.NewService(cfg, logger, ps)
+		return handler.NewHandler(cfg, logger, svc), nil
 	}
 }

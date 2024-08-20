@@ -1,24 +1,30 @@
-package handler
+package games
 
 import (
 	"log/slog"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
 
 	"rollbringer/internal/config"
 	"rollbringer/internal/handlers"
 	service "rollbringer/internal/services/games"
 )
 
-type gamesHandler struct {
+type handler struct {
 	*handlers.Handler
 
-	svc service.GamesService
+	svc service.Service
 }
 
-func New(cfg *config.Config, logger *slog.Logger, svc service.GamesService) *gamesHandler {
-	h := &gamesHandler{
-		Handler: handlers.NewHandler(cfg, logger),
-		svc:     svc,
+func NewHandler(cfg *config.Config, logger *slog.Logger, svc service.Service) *handler {
+	h := &handler{
+		Handler: &handlers.Handler{
+			Config: cfg,
+			Logger: logger,
+			Router: chi.NewRouter(),
+		},
+		svc: svc,
 	}
 
 	h.Router.Use(h.Log, h.Instance, h.Authenticate)
@@ -28,5 +34,5 @@ func New(cfg *config.Config, logger *slog.Logger, svc service.GamesService) *gam
 	return h
 }
 
-func (h *gamesHandler) HandleCreateGame(w http.ResponseWriter, r *http.Request) {}
-func (h *gamesHandler) HandleDeleteGame(w http.ResponseWriter, r *http.Request) {}
+func (h *handler) HandleCreateGame(w http.ResponseWriter, r *http.Request) {}
+func (h *handler) HandleDeleteGame(w http.ResponseWriter, r *http.Request) {}

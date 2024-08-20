@@ -1,8 +1,7 @@
-package service
+package pages
 
 import (
 	"context"
-	"encoding"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -13,6 +12,7 @@ import (
 	"rollbringer/internal"
 	"rollbringer/internal/config"
 	"rollbringer/internal/repositories/pubsub"
+	"rollbringer/internal/services"
 )
 
 type PlayPage struct {
@@ -22,23 +22,26 @@ type PlayPage struct {
 	Game *internal.Game
 }
 
-type PagesService interface {
+type Service interface {
+	services.Servicer
+
 	PlayPage(ctx context.Context, session *internal.Session, gameID uuid.UUID) (*PlayPage, error)
 	Authenticate(ctx context.Context, sessionID uuid.UUID, csrfToken string) (*internal.Session, error)
 }
 
 type service struct {
-	cfg    *config.Config
-	logger *slog.Logger
+	*services.Service
 
 	ps *pubsub.PubSub
 }
 
-func New(cfg *config.Config, logger *slog.Logger, ps *pubsub.PubSub) PagesService {
+func NewService(cfg *config.Config, logger *slog.Logger, ps *pubsub.PubSub) Service {
 	return &service{
-		cfg:    cfg,
-		logger: logger,
-		ps:     ps,
+		Service: &services.Service{
+			Config: cfg,
+			Logger: logger,
+		},
+		ps: ps,
 	}
 }
 

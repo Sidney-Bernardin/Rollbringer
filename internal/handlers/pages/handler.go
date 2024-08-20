@@ -1,4 +1,4 @@
-package handler
+package pages
 
 import (
 	"context"
@@ -16,18 +16,18 @@ import (
 	"rollbringer/internal/views/pages/play"
 )
 
-type pagesHandler struct {
+type handler struct {
 	*handlers.Handler
 
-	svc service.PagesService
+	svc service.Service
 }
 
-func New(cfg *config.Config, logger *slog.Logger, service service.PagesService) *pagesHandler {
-	h := &pagesHandler{
+func NewHandler(cfg *config.Config, logger *slog.Logger, service service.Service) *handler {
+	h := &handler{
 		Handler: &handlers.Handler{
-			Router: chi.NewRouter(),
 			Config: cfg,
 			Logger: logger,
+			Router: chi.NewRouter(),
 		},
 		svc: service,
 	}
@@ -38,7 +38,7 @@ func New(cfg *config.Config, logger *slog.Logger, service service.PagesService) 
 	return h
 }
 
-func (h *pagesHandler) HandlePlayPage(w http.ResponseWriter, r *http.Request) {
+func (h *handler) HandlePlayPage(w http.ResponseWriter, r *http.Request) {
 
 	var (
 		session, _ = r.Context().Value("session").(*internal.Session)

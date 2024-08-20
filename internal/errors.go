@@ -1,7 +1,9 @@
 package internal
 
 import (
+	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/pkg/errors"
 )
@@ -46,4 +48,18 @@ func (pd *ProblemDetail) Error() string {
 func IsDetailed(err error, t PDType) bool {
 	pd, ok := errors.Cause(err).(*ProblemDetail)
 	return ok && pd.Type == t
+}
+
+func HandleError(ctx context.Context, logger *slog.Logger, err error) *ProblemDetail {
+	pd, ok := errors.Cause(err).(*ProblemDetail)
+	if !ok {
+		logger.Error("Server error", "err", err.Error())
+
+		instance, _ := ctx.Value(CtxKeyInstance).(string)
+		pd = &ProblemDetail{
+			Type:     PDTypeServerError,
+			Instance: instance,
+		}
+	}
+	return pd
 }

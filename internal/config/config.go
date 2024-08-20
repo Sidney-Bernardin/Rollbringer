@@ -9,22 +9,22 @@ import (
 type Config struct {
 	Address string `required:"true" split_words:"true"`
 
-	GoogleClientID     string `required:"true" split_words:"true"`
-	GoogleClientSecret string `required:"true" split_words:"true"`
+	UsersGoogleClientID     string        `required:"true" split_words:"true"`
+	UsersGoogleClientSecret string        `required:"true" split_words:"true"`
+	UsersRedirectURL        string        `required:"true" split_words:"true"`
+	UsersSessionTimeout     time.Duration `required:"true" split_words:"true"`
 
-	RedirectURL        string        `required:"true" split_words:"true"`
-	UserSessionTimeout time.Duration `required:"true" split_words:"true"`
+	NATSHostname                     string        `required:"false" split_words:"true"`
+	NATSPort                         int           `required:"false" split_words:"true"`
+	NATSEmbeddedServer               bool          `required:"false" default:"true" split_words:"true"`
+	NATSEmbeddedServerListen         bool          `required:"false" split_words:"true"`
+	NATSEmbeddedServerStartupTimeout time.Duration `required:"true" split_words:"true"`
 
 	PostgresAddress string `required:"true" split_words:"true"`
-
-	NATSEmbeddedServer               bool          `required:"true" split_words:"true"`
-	NATSListenWithEmbeddedServer     bool          `required:"true" split_words:"true"`
-	NATSEmbeddedServerStartupTimeout time.Duration `required:"true" split_words:"true"`
-	NATSHostname                     string        `required:"true" split_words:"true"`
-	NATSPort                         int           `required:"true" split_words:"true"`
 }
 
-func New() (cfg *Config, err error) {
-	err = envconfig.Process("APP", &cfg)
-	return cfg, err
+func New() (*Config, error) {
+	var cfg Config
+	err := envconfig.Process("APP", &cfg)
+	return &cfg, err
 }

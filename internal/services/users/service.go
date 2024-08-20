@@ -1,25 +1,29 @@
-package service
+package users
 
 import (
 	"log/slog"
 
 	"rollbringer/internal/config"
 	"rollbringer/internal/repositories/pubsub"
+	"rollbringer/internal/services"
 )
 
-type UsersService interface{}
+type Service interface {
+	services.Servicer
+}
 
 type service struct {
-	cfg    *config.Config
-	logger *slog.Logger
+	*services.Service
 
 	ps *pubsub.PubSub
 }
 
-func New(cfg *config.Config, logger *slog.Logger, ps *pubsub.PubSub) UsersService {
+func NewService(cfg *config.Config, logger *slog.Logger, ps *pubsub.PubSub) Service {
 	return &service{
-		cfg:    cfg,
-		logger: logger,
-		ps:     ps,
+		Service: &services.Service{
+			Config: cfg,
+			Logger: logger,
+		},
+		ps: ps,
 	}
 }

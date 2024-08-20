@@ -10,18 +10,10 @@ import (
 )
 
 type Handler struct {
-	Logger *slog.Logger
 	Config *config.Config
+	Logger *slog.Logger
 
 	Router *chi.Mux
-}
-
-func NewHandler(cfg *config.Config, logger *slog.Logger) *Handler {
-	return &Handler{
-		Logger: logger,
-		Config: cfg,
-		Router: chi.NewRouter(),
-	}
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

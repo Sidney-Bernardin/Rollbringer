@@ -18,7 +18,7 @@ var natsServer *server.Server
 
 func StartEmbeddedServer(cfg *config.Config) (err error) {
 	natsServer, err := server.NewServer(&server.Options{
-		DontListen: !cfg.NATSListenWithEmbeddedServer,
+		DontListen: !cfg.NATSEmbeddedServerListen,
 		Host:       cfg.NATSHostname,
 		Port:       cfg.NATSPort,
 	})
@@ -74,8 +74,8 @@ func (ps *PubSub) Publish(ctx context.Context, subject string, data internal.Eve
 	if err != nil {
 		return &internal.ProblemDetail{
 			Instance: ctx.Value(internal.CtxKeyInstance).(string),
-			Type:     internal.PDTypeInvalidJSON,
-			Detail:   fmt.Sprintf("Invalid JSON: %v", err),
+			Type:     internal.PDTypeInvalidEvent,
+			Detail:   err.Error(),
 		}
 	}
 
@@ -88,7 +88,6 @@ func (ps *PubSub) Request(ctx context.Context, subject string, data []byte) ([]b
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot request")
 	}
-
 	return msg.Data, nil
 }
 
@@ -116,8 +115,8 @@ func (ps *PubSub) Subscribe(
 		if err != nil {
 			errChan <- &internal.ProblemDetail{
 				Instance: ctx.Value(internal.CtxKeyInstance).(string),
-				Type:     internal.PDTypeInvalidJSON,
-				Detail:   fmt.Sprintf("Invalid JSON: %v", err),
+				Type:     internal.PDTypeInvalidEvent,
+				Detail:   err.Error(),
 			}
 		}
 

@@ -1,4 +1,4 @@
-package handler
+package users
 
 import (
 	"log/slog"
@@ -14,15 +14,15 @@ import (
 type usersHandler struct {
 	*handlers.Handler
 
-	service service.UsersService
+	service users.Service
 }
 
-func New(cfg *config.Config, logger *slog.Logger, service service.UsersService) *usersHandler {
+func NewHandler(cfg *config.Config, logger *slog.Logger, service users.Service) *usersHandler {
 	h := &usersHandler{
 		Handler: &handlers.Handler{
-			Router: chi.NewRouter(),
 			Config: cfg,
 			Logger: logger,
+			Router: chi.NewRouter(),
 		},
 		service: service,
 	}

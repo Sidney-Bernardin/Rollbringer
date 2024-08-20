@@ -34,6 +34,7 @@ func main() {
 		router.Mount(pattern, svcHandler)
 	}
 
+	logger.Info("Listening on "+cfg.Address)
 	err = http.ListenAndServe(cfg.Address, router)
 	logger.Error("Server stopped", "err", err.Error())
 }

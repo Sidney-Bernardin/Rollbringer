@@ -2,14 +2,12 @@ package views
 
 import (
 	"fmt"
-	"strings"
-
 	"github.com/google/uuid"
-
-	"rollbringer/internal/domain"
+	"rollbringer/internal"
+	"strings"
 )
 
-templ PDFViewer(pdf *domain.PDF, pages []string) {
+templ PDFViewer(pdf *internal.PDF, pages []string) {
 	<div
 		class="pdf-viewer"
 		data-pdf-id={ pdf.ID.String() }
