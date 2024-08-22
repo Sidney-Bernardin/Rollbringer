@@ -40,6 +40,21 @@ type ProblemDetail struct {
 	Extra    map[string]any
 }
 
+type PDOptions struct {
+	Type   PDType
+	Detail string
+	Extra  map[string]any
+}
+
+func NewProblemDetail(ctx context.Context, opts *PDOptions) *ProblemDetail {
+	return &ProblemDetail{
+		Instance: ctx.Value(CtxKeyInstance).(string),
+		Type:     opts.Type,
+		Detail:   opts.Detail,
+		Extra:    opts.Extra,
+	}
+}
+
 func (pd *ProblemDetail) Error() string {
 	return fmt.Sprintf("%s: %s", pd.Type, pd.Detail)
 }
@@ -54,12 +69,9 @@ func HandleError(ctx context.Context, logger *slog.Logger, err error) *ProblemDe
 	pd, ok := errors.Cause(err).(*ProblemDetail)
 	if !ok {
 		logger.Error("Server error", "err", err.Error())
-
-		instance, _ := ctx.Value(CtxKeyInstance).(string)
-		pd = &ProblemDetail{
-			Type:     PDTypeServerError,
-			Instance: instance,
-		}
+		pd = NewProblemDetail(ctx, &PDOptions{
+			Type: PDTypeServerError,
+		})
 	}
 	return pd
 }

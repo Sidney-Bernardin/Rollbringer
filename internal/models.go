@@ -45,6 +45,11 @@ const (
 	GameViewAll_HostInfo
 )
 
+var GameViews = map[string]GameView{
+	"All":          GameViewAll,
+	"All_HostInfo": GameViewAll_HostInfo,
+}
+
 type Game struct {
 	ID uuid.UUID `json:"id,omitempty"`
 

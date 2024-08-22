@@ -49,22 +49,22 @@ func (db *UsersDatabase) SessionUpsert(ctx context.Context, session *internal.Se
 }
 
 func (db *UsersDatabase) SessionGet(ctx context.Context, sessionID uuid.UUID, view internal.SessionView) (*internal.Session, error) {
-
-	query := fmt.Sprintf(
-		`SELECT %s FROM sessions WHERE id = $1`,
-		sessionViewColumns[view],
-	)
+	columns, ok := sessionViewColumns[view]
+	if !ok {
+		return nil, fmt.Errorf("bad session view %d", view)
+	}
+	query := fmt.Sprintf(`SELECT %s FROM sessions WHERE id = $1`, columns)
 
 	var session dbSession
 	if err := sqlx.GetContext(ctx, db.TX, &session, query, sessionID); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, &internal.ProblemDetail{
+			return nil, internal.NewProblemDetail(ctx, &internal.PDOptions{
 				Type:   internal.PDTypeSessionNotFound,
 				Detail: "Can't find a session with the given session-ID.",
 				Extra: map[string]any{
 					"session_id": sessionID,
 				},
-			}
+			})
 		}
 
 		return nil, errors.Wrap(err, "cannot select session")

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/kelseyhightower/envconfig"
+	"github.com/pkg/errors"
 )
 
 type Config struct {
@@ -26,5 +27,5 @@ type Config struct {
 func New() (*Config, error) {
 	var cfg Config
 	err := envconfig.Process("APP", &cfg)
-	return &cfg, err
+	return &cfg, errors.Wrap(err, "cannot process configuration")
 }

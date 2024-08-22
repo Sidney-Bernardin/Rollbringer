@@ -53,10 +53,11 @@ func (db *GamesDatabase) GamesCount(ctx context.Context, hostID uuid.UUID) (coun
 }
 
 func (db *GamesDatabase) GamesGetForHost(ctx context.Context, hostID uuid.UUID, view internal.GameView) ([]*internal.Game, error) {
-	query := fmt.Sprintf(
-		`SELECT %s FROM games WHERE games.host_id = $1`,
-		gameViewColumns[view],
-	)
+	columns, ok := gameViewColumns[view]
+	if !ok {
+		return nil, fmt.Errorf("bad game view %d", view)
+	}
+	query := fmt.Sprintf(`SELECT %s FROM games WHERE games.host_id = $1`, columns)
 
 	var games []*dbGame
 	if err := sqlx.SelectContext(ctx, db.TX, &games, query, hostID); err != nil {
@@ -73,21 +74,22 @@ func (db *GamesDatabase) GamesGetForHost(ctx context.Context, hostID uuid.UUID, 
 }
 
 func (db *GamesDatabase) GameGet(ctx context.Context, gameID uuid.UUID, view internal.GameView) (*internal.Game, error) {
-	query := fmt.Sprintf(
-		`SELECT %s FROM games WHERE games.id = $1`,
-		gameViewColumns[view],
-	)
+	columns, ok := gameViewColumns[view]
+	if !ok {
+		return nil, fmt.Errorf("bad game view %d", view)
+	}
+	query := fmt.Sprintf(`SELECT %s FROM games WHERE games.id = $1`, columns)
 
 	var game dbGame
 	if err := sqlx.GetContext(ctx, db.TX, &game, query, gameID); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, &internal.ProblemDetail{
+			return nil, internal.NewProblemDetail(ctx, &internal.PDOptions{
 				Type:   internal.PDTypeGameNotFound,
 				Detail: "Can't find a game with the given game-ID.",
 				Extra: map[string]any{
 					"game_id": gameID,
 				},
-			}
+			})
 		}
 
 		return nil, errors.Wrap(err, "cannot select game")

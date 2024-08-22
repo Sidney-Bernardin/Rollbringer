@@ -48,22 +48,22 @@ func (db *UsersDatabase) UserInsert(ctx context.Context, user *internal.User) er
 }
 
 func (db *UsersDatabase) UserGet(ctx context.Context, userID uuid.UUID, view internal.UserView) (*internal.User, error) {
-
-	query := fmt.Sprintf(
-		`SELECT %s FROM users WHERE id = $1`,
-		userViewColumns[view],
-	)
+	columns, ok := userViewColumns[view]
+	if !ok {
+		return nil, fmt.Errorf("bad user view %d", view)
+	}
+	query := fmt.Sprintf(`SELECT %s FROM users WHERE id = $1`, columns)
 
 	var user dbUser
 	if err := sqlx.GetContext(ctx, db.TX, &user, query, userID); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, &internal.ProblemDetail{
+			return nil, internal.NewProblemDetail(ctx, &internal.PDOptions{
 				Type:   internal.PDTypeUserNotFound,
 				Detail: "Can't find a user with the given user-ID.",
 				Extra: map[string]any{
 					"user_id": userID,
 				},
-			}
+			})
 		}
 
 		return nil, errors.Wrap(err, "cannot select user")

@@ -17,6 +17,7 @@ const (
 	ETPdfFields      eventType = "PDF_FIELDS"
 	ETUpdatePDFField eventType = "UPDATE_PDF_FIELD"
 	ETCreateRoll     eventType = "CREATE_ROLL"
+	ETGame           eventType = "GAME"
 	ETRoll           eventType = "ROLL"
 )
 
@@ -37,11 +38,10 @@ func (e BaseEvent) GetHeaders() map[string]any {
 func JSONEncodeEvent(ctx context.Context, event Event) ([]byte, error) {
 	eventBytes, err := json.Marshal(event)
 	if err != nil {
-		return nil, &ProblemDetail{
-			Instance: ctx.Value(CtxKeyInstance).(string),
-			Type:     PDTypeInvalidEvent,
-			Detail:   err.Error(),
-		}
+		return nil, NewProblemDetail(ctx, &PDOptions{
+			Type:   PDTypeInvalidEvent,
+			Detail: err.Error(),
+		})
 	}
 	return eventBytes, nil
 }
@@ -50,11 +50,10 @@ func JSONDecodeEvent(ctx context.Context, eventBytes []byte) (Event, error) {
 
 	var baseEvent BaseEvent
 	if err := json.Unmarshal(eventBytes, &baseEvent); err != nil {
-		return nil, &ProblemDetail{
-			Instance: ctx.Value(CtxKeyInstance).(string),
-			Type:     PDTypeInvalidEvent,
-			Detail:   err.Error(),
-		}
+		return nil, NewProblemDetail(ctx, &PDOptions{
+			Type:   PDTypeInvalidEvent,
+			Detail: err.Error(),
+		})
 	}
 
 	var event Event
@@ -72,19 +71,20 @@ func JSONDecodeEvent(ctx context.Context, eventBytes []byte) (Event, error) {
 	case ETRoll:
 		event = &EventRoll{}
 	default:
-		return nil, &ProblemDetail{
-			Instance: ctx.Value(CtxKeyInstance).(string),
-			Type:     PDTypeInvalidEvent,
-			Detail:   fmt.Sprintf("'%s' is an invalid event-type.", baseEvent.Type),
-		}
+		return nil, NewProblemDetail(ctx, &PDOptions{
+			Type:   PDTypeInvalidEvent,
+			Detail: fmt.Sprintf("'%s' is an invalid event-type.", baseEvent.Type),
+			Extra: map[string]any{
+				"event_type": baseEvent.Type,
+			},
+		})
 	}
 
 	if err := json.Unmarshal(eventBytes, &event); err != nil {
-		return nil, &ProblemDetail{
-			Instance: ctx.Value(CtxKeyInstance).(string),
-			Type:     PDTypeInvalidEvent,
-			Detail:   err.Error(),
-		}
+		return nil, NewProblemDetail(ctx, &PDOptions{
+			Type:   PDTypeInvalidEvent,
+			Detail: err.Error(),
+		})
 	}
 
 	return event, nil
@@ -183,6 +183,15 @@ type EventCreateRoll struct {
 }
 
 func (*EventCreateRoll) Validate(ctx context.Context) error {
+	return nil
+}
+
+type EventGame struct {
+	BaseEvent
+	*Game
+}
+
+func (event *EventGame) Validate(ctx context.Context) error {
 	return nil
 }
 

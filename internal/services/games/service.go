@@ -32,16 +32,19 @@ type service struct {
 	random *rand.Rand
 }
 
-func NewService(cfg *config.Config, logger *slog.Logger, ps *pubsub.PubSub, db *database.GamesDatabase) Service {
-	return &service{
+func NewService(ctx context.Context, cfg *config.Config, logger *slog.Logger, ps *pubsub.PubSub, db *database.GamesDatabase) Service {
+	svc := &service{
 		Service: &services.Service{
 			Config: cfg,
-			Logger: logger,
+			Logger: logger.With("component", "games_service"),
 		},
 		ps:     ps,
 		db:     db,
 		random: rand.New(rand.NewSource(time.Now().UnixNano())),
 	}
+
+	go svc.doSubscriptions(ctx)
+	return svc
 }
 
 func (svc *service) Authenticate(ctx context.Context, sessionID uuid.UUID, csrfToken string) (*internal.Session, error) {

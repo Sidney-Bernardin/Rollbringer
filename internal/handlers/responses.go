@@ -32,14 +32,8 @@ var problemDetailStatusCodes = map[internal.PDType]int{
 }
 
 func (h *Handler) Err(w http.ResponseWriter, r *http.Request, err error) {
-	pd := h.service.HandleError(r.Context(), err)
-
-	statusCode, ok := problemDetailStatusCodes[pd.Type]
-	if !ok {
-		h.Logger.Error("A problem-detail has an unknown type", "problem_detail", pd)
-	}
-
-	h.Render(w, r, statusCode, views.ProblemDetail(pd))
+	pd := internal.HandleError(r.Context(), h.Logger, err)
+	h.Render(w, r, problemDetailStatusCodes[pd.Type], views.ProblemDetail(pd))
 }
 
 func (h *Handler) Render(w io.Writer, r *http.Request, statusCode int, data templ.Component) {

@@ -47,7 +47,6 @@ func (pdf *dbPDF) internalized() *internal.PDF {
 }
 
 func (db *GamesDatabase) PDFInsert(ctx context.Context, pdf *internal.PDF, pageCount int) error {
-
 	hstorePages := make([]hstore.Hstore, pageCount)
 	for i := range pageCount {
 		hstorePages[i].Map = map[string]sql.NullString{}
@@ -70,10 +69,11 @@ func (db *GamesDatabase) PDFsGetForOwner(ctx context.Context, ownerID uuid.UUID,
 		joins = `LEFT JOIN games ON games.id = pdfs.game_id`
 	}
 
-	query := fmt.Sprintf(
-		`SELECT %s FROM pdfs %s WHERE pdfs.owner_id = $1`,
-		pdfViewColumns[view], joins,
-	)
+	columns, ok := pdfViewColumns[view]
+	if !ok {
+		return nil, fmt.Errorf("bad PDF view %d", view)
+	}
+	query := fmt.Sprintf(`SELECT %s FROM pdfs %s WHERE pdfs.owner_id = $1`, columns, joins)
 
 	var pdfs []*dbPDF
 	if err := sqlx.SelectContext(ctx, db.TX, &pdfs, query, ownerID); err != nil {
@@ -96,10 +96,11 @@ func (db *GamesDatabase) PDFsGetForGame(ctx context.Context, gameID uuid.UUID, v
 		joins = `LEFT JOIN games ON games.id = pdfs.game_id`
 	}
 
-	query := fmt.Sprintf(
-		`SELECT %s FROM pdfs %s WHERE pdfs.game_id = $1`,
-		pdfViewColumns[view], joins,
-	)
+	columns, ok := pdfViewColumns[view]
+	if !ok {
+		return nil, fmt.Errorf("bad PDF view %d", view)
+	}
+	query := fmt.Sprintf(`SELECT %s FROM pdfs %s WHERE pdfs.game_id = $1`, columns, joins)
 
 	var pdfs []*dbPDF
 	if err := sqlx.SelectContext(ctx, db.TX, &pdfs, query, gameID); err != nil {
@@ -122,21 +123,22 @@ func (db *GamesDatabase) PDFGet(ctx context.Context, pdfID uuid.UUID, view inter
 		joins = `LEFT JOIN games ON games.id = pdfs.game_id`
 	}
 
-	query := fmt.Sprintf(
-		`SELECT %s FROM pdfs %s WHERE pdfs.id = $1`,
-		pdfViewColumns[view], joins,
-	)
+	columns, ok := pdfViewColumns[view]
+	if !ok {
+		return nil, fmt.Errorf("bad PDF view %d", view)
+	}
+	query := fmt.Sprintf(`SELECT %s FROM pdfs %s WHERE pdfs.id = $1`, columns, joins)
 
 	var pdf dbPDF
 	if err := sqlx.GetContext(ctx, db.TX, &pdf, query, pdfID); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, &internal.ProblemDetail{
+			return nil, internal.NewProblemDetail(ctx, &internal.PDOptions{
 				Type:   internal.PDTypePDFNotFound,
 				Detail: "Can't find a PDF with the given PDF-ID.",
 				Extra: map[string]any{
 					"pdf_id": pdfID,
 				},
-			}
+			})
 		}
 
 		return nil, errors.Wrap(err, "cannot select PDF")
@@ -155,13 +157,13 @@ func (db *GamesDatabase) PDFGetPage(ctx context.Context, pdfID uuid.UUID, pageId
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, &internal.ProblemDetail{
+			return nil, internal.NewProblemDetail(ctx, &internal.PDOptions{
 				Type:   internal.PDTypePDFNotFound,
 				Detail: "Can't find a PDF with the given PDF-ID.",
 				Extra: map[string]any{
 					"pdf_id": pdfID,
 				},
-			}
+			})
 		}
 
 		return nil, errors.Wrap(err, "cannot get PDF page")

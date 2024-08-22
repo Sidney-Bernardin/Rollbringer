@@ -39,7 +39,7 @@ func NewService(cfg *config.Config, logger *slog.Logger, ps *pubsub.PubSub) Serv
 	return &service{
 		Service: &services.Service{
 			Config: cfg,
-			Logger: logger,
+			Logger: logger.With("component", "pages_service"),
 		},
 		ps: ps,
 	}

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"strings"
 
 	"github.com/nats-io/nats-server/v2/server"
 	"github.com/nats-io/nats.go"
@@ -69,33 +70,39 @@ func New(cfg *config.Config, logger *slog.Logger) (*PubSub, error) {
 	}, nil
 }
 
-func (ps *PubSub) Publish(ctx context.Context, subject string, data internal.Event) error {
-	bytes, err := json.Marshal(data)
+func (ps *PubSub) Publish(ctx context.Context, subject string, event internal.Event) error {
+	bytes, err := json.Marshal(event)
 	if err != nil {
-		return &internal.ProblemDetail{
-			Instance: ctx.Value(internal.CtxKeyInstance).(string),
-			Type:     internal.PDTypeInvalidEvent,
-			Detail:   err.Error(),
-		}
+		return internal.NewProblemDetail(ctx, &internal.PDOptions{
+			Type:   internal.PDTypeInvalidEvent,
+			Detail: err.Error(),
+		})
 	}
 
 	err = ps.natsConn.Publish(subject, bytes)
 	return errors.Wrap(err, "cannot publish event")
 }
 
-func (ps *PubSub) Request(ctx context.Context, subject string, data []byte) ([]byte, error) {
-	msg, err := ps.natsConn.RequestWithContext(ctx, subject, data)
+func (ps *PubSub) Request(ctx context.Context, subject string, event internal.Event) (internal.Event, error) {
+	eventBytes, err := internal.JSONEncodeEvent(ctx, event)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot JSON encode event")
+	}
+
+	res, err := ps.natsConn.RequestWithContext(ctx, subject, eventBytes)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot request")
 	}
-	return msg.Data, nil
+
+	resEvent, err := internal.JSONDecodeEvent(ctx, res.Data)
+	return resEvent, errors.Wrap(err, "cannot JSON decode event")
 }
 
 func (ps *PubSub) Subscribe(
 	ctx context.Context,
 	subject string,
 	errChan chan<- error,
-	cb func(msg internal.Event) internal.Event,
+	cb func(event internal.Event, subject []string) internal.Event,
 ) {
 	var subCtx, cancel = context.WithCancel(ctx)
 	defer cancel()
@@ -106,18 +113,14 @@ func (ps *PubSub) Subscribe(
 			errChan <- errors.Wrap(err, "cannot JSON decode event")
 		}
 
-		res := cb(event)
+		res := cb(event, strings.Split(msg.Subject, "."))
 		if res == nil {
 			return
 		}
 
-		resBytes, err := json.Marshal(res)
+		resBytes, err := internal.JSONEncodeEvent(ctx, res)
 		if err != nil {
-			errChan <- &internal.ProblemDetail{
-				Instance: ctx.Value(internal.CtxKeyInstance).(string),
-				Type:     internal.PDTypeInvalidEvent,
-				Detail:   err.Error(),
-			}
+			errChan <- errors.Wrap(err, "cannot JSON encode event")
 		}
 
 		if err := msg.Respond(resBytes); err != nil {

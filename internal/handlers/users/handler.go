@@ -21,7 +21,7 @@ func NewHandler(cfg *config.Config, logger *slog.Logger, service users.Service) 
 	h := &usersHandler{
 		Handler: &handlers.Handler{
 			Config: cfg,
-			Logger: logger,
+			Logger: logger.With("component", "users_handler"),
 			Router: chi.NewRouter(),
 		},
 		service: service,

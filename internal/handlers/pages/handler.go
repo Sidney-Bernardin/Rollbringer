@@ -26,7 +26,7 @@ func NewHandler(cfg *config.Config, logger *slog.Logger, service service.Service
 	h := &handler{
 		Handler: &handlers.Handler{
 			Config: cfg,
-			Logger: logger,
+			Logger: logger.With("component", "pages_handler"),
 			Router: chi.NewRouter(),
 		},
 		svc: service,
