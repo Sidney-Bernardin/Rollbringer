@@ -2,7 +2,6 @@ package pages
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 
@@ -57,22 +56,16 @@ func (svc *service) PlayPage(ctx context.Context, session *internal.Session, gam
 	)
 
 	go func() {
-		res, err := svc.ps.Request(ctx, fmt.Sprintf("users.%s", session.UserID), nil)
+		err := svc.ps.Request(ctx, fmt.Sprintf("users.%s", session.UserID), nil, &page.User)
 		errChan <- errors.Wrap(err, "cannot get user")
-
-		err = json.Unmarshal(res, &page.User)
-		errChan <- errors.Wrap(err, "cannot JSON decode user")
 	}()
 
 	go func() {
-		res, err := svc.ps.Request(ctx, fmt.Sprintf("games.%s", session.UserID), nil)
+		err := svc.ps.Request(ctx, fmt.Sprintf("games.%s", session.UserID), nil, &page.Game)
 		errChan <- errors.Wrap(err, "cannot get game")
-
-		err = json.Unmarshal(res, &page.Game)
-		errChan <- errors.Wrap(err, "cannot JSON decode game")
 	}()
 
-	for range 4 {
+	for range 2 {
 		if err := <-errChan; err != nil {
 			return nil, err
 		}

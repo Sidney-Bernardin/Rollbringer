@@ -46,11 +46,11 @@ func JSONEncodeEvent(ctx context.Context, event Event) ([]byte, error) {
 	return eventBytes, nil
 }
 
-func JSONDecodeEvent(ctx context.Context, eventBytes []byte) (Event, error) {
+func JSONDecodeEvent(ctx context.Context, eventBytes []byte, dest any) error {
 
 	var baseEvent BaseEvent
 	if err := json.Unmarshal(eventBytes, &baseEvent); err != nil {
-		return nil, NewProblemDetail(ctx, &PDOptions{
+		return NewProblemDetail(ctx, &PDOptions{
 			Type:   PDTypeInvalidEvent,
 			Detail: err.Error(),
 		})
@@ -71,7 +71,7 @@ func JSONDecodeEvent(ctx context.Context, eventBytes []byte) (Event, error) {
 	case ETRoll:
 		event = &EventRoll{}
 	default:
-		return nil, NewProblemDetail(ctx, &PDOptions{
+		return NewProblemDetail(ctx, &PDOptions{
 			Type:   PDTypeInvalidEvent,
 			Detail: fmt.Sprintf("'%s' is an invalid event-type.", baseEvent.Type),
 			Extra: map[string]any{
@@ -81,13 +81,13 @@ func JSONDecodeEvent(ctx context.Context, eventBytes []byte) (Event, error) {
 	}
 
 	if err := json.Unmarshal(eventBytes, &event); err != nil {
-		return nil, NewProblemDetail(ctx, &PDOptions{
+		return NewProblemDetail(ctx, &PDOptions{
 			Type:   PDTypeInvalidEvent,
 			Detail: err.Error(),
 		})
 	}
 
-	return event, nil
+	return nil
 }
 
 type EventError struct {

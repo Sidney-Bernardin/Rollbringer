@@ -4,6 +4,7 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 
@@ -17,7 +18,7 @@ import (
 )
 
 func init() {
-	serviceHandlers["/games"] = func(cfg *config.Config, logger *slog.Logger) (http.Handler, error) {
+	serviceHandlers["/games"] = func(ctx context.Context, cfg *config.Config, logger *slog.Logger) (http.Handler, error) {
 		ps, err := pubsub.New(cfg, logger)
 		if err != nil {
 			return nil, errors.Wrap(err, "cannot create pubsub repository")
@@ -28,7 +29,7 @@ func init() {
 			return nil, errors.Wrap(err, "cannot create database repository")
 		}
 
-		svc := service.NewService(cfg, logger, ps, db)
+		svc := service.NewService(ctx, cfg, logger, ps, db)
 		return handler.NewHandler(cfg, logger, svc), nil
 	}
 }

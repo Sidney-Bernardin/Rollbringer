@@ -57,6 +57,7 @@ func New(cfg *config.Config, logger *slog.Logger) (*PubSub, error) {
 		natsURL = natsServer.ClientURL()
 		natsConnOpts = append(natsConnOpts, nats.InProcessServer(natsServer))
 	}
+	fmt.Println(natsURL)
 
 	natsConn, err := nats.Connect(natsURL, natsConnOpts...)
 	if err != nil {
@@ -83,19 +84,19 @@ func (ps *PubSub) Publish(ctx context.Context, subject string, event internal.Ev
 	return errors.Wrap(err, "cannot publish event")
 }
 
-func (ps *PubSub) Request(ctx context.Context, subject string, event internal.Event) (internal.Event, error) {
-	eventBytes, err := internal.JSONEncodeEvent(ctx, event)
+func (ps *PubSub) Request(ctx context.Context, subject string, req internal.Event, res any) error {
+	reqBytes, err := internal.JSONEncodeEvent(ctx, req)
 	if err != nil {
-		return nil, errors.Wrap(err, "cannot JSON encode event")
+		return errors.Wrap(err, "cannot JSON encode event")
 	}
 
-	res, err := ps.natsConn.RequestWithContext(ctx, subject, eventBytes)
+	resMsg, err := ps.natsConn.RequestWithContext(ctx, subject, reqBytes)
 	if err != nil {
-		return nil, errors.Wrap(err, "cannot request")
+		return errors.Wrap(err, "cannot request")
 	}
 
-	resEvent, err := internal.JSONDecodeEvent(ctx, res.Data)
-	return resEvent, errors.Wrap(err, "cannot JSON decode event")
+	err = internal.JSONDecodeEvent(ctx, resMsg.Data, res)
+	return errors.Wrap(err, "cannot JSON decode event")
 }
 
 func (ps *PubSub) Subscribe(
@@ -108,12 +109,13 @@ func (ps *PubSub) Subscribe(
 	defer cancel()
 
 	sub, err := ps.natsConn.Subscribe(subject, func(msg *nats.Msg) {
-		event, err := internal.JSONDecodeEvent(ctx, msg.Data)
-		if err != nil {
+
+		var req internal.Event
+		if err := internal.JSONDecodeEvent(ctx, msg.Data, &req); err != nil {
 			errChan <- errors.Wrap(err, "cannot JSON decode event")
 		}
 
-		res := cb(event, strings.Split(msg.Subject, "."))
+		res := cb(req, strings.Split(msg.Subject, "."))
 		if res == nil {
 			return
 		}
@@ -151,8 +153,9 @@ func (ps *PubSub) ChanSubscribe(
 	defer cancel()
 
 	sub, err := ps.natsConn.Subscribe(subject, func(msg *nats.Msg) {
-		event, err := internal.JSONDecodeEvent(ctx, msg.Data)
-		if err != nil {
+
+		var event internal.Event
+		if err := internal.JSONDecodeEvent(ctx, msg.Data, &event); err != nil {
 			errChan <- errors.Wrap(err, "cannot JSON decode event")
 		}
 

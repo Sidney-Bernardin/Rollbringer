@@ -9,8 +9,6 @@ import (
 	"rollbringer/internal"
 )
 
-func subscriptionError()
-
 func (svc *service) doSubscriptions(ctx context.Context) {
 	var errChan = make(chan error)
 
