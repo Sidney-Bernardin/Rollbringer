@@ -17,20 +17,24 @@ import (
 
 var natsServer *server.Server
 
-func StartEmbeddedServer(cfg *config.Config) (err error) {
-	natsServer, err := server.NewServer(&server.Options{
+func newEmbeddedServer(cfg *config.Config) (*server.Server, error) {
+	svr, err := server.NewServer(&server.Options{
 		DontListen: !cfg.NATSEmbeddedServerListen,
 		Host:       cfg.NATSHostname,
 		Port:       cfg.NATSPort,
 	})
 
-	natsServer.ConfigureLogger()
-	go natsServer.Start()
-	if !natsServer.ReadyForConnections(cfg.NATSEmbeddedServerStartupTimeout) {
-		return errors.New("server timed out on startup")
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot create NATS server")
 	}
 
-	return nil
+	svr.ConfigureLogger()
+	go svr.Start()
+	if !svr.ReadyForConnections(cfg.NATSEmbeddedServerStartupTimeout) {
+		return nil, errors.New("server timed out on startup")
+	}
+
+	return svr, nil
 }
 
 type PubSub struct {
@@ -40,7 +44,7 @@ type PubSub struct {
 	natsConn *nats.Conn
 }
 
-func New(cfg *config.Config, logger *slog.Logger) (*PubSub, error) {
+func New(cfg *config.Config, logger *slog.Logger) (internal.PubSub, error) {
 
 	var (
 		natsURL      = fmt.Sprintf("nats://%s:%v", cfg.NATSHostname, cfg.NATSPort)
@@ -48,7 +52,9 @@ func New(cfg *config.Config, logger *slog.Logger) (*PubSub, error) {
 	)
 
 	if cfg.NATSEmbeddedServer && natsServer == nil {
-		if err := StartEmbeddedServer(cfg); err != nil {
+		var err error
+		natsServer, err = newEmbeddedServer(cfg)
+		if err != nil {
 			return nil, errors.Wrap(err, "cannot start embedded NATS server")
 		}
 	}
@@ -57,7 +63,6 @@ func New(cfg *config.Config, logger *slog.Logger) (*PubSub, error) {
 		natsURL = natsServer.ClientURL()
 		natsConnOpts = append(natsConnOpts, nats.InProcessServer(natsServer))
 	}
-	fmt.Println(natsURL)
 
 	natsConn, err := nats.Connect(natsURL, natsConnOpts...)
 	if err != nil {
@@ -65,16 +70,16 @@ func New(cfg *config.Config, logger *slog.Logger) (*PubSub, error) {
 	}
 
 	return &PubSub{
-		natsConn: natsConn,
 		cfg:      cfg,
 		logger:   logger,
+		natsConn: natsConn,
 	}, nil
 }
 
 func (ps *PubSub) Publish(ctx context.Context, subject string, event internal.Event) error {
 	bytes, err := json.Marshal(event)
 	if err != nil {
-		return internal.NewProblemDetail(ctx, &internal.PDOptions{
+		return internal.NewProblemDetail(ctx, internal.PDOpts{
 			Type:   internal.PDTypeInvalidEvent,
 			Detail: err.Error(),
 		})
@@ -84,49 +89,67 @@ func (ps *PubSub) Publish(ctx context.Context, subject string, event internal.Ev
 	return errors.Wrap(err, "cannot publish event")
 }
 
-func (ps *PubSub) Request(ctx context.Context, subject string, req internal.Event, res any) error {
+func (ps *PubSub) Request(ctx context.Context, subject string, req internal.Event) (internal.Event, error) {
 	reqBytes, err := internal.JSONEncodeEvent(ctx, req)
 	if err != nil {
-		return errors.Wrap(err, "cannot JSON encode event")
+		return nil, errors.Wrap(err, "cannot JSON encode event")
 	}
 
 	resMsg, err := ps.natsConn.RequestWithContext(ctx, subject, reqBytes)
 	if err != nil {
-		return errors.Wrap(err, "cannot request")
+		return nil, errors.Wrap(err, "cannot request")
 	}
 
-	err = internal.JSONDecodeEvent(ctx, resMsg.Data, res)
-	return errors.Wrap(err, "cannot JSON decode event")
+	res, err := internal.JSONDecodeEvent(ctx, resMsg.Data)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot JSON decode event")
+	}
+
+	if event, ok := res.(*internal.EventError); ok {
+		return nil, &event.ProblemDetail
+	}
+
+	return res, nil
 }
 
 func (ps *PubSub) Subscribe(
 	ctx context.Context,
 	subject string,
 	errChan chan<- error,
-	cb func(event internal.Event, subject []string) internal.Event,
+	cb func(event internal.Event, subject []string) (internal.Event, *internal.ProblemDetail),
 ) {
 	var subCtx, cancel = context.WithCancel(ctx)
 	defer cancel()
 
 	sub, err := ps.natsConn.Subscribe(subject, func(msg *nats.Msg) {
-
-		var req internal.Event
-		if err := internal.JSONDecodeEvent(ctx, msg.Data, &req); err != nil {
+		req, err := internal.JSONDecodeEvent(ctx, msg.Data)
+		if err != nil {
 			errChan <- errors.Wrap(err, "cannot JSON decode event")
 		}
 
-		res := cb(req, strings.Split(msg.Subject, "."))
-		if res == nil {
-			return
-		}
+		res, pd := cb(req, strings.Split(msg.Subject, "."))
+		if pd != nil {
+			resBytes, err := internal.JSONEncodeEvent(ctx, &internal.EventError{
+				BaseEvent:     internal.BaseEvent{Type: internal.ETError},
+				ProblemDetail: *pd,
+			})
 
-		resBytes, err := internal.JSONEncodeEvent(ctx, res)
-		if err != nil {
-			errChan <- errors.Wrap(err, "cannot JSON encode event")
-		}
+			if err != nil {
+				errChan <- errors.Wrap(err, "cannot JSON encode event")
+			}
 
-		if err := msg.Respond(resBytes); err != nil {
-			errChan <- errors.Wrap(err, "cannot respond")
+			if err := msg.Respond(resBytes); err != nil {
+				errChan <- errors.Wrap(err, "cannot respond")
+			}
+		} else if res != nil {
+			resBytes, err := internal.JSONEncodeEvent(ctx, res)
+			if err != nil {
+				errChan <- errors.Wrap(err, "cannot JSON encode event")
+			}
+
+			if err := msg.Respond(resBytes); err != nil {
+				errChan <- errors.Wrap(err, "cannot respond")
+			}
 		}
 	})
 
@@ -153,9 +176,8 @@ func (ps *PubSub) ChanSubscribe(
 	defer cancel()
 
 	sub, err := ps.natsConn.Subscribe(subject, func(msg *nats.Msg) {
-
-		var event internal.Event
-		if err := internal.JSONDecodeEvent(ctx, msg.Data, &event); err != nil {
+		event, err := internal.JSONDecodeEvent(ctx, msg.Data)
+		if err != nil {
 			errChan <- errors.Wrap(err, "cannot JSON decode event")
 		}
 

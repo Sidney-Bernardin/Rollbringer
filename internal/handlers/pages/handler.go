@@ -26,14 +26,14 @@ func NewHandler(cfg *config.Config, logger *slog.Logger, service service.Service
 	h := &handler{
 		Handler: &handlers.Handler{
 			Config: cfg,
-			Logger: logger.With("component", "pages_handler"),
+			Logger: logger,
 			Router: chi.NewRouter(),
 		},
 		svc: service,
 	}
 
-	h.Router.Use(h.Log, h.Instance, h.Authenticate)
-	h.Router.Get("/play", h.HandlePlayPage)
+	h.Router.Use(h.Log, h.Instance, h.AuthenticatePage)
+	h.Router.Get("/", h.HandlePlayPage)
 
 	return h
 }

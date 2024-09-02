@@ -3,7 +3,6 @@ package games
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"github.com/pkg/errors"
 
 	"rollbringer/internal"
@@ -12,24 +11,21 @@ import (
 func (svc *service) doSubscriptions(ctx context.Context) {
 	var errChan = make(chan error)
 
-	go svc.ps.Subscribe(ctx, "games.*.*", errChan, func(e internal.Event, subject []string) internal.Event {
-
-		var (
-			gameID, _ = uuid.Parse(subject[1])
-			view, _   = internal.GameViews[subject[2]]
-		)
-
-		game, err := svc.db.GameGet(ctx, gameID, view)
-		if err != nil {
-			return &internal.EventError{
-				BaseEvent:     internal.BaseEvent{Type: internal.ETError},
-				ProblemDetail: internal.HandleError(ctx, svc.Logger, errors.Wrap(err, "cannot get game")),
+	go svc.ps.Subscribe(ctx, "games", errChan, func(e internal.Event, subject []string) (internal.Event, *internal.ProblemDetail) {
+		switch event := e.(type) {
+		case *internal.EventGetGame:
+			game, err := svc.getGame(ctx, event.GameID, event.View)
+			if err != nil {
+				return nil, svc.HandleError(ctx, errors.Wrap(err, "cannot get game"))
 			}
-		}
 
-		return &internal.EventGame{
-			BaseEvent: internal.BaseEvent{Type: internal.ETGame},
-			Game:      game,
+			return &internal.EventGame{
+				BaseEvent: internal.BaseEvent{Type: internal.ETGame},
+				Game:      *game,
+			}, nil
+
+		default:
+			return nil, nil
 		}
 	})
 
@@ -39,7 +35,7 @@ func (svc *service) doSubscriptions(ctx context.Context) {
 			return
 
 		case err := <-errChan:
-			internal.HandleError(ctx, svc.Logger, errors.Wrap(err, "subscription error"))
+			svc.HandleError(ctx, errors.Wrap(err, "subscription error"))
 		}
 	}
 }

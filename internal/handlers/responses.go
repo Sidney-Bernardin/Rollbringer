@@ -32,7 +32,7 @@ var problemDetailStatusCodes = map[internal.PDType]int{
 }
 
 func (h *Handler) Err(w http.ResponseWriter, r *http.Request, err error) {
-	pd := internal.HandleError(r.Context(), h.Logger, err)
+	pd := h.svc.HandleError(r.Context(), err)
 	h.Render(w, r, problemDetailStatusCodes[pd.Type], views.ProblemDetail(pd))
 }
 

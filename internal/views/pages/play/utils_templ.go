@@ -10,11 +10,11 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"github.com/google/uuid"
-	"rollbringer/internal/domain"
-	. "rollbringer/pkg/views"
+	"rollbringer/internal"
+	. "rollbringer/internal/views"
 )
 
-func NewPDFTableRow(pdf *domain.PDF) templ.Component {
+func NewPDFTableRow(pdf *internal.PDF) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
@@ -62,7 +62,7 @@ func NewPDFTableRow(pdf *domain.PDF) templ.Component {
 	})
 }
 
-func PDFTableRow(pdf *domain.PDF) templ.Component {
+func PDFTableRow(pdf *internal.PDF) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
@@ -155,7 +155,7 @@ func PDFTableRow(pdf *domain.PDF) templ.Component {
 	})
 }
 
-func PDFTab(pdf *domain.PDF) templ.Component {
+func PDFTab(pdf *internal.PDF) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)

@@ -4,6 +4,13 @@ import (
 	"github.com/google/uuid"
 )
 
+type GoogleUserInfo struct {
+	GoogleID  string
+	GivenName string
+}
+
+// =====
+
 type UserView int
 
 const (

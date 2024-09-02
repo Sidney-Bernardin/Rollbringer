@@ -10,7 +10,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	. "rollbringer/internal/views"
-	. "rollbringer/pkg/views/pages"
+	. "rollbringer/internal/views/pages"
 	"slices"
 )
 

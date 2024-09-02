@@ -1,8 +1,8 @@
 package play
 
 import (
-	"rollbringer/internal/domain"
-	. "rollbringer/pkg/views"
+	"rollbringer/internal"
+	. "rollbringer/internal/views"
 )
 
 templ NavBar() {
@@ -95,7 +95,7 @@ templ rolls() {
 	</div>
 }
 
-templ Roll(roll *domain.Roll) {
+templ Roll(roll *internal.Roll) {
 	<div class="roll" hx-swap-oob="beforeend:.nav-bar .rolls">
 		for _, result := range roll.DiceResults {
 			<p>{ S(result) }</p>
@@ -103,7 +103,7 @@ templ Roll(roll *domain.Roll) {
 	</div>
 }
 
-templ HostedGameRow(game *domain.Game) {
+templ HostedGameRow(game *internal.Game) {
 	<tr x-data data-game-id={ game.ID.String() }>
 		<td>
 			<button class="underline-btn" @click="window.location.href = `/play?g=${$root.dataset.gameId}`">
@@ -127,7 +127,7 @@ templ HostedGameRow(game *domain.Game) {
 	</tr>
 }
 
-templ JoinedGameRow(game *domain.Game) {
+templ JoinedGameRow(game *internal.Game) {
 	<tr>
 		<td>
 			<a href="/abc">

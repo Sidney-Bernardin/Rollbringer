@@ -132,7 +132,7 @@ func (db *GamesDatabase) PDFGet(ctx context.Context, pdfID uuid.UUID, view inter
 	var pdf dbPDF
 	if err := sqlx.GetContext(ctx, db.TX, &pdf, query, pdfID); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, internal.NewProblemDetail(ctx, &internal.PDOptions{
+			return nil, internal.NewProblemDetail(ctx, internal.PDOpts{
 				Type:   internal.PDTypePDFNotFound,
 				Detail: "Can't find a PDF with the given PDF-ID.",
 				Extra: map[string]any{
@@ -157,7 +157,7 @@ func (db *GamesDatabase) PDFGetPage(ctx context.Context, pdfID uuid.UUID, pageId
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, internal.NewProblemDetail(ctx, &internal.PDOptions{
+			return nil, internal.NewProblemDetail(ctx, internal.PDOpts{
 				Type:   internal.PDTypePDFNotFound,
 				Detail: "Can't find a PDF with the given PDF-ID.",
 				Extra: map[string]any{

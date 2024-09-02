@@ -37,12 +37,13 @@ func (session *dbSession) internalized() *internal.Session {
 func (db *UsersDatabase) SessionUpsert(ctx context.Context, session *internal.Session) error {
 	err := db.TX.QueryRowxContext(ctx,
 		`INSERT INTO sessions (id, user_id, csrf_token)
-			VALUES (:id, :user_id, :csrf_token)
+			VALUES ($1, $2, $3)
 		ON CONFLICT (user_id) DO UPDATE SET 
 			id = EXCLUDED.id,
 			user_id = EXCLUDED.user_id,
 			csrf_token = EXCLUDED.csrf_token
 		RETURNING id`,
+		session.ID, session.UserID, session.CSRFToken,
 	).Scan(&session.ID)
 
 	return errors.Wrap(err, "cannot insert session")
@@ -58,7 +59,7 @@ func (db *UsersDatabase) SessionGet(ctx context.Context, sessionID uuid.UUID, vi
 	var session dbSession
 	if err := sqlx.GetContext(ctx, db.TX, &session, query, sessionID); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, internal.NewProblemDetail(ctx, &internal.PDOptions{
+			return nil, internal.NewProblemDetail(ctx, internal.PDOpts{
 				Type:   internal.PDTypeSessionNotFound,
 				Detail: "Can't find a session with the given session-ID.",
 				Extra: map[string]any{

@@ -9,8 +9,8 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"rollbringer/internal/domain"
-	. "rollbringer/pkg/views"
+	"rollbringer/internal"
+	. "rollbringer/internal/views"
 )
 
 func NavBar() templ.Component {
@@ -187,7 +187,7 @@ func rolls() templ.Component {
 	})
 }
 
-func Roll(roll *domain.Roll) templ.Component {
+func Roll(roll *internal.Roll) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
@@ -236,7 +236,7 @@ func Roll(roll *domain.Roll) templ.Component {
 	})
 }
 
-func HostedGameRow(game *domain.Game) templ.Component {
+func HostedGameRow(game *internal.Game) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
@@ -301,7 +301,7 @@ func HostedGameRow(game *domain.Game) templ.Component {
 	})
 }
 
-func JoinedGameRow(game *domain.Game) templ.Component {
+func JoinedGameRow(game *internal.Game) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)

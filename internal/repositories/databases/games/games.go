@@ -83,7 +83,7 @@ func (db *GamesDatabase) GameGet(ctx context.Context, gameID uuid.UUID, view int
 	var game dbGame
 	if err := sqlx.GetContext(ctx, db.TX, &game, query, gameID); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, internal.NewProblemDetail(ctx, &internal.PDOptions{
+			return nil, internal.NewProblemDetail(ctx, internal.PDOpts{
 				Type:   internal.PDTypeGameNotFound,
 				Detail: "Can't find a game with the given game-ID.",
 				Extra: map[string]any{

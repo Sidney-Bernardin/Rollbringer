@@ -53,7 +53,7 @@ func (svc *service) ProcessGameEvents(
 				pdfCtxCancel()
 				var eventCtx = context.WithValue(ctx, internal.CtxKeyInstance, internal.ETSubToPDF)
 
-				pdfFields, err := svc.db.PDFGetPage(ctx, event.PDFID, event.PageNum-1)
+				pdfFields, err := svc.db.PDFGetPage(eventCtx, event.PDFID, event.PageNum-1)
 				if err != nil {
 					errChan <- errors.Wrap(err, "cannot get PDF fields")
 					continue
@@ -62,7 +62,7 @@ func (svc *service) ProcessGameEvents(
 				pdfID = event.PDFID
 				pdfCtx, pdfCtxCancel = context.WithCancel(eventCtx)
 
-				go svc.ps.ChanSubscribe(pdfCtx, fmt.Sprint("pdfs.%s", pdfID), outgoingChan, errChan)
+				go svc.ps.ChanSubscribe(pdfCtx, fmt.Sprintf("pdfs.%s", pdfID), outgoingChan, errChan)
 
 				outgoingChan <- &internal.EventPDFFields{
 					BaseEvent: internal.BaseEvent{Type: internal.ETPdfFields},
@@ -72,14 +72,13 @@ func (svc *service) ProcessGameEvents(
 				}
 
 			case *internal.EventUpdatePDFField:
-				var eventCtx = context.WithValue(ctx, internal.CtxKeyInstance, internal.ETSubToPDF)
+				var eventCtx = context.WithValue(ctx, internal.CtxKeyInstance, internal.ETUpdatePDFField)
 
 				if pdfID == uuid.Nil {
-					errChan <- &internal.ProblemDetail{
-						Instance: eventCtx.Value(internal.CtxKeyInstance).(string),
+					errChan <- internal.NewProblemDetail(eventCtx, internal.PDOpts{
 						Type:     internal.PDTypeNotSubscribedToPDF,
 						Detail:   "You must be subscribed to a PDF before updating it.",
-					}
+					})
 				}
 
 				err := svc.db.PDFUpdatePage(eventCtx, pdfID, event.PageNum-1, event.FieldName, event.FieldValue)
@@ -88,7 +87,7 @@ func (svc *service) ProcessGameEvents(
 					continue
 				}
 
-				err = svc.ps.Publish(ctx, "pdfs."+pdfID.String(), &internal.EventPDFFields{
+				err = svc.ps.Publish(eventCtx, "pdfs."+pdfID.String(), &internal.EventPDFFields{
 					BaseEvent: internal.BaseEvent{Type: internal.ETPdfFields},
 					PDFID:     pdfID,
 					PageNum:   event.PageNum,
@@ -104,7 +103,7 @@ func (svc *service) ProcessGameEvents(
 			case *internal.EventCreateRoll:
 				var eventCtx = context.WithValue(ctx, internal.CtxKeyInstance, internal.ETCreateRoll)
 
-				roll, err := svc.roll(ctx, event.Dice)
+				roll, err := svc.roll(eventCtx, event.Dice)
 				if err != nil {
 					errChan <- errors.Wrap(err, "cannot roll")
 					continue
@@ -117,9 +116,9 @@ func (svc *service) ProcessGameEvents(
 					continue
 				}
 
-				err = svc.ps.Publish(ctx, "games."+gameID.String(), &internal.EventRoll{
+				err = svc.ps.Publish(eventCtx, "games."+gameID.String(), &internal.EventRoll{
 					BaseEvent: internal.BaseEvent{Type: internal.ETRoll},
-					Roll:      roll,
+					Roll:      *roll,
 				})
 
 				if err != nil {

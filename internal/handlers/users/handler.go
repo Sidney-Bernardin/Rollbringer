@@ -3,12 +3,16 @@ package users
 import (
 	"log/slog"
 	"net/http"
+	"strings"
+	"time"
 
+	"rollbringer/internal"
 	"rollbringer/internal/config"
 	"rollbringer/internal/handlers"
 	"rollbringer/internal/services/users"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/pkg/errors"
 )
 
 type usersHandler struct {
@@ -21,7 +25,7 @@ func NewHandler(cfg *config.Config, logger *slog.Logger, service users.Service) 
 	h := &usersHandler{
 		Handler: &handlers.Handler{
 			Config: cfg,
-			Logger: logger.With("component", "users_handler"),
+			Logger: logger,
 			Router: chi.NewRouter(),
 		},
 		service: service,
@@ -34,5 +38,58 @@ func NewHandler(cfg *config.Config, logger *slog.Logger, service users.Service) 
 	return h
 }
 
-func (h *usersHandler) HandleLogin(w http.ResponseWriter, r *http.Request)           {}
-func (h *usersHandler) HandleConsentCallback(w http.ResponseWriter, r *http.Request) {}
+func (h *usersHandler) HandleLogin(w http.ResponseWriter, r *http.Request) {
+	consentURL, state, codeVerifier := h.service.StartLogin()
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "STATE_AND_VERIFIER",
+		Value:    state + "," + codeVerifier,
+		Expires:  time.Now().Add(15 * time.Minute),
+		HttpOnly: true,
+	})
+
+	http.Redirect(w, r, consentURL, http.StatusTemporaryRedirect)
+}
+
+func (h *usersHandler) HandleConsentCallback(w http.ResponseWriter, r *http.Request) {
+	var ctx = r.Context()
+
+	cookie, err := r.Cookie("STATE_AND_VERIFIER")
+	if err != nil {
+		h.Err(w, r, internal.NewProblemDetail(ctx, internal.PDOpts{
+			Type: internal.PDTypeUnauthorized,
+		}))
+		return
+	}
+
+	// Get the state and code-verifier from the cookie.
+	state_and_verifier := strings.Split(cookie.Value, ",")
+	if len(state_and_verifier) != 2 {
+		h.Err(w, r, internal.NewProblemDetail(ctx, internal.PDOpts{
+			Type: internal.PDTypeUnauthorized,
+		}))
+		return
+	}
+
+	session, err := h.service.FinishLogin(ctx,
+		state_and_verifier[0],
+		r.FormValue("state"),
+		r.FormValue("code"),
+		state_and_verifier[1],
+	)
+
+	if err != nil {
+		h.Err(w, r, errors.Wrap(err, "cannot finish login"))
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "SESSION_ID",
+		Value:    session.ID.String(),
+		Path:     "/",
+		Expires:  time.Now().Add(15 * time.Minute),
+		HttpOnly: true,
+	})
+
+	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+}

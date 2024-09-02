@@ -2,11 +2,11 @@ package play
 
 import (
 	"github.com/google/uuid"
-	"rollbringer/internal/domain"
-	. "rollbringer/pkg/views"
+	"rollbringer/internal"
+	. "rollbringer/internal/views"
 )
 
-templ NewPDFTableRow(pdf *domain.PDF) {
+templ NewPDFTableRow(pdf *internal.PDF) {
 	<tbody hx-swap-oob="beforeend:.user-pdfs tbody">
 		@PDFTableRow(pdf)
 	</tbody>
@@ -17,7 +17,7 @@ templ NewPDFTableRow(pdf *domain.PDF) {
 	}
 }
 
-templ PDFTableRow(pdf *domain.PDF) {
+templ PDFTableRow(pdf *internal.PDF) {
 	<tr x-data data-pdf-id={ pdf.ID.String() }>
 		<td>
 			<button
@@ -45,7 +45,7 @@ templ PDFTableRow(pdf *domain.PDF) {
 	</tr>
 }
 
-templ PDFTab(pdf *domain.PDF) {
+templ PDFTab(pdf *internal.PDF) {
 	<div hx-swap-oob="beforeend:.pdf-tab-container .buttons">
 		@DynamicTabButton(pdf.Name, pdf.ID.String())
 	</div>

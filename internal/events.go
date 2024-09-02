@@ -2,23 +2,9 @@ package internal
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"strings"
 
 	"github.com/google/uuid"
-)
-
-type eventType string
-
-const (
-	ETError          eventType = "ERROR"
-	ETSubToPDF       eventType = "SUB_TO_PDF"
-	ETPdfFields      eventType = "PDF_FIELDS"
-	ETUpdatePDFField eventType = "UPDATE_PDF_FIELD"
-	ETCreateRoll     eventType = "CREATE_ROLL"
-	ETGame           eventType = "GAME"
-	ETRoll           eventType = "ROLL"
 )
 
 type Event interface {
@@ -31,72 +17,102 @@ type BaseEvent struct {
 	Type    eventType      `json:"TYPE"`
 }
 
+func (e BaseEvent) Validate(ctx context.Context) error { return nil }
+
 func (e BaseEvent) GetHeaders() map[string]any {
 	return e.Headers
 }
 
-func JSONEncodeEvent(ctx context.Context, event Event) ([]byte, error) {
-	eventBytes, err := json.Marshal(event)
-	if err != nil {
-		return nil, NewProblemDetail(ctx, &PDOptions{
-			Type:   PDTypeInvalidEvent,
-			Detail: err.Error(),
-		})
-	}
-	return eventBytes, nil
-}
+type eventType string
 
-func JSONDecodeEvent(ctx context.Context, eventBytes []byte, dest any) error {
+const (
+	ETError        eventType = "ERROR"
+	ETAuthenticate eventType = "AUTHENTICATE"
 
-	var baseEvent BaseEvent
-	if err := json.Unmarshal(eventBytes, &baseEvent); err != nil {
-		return NewProblemDetail(ctx, &PDOptions{
-			Type:   PDTypeInvalidEvent,
-			Detail: err.Error(),
-		})
-	}
+	ETUser    eventType = "USER"
+	ETGetUser eventType = "GET_USER"
 
-	var event Event
-	switch baseEvent.Type {
-	case ETError:
-		event = &EventError{}
-	case ETPdfFields:
-		event = &EventPDFFields{}
-	case ETSubToPDF:
-		event = &EventSubToPDF{}
-	case ETUpdatePDFField:
-		event = &EventUpdatePDFField{}
-	case ETCreateRoll:
-		event = &EventCreateRoll{}
-	case ETRoll:
-		event = &EventRoll{}
-	default:
-		return NewProblemDetail(ctx, &PDOptions{
-			Type:   PDTypeInvalidEvent,
-			Detail: fmt.Sprintf("'%s' is an invalid event-type.", baseEvent.Type),
-			Extra: map[string]any{
-				"event_type": baseEvent.Type,
-			},
-		})
-	}
+	ETSession    eventType = "SESSION"
+	ETGetSession eventType = "GET_SESSION"
 
-	if err := json.Unmarshal(eventBytes, &event); err != nil {
-		return NewProblemDetail(ctx, &PDOptions{
-			Type:   PDTypeInvalidEvent,
-			Detail: err.Error(),
-		})
-	}
+	ETGame    eventType = "GAME"
+	ETGetGame eventType = "GET_GAME"
 
-	return nil
+	ETSubToPDF       eventType = "SUB_TO_PDF"
+	ETPdfFields      eventType = "PDF_FIELDS"
+	ETUpdatePDFField eventType = "UPDATE_PDF_FIELD"
+
+	ETCreateRoll eventType = "CREATE_ROLL"
+	ETRoll       eventType = "ROLL"
+)
+
+var eventTypes = map[eventType]Event{
+	ETError:        &EventError{},
+	ETAuthenticate: &EventAuthenticate{},
+
+	ETUser:    &EventUser{},
+	ETGetUser: &EventGetUser{},
+
+	ETSession:    &EventSession{},
+	ETGetSession: &EventGetSession{},
+
+	ETGame:    &EventGame{},
+	ETGetGame: &EventGetGame{},
+
+	ETSubToPDF:       &EventSubToPDF{},
+	ETPdfFields:      &EventPDFFields{},
+	ETUpdatePDFField: &EventUpdatePDFField{},
+
+	ETCreateRoll: &EventCreateRoll{},
+	ETRoll:       &EventRoll{},
 }
 
 type EventError struct {
 	BaseEvent
-	*ProblemDetail
+	ProblemDetail
 }
 
-func (*EventError) Validate(ctx context.Context) error {
-	return nil
+type EventAuthenticate struct {
+	BaseEvent
+
+	SessionID uuid.UUID `json:"session_id,omitempty"`
+	CSRFToken string    `json:"csrf_token,omitempty"`
+}
+
+type EventUser struct {
+	BaseEvent
+	User
+}
+
+type EventGetUser struct {
+	BaseEvent
+
+	UserID uuid.UUID `json:"user_id,omitempty"`
+	View   UserView  `json:"view,omitempty"`
+}
+
+type EventSession struct {
+	BaseEvent
+	Session
+}
+
+type EventGetSession struct {
+	BaseEvent
+
+	View      SessionView `json:"view,omitempty"`
+	SessionID uuid.UUID   `json:"session_id,omitempty"`
+}
+
+type EventGame struct {
+	BaseEvent
+	Game
+}
+
+type EventGetGame struct {
+	BaseEvent
+
+	GameID uuid.UUID `json:"game_id,omitempty"`
+	View   GameView  `json:"view,omitempty"`
 }
 
 type EventSubToPDF struct {
@@ -182,24 +198,7 @@ type EventCreateRoll struct {
 	Modifier string `json:"modifier,omitempty"`
 }
 
-func (*EventCreateRoll) Validate(ctx context.Context) error {
-	return nil
-}
-
-type EventGame struct {
-	BaseEvent
-	*Game
-}
-
-func (event *EventGame) Validate(ctx context.Context) error {
-	return nil
-}
-
 type EventRoll struct {
 	BaseEvent
-	*Roll
-}
-
-func (event *EventRoll) Validate(ctx context.Context) error {
-	return nil
+	Roll
 }

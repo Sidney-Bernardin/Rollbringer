@@ -10,33 +10,36 @@ import (
 
 	"rollbringer/internal"
 	"rollbringer/internal/config"
-	database "rollbringer/internal/repositories/databases/games"
-	"rollbringer/internal/repositories/pubsub"
 	"rollbringer/internal/services"
 
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 )
 
 type Service interface {
 	services.Servicer
-
-	Authenticate(ctx context.Context, sessionID uuid.UUID, csrfToken string) (*internal.Session, error)
 }
 
 type service struct {
 	*services.Service
 
-	ps *pubsub.PubSub
-	db *database.GamesDatabase
+	ps internal.PubSub
+	db internal.GamesDatabase
 
 	random *rand.Rand
 }
 
-func NewService(ctx context.Context, cfg *config.Config, logger *slog.Logger, ps *pubsub.PubSub, db *database.GamesDatabase) Service {
+func NewService(
+	ctx context.Context,
+	cfg *config.Config,
+	logger *slog.Logger,
+	ps internal.PubSub,
+	db internal.GamesDatabase,
+) Service {
 	svc := &service{
 		Service: &services.Service{
 			Config: cfg,
-			Logger: logger.With("component", "games_service"),
+			Logger: logger,
 		},
 		ps:     ps,
 		db:     db,
@@ -47,8 +50,9 @@ func NewService(ctx context.Context, cfg *config.Config, logger *slog.Logger, ps
 	return svc
 }
 
-func (svc *service) Authenticate(ctx context.Context, sessionID uuid.UUID, csrfToken string) (*internal.Session, error) {
-	return nil, nil
+func (svc *service) getGame(ctx context.Context, gameID uuid.UUID, view internal.GameView) (*internal.Game, error) {
+	game, err := svc.db.GameGet(ctx, gameID, view)
+	return game, errors.Wrap(err, "cannot get game")
 }
 
 func (svc *service) roll(ctx context.Context, diceNamesStr string) (*internal.Roll, error) {

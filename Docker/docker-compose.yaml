@@ -7,22 +7,17 @@ services:
       context: ../
       dockerfile: Docker/app.dockerfile
     environment:
-      APP_ADDRESS: ":3000"
-
-      APP_GOOGLE_CLIENT_ID: ${APP_GOOGLE_CLIENT_ID}
-      APP_GOOGLE_CLIENT_SECRET: ${APP_GOOGLE_CLIENT_SECRET}
-      APP_REDIRECT_URL: ${APP_REDIRECT_URL}
-
-      APP_USER_SESSION_TIMEOUT: ${APP_USER_SESSION_TIMEOUT}
-
+      APP_PORT: "3000"
+      APP_USERS_GOOGLE_CLIENT_ID: ${APP_USERS_GOOGLE_CLIENT_ID}
+      APP_USERS_GOOGLE_CLIENT_SECRET: ${APP_USERS_GOOGLE_CLIENT_SECRET}
+      APP_USERS_REDIRECT_URL: ${APP_USERS_REDIRECT_URL}
+      APP_USERS_SESSION_TIMEOUT: "15min"
+      APP_NATS_EMBEDDED_SERVER_STARTUP_TIMEOUT: "5sec"
       APP_POSTGRES_ADDRESS: "postgresql://postgres:abc123@database:5432?sslmode=disable"
-      APP_REDIS_ADDRESS: "pubsub:6379"
-      APP_REDIS_PASSWORD: ""
     ports:
       - 3000:3000
     depends_on:
       - database
-      - pubsub
 
   database:
     container_name: database
@@ -33,9 +28,3 @@ services:
       - ./pg-data:/var/lib/postgresql/data
     ports:
       - 5432:5432
-
-  pubsub:
-    container_name: pubsub
-    image: redis:latest
-    ports:
-      - 6379:6379

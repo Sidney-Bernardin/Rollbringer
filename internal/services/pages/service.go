@@ -2,15 +2,14 @@ package pages
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"golang.org/x/sync/errgroup"
 
 	"rollbringer/internal"
 	"rollbringer/internal/config"
-	"rollbringer/internal/repositories/pubsub"
 	"rollbringer/internal/services"
 )
 
@@ -24,51 +23,79 @@ type PlayPage struct {
 type Service interface {
 	services.Servicer
 
+	GetSession(ctx context.Context, sessionID uuid.UUID) (*internal.Session, error)
 	PlayPage(ctx context.Context, session *internal.Session, gameID uuid.UUID) (*PlayPage, error)
-	Authenticate(ctx context.Context, sessionID uuid.UUID, csrfToken string) (*internal.Session, error)
 }
 
 type service struct {
 	*services.Service
 
-	ps *pubsub.PubSub
+	ps internal.PubSub
 }
 
-func NewService(cfg *config.Config, logger *slog.Logger, ps *pubsub.PubSub) Service {
+func NewService(cfg *config.Config, logger *slog.Logger, ps internal.PubSub) Service {
 	return &service{
 		Service: &services.Service{
 			Config: cfg,
-			Logger: logger.With("component", "pages_service"),
+			Logger: logger,
 		},
 		ps: ps,
 	}
 }
 
-func (svc *service) Authenticate(ctx context.Context, sessionID uuid.UUID, csrfToken string) (*internal.Session, error) {
-	return nil, nil
+func (svc *service) GetSession(ctx context.Context, sessionID uuid.UUID) (*internal.Session, error) {
+	res, err := svc.ps.Request(ctx, "sessions", &internal.EventGetSession{
+		BaseEvent: internal.BaseEvent{Type: internal.ETGetSession},
+		SessionID: sessionID,
+	})
+
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot authenticate")
+	}
+
+	event, _ := res.(*internal.EventSession)
+	return &event.Session, nil
 }
 
 func (svc *service) PlayPage(ctx context.Context, session *internal.Session, gameID uuid.UUID) (*PlayPage, error) {
 
 	var (
-		page    = &PlayPage{}
-		errChan = make(chan error)
+		page  = &PlayPage{}
+		group = &errgroup.Group{}
 	)
 
-	go func() {
-		err := svc.ps.Request(ctx, fmt.Sprintf("users.%s", session.UserID), nil, &page.User)
-		errChan <- errors.Wrap(err, "cannot get user")
-	}()
+	group.Go(func() error {
+		res, err := svc.ps.Request(ctx, "users", &internal.EventGetUser{
+			UserID: session.UserID,
+			View:   internal.UserViewAll,
+		})
 
-	go func() {
-		err := svc.ps.Request(ctx, fmt.Sprintf("games.%s", session.UserID), nil, &page.Game)
-		errChan <- errors.Wrap(err, "cannot get game")
-	}()
-
-	for range 2 {
-		if err := <-errChan; err != nil {
-			return nil, err
+		if err != nil {
+			return errors.Wrap(err, "cannot get user")
 		}
+
+		event, _ := res.(*internal.EventUser)
+		page.User = &event.User
+		return nil
+	})
+
+	group.Go(func() error {
+		res, err := svc.ps.Request(ctx, "games", &internal.EventGetGame{
+			GameID: gameID,
+			View:   internal.GameViewAll,
+		})
+
+		if err != nil {
+			return errors.Wrap(err, "cannot get game")
+		}
+
+		event, _ := res.(*internal.EventGame)
+		page.Game = &event.Game
+		return nil
+	})
+
+	if err := group.Wait(); err != nil {
+		return nil, err
 	}
 
 	page.IsHost = page.Game.HostID == page.User.ID

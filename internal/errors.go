@@ -3,7 +3,6 @@ package internal
 import (
 	"context"
 	"fmt"
-	"log/slog"
 
 	"github.com/pkg/errors"
 )
@@ -40,13 +39,13 @@ type ProblemDetail struct {
 	Extra    map[string]any
 }
 
-type PDOptions struct {
+type PDOpts struct {
 	Type   PDType
 	Detail string
 	Extra  map[string]any
 }
 
-func NewProblemDetail(ctx context.Context, opts *PDOptions) *ProblemDetail {
+func NewProblemDetail(ctx context.Context, opts PDOpts) *ProblemDetail {
 	return &ProblemDetail{
 		Instance: ctx.Value(CtxKeyInstance).(string),
 		Type:     opts.Type,
@@ -63,15 +62,4 @@ func (pd *ProblemDetail) Error() string {
 func IsDetailed(err error, t PDType) bool {
 	pd, ok := errors.Cause(err).(*ProblemDetail)
 	return ok && pd.Type == t
-}
-
-func HandleError(ctx context.Context, logger *slog.Logger, err error) *ProblemDetail {
-	pd, ok := errors.Cause(err).(*ProblemDetail)
-	if !ok {
-		logger.Error("Server error", "err", err.Error())
-		pd = NewProblemDetail(ctx, &PDOptions{
-			Type: PDTypeServerError,
-		})
-	}
-	return pd
 }

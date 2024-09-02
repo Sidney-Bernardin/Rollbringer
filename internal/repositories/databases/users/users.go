@@ -57,7 +57,7 @@ func (db *UsersDatabase) UserGet(ctx context.Context, userID uuid.UUID, view int
 	var user dbUser
 	if err := sqlx.GetContext(ctx, db.TX, &user, query, userID); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, internal.NewProblemDetail(ctx, &internal.PDOptions{
+			return nil, internal.NewProblemDetail(ctx, internal.PDOpts{
 				Type:   internal.PDTypeUserNotFound,
 				Detail: "Can't find a user with the given user-ID.",
 				Extra: map[string]any{

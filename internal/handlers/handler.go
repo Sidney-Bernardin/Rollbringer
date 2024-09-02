@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"rollbringer/internal/config"
+	"rollbringer/internal/services"
 )
 
 type Handler struct {
@@ -14,6 +15,8 @@ type Handler struct {
 	Logger *slog.Logger
 
 	Router *chi.Mux
+
+	svc services.Servicer
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

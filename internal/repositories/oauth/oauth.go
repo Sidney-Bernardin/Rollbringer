@@ -12,8 +12,8 @@ import (
 	"rollbringer/internal"
 )
 
-// OpenIDConnectClaims represents an OpenID Connect JWT.
-type OpenIDConnectClaims struct {
+// openIDConnectClaims represents an OpenID Connect JWT.
+type openIDConnectClaims struct {
 	*jwt.RegisteredClaims
 
 	GivenName string `json:"given_name"`
@@ -39,21 +39,21 @@ func (oa *OAuth) GetConsentURL(state, codeVerifier string) string {
 	return oa.GoogleConfig.AuthCodeURL(state, oauth2.S256ChallengeOption(codeVerifier))
 }
 
-func (oa *OAuth) AuthenticateConsent(ctx context.Context, stateA, stateB, code, codeVerifier string) (*OpenIDConnectClaims, error) {
+func (oa *OAuth) AuthenticateConsent(ctx context.Context, stateA, stateB, code, codeVerifier string) (*internal.GoogleUserInfo, error) {
 
 	// Verify the state.
 	if stateA != stateB {
-		return nil, &internal.ProblemDetail{
+		return nil, internal.NewProblemDetail(ctx, internal.PDOpts{
 			Type: internal.PDTypeUnauthorized,
-		}
+		})
 	}
 
 	// Exchange the code for an oauth-token.
 	token, err := oa.GoogleConfig.Exchange(ctx, code, oauth2.VerifierOption(codeVerifier))
 	if err != nil {
-		return nil, &internal.ProblemDetail{
+		return nil, internal.NewProblemDetail(ctx, internal.PDOpts{
 			Type: internal.PDTypeUnauthorized,
-		}
+		})
 	}
 
 	// Get the ID-token from the oauth-token.
@@ -63,10 +63,14 @@ func (oa *OAuth) AuthenticateConsent(ctx context.Context, stateA, stateB, code, 
 	}
 
 	// Parse the ID-token.
-	idToken, _, err := jwt.NewParser().ParseUnverified(idTokenStr, &OpenIDConnectClaims{})
+	idToken, _, err := jwt.NewParser().ParseUnverified(idTokenStr, &openIDConnectClaims{})
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot parse ID token")
 	}
 
-	return idToken.Claims.(*OpenIDConnectClaims), nil
+	claims, _ := idToken.Claims.(*openIDConnectClaims)
+	return &internal.GoogleUserInfo{
+		GoogleID: claims.Subject,
+		GivenName: claims.GivenName,
+	}, nil
 }
