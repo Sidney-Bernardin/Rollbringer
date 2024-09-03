@@ -76,6 +76,10 @@ func New(cfg *config.Config, logger *slog.Logger) (internal.PubSub, error) {
 	}, nil
 }
 
+func (ps *PubSub) Close() {
+	ps.natsConn.Close()
+}
+
 func (ps *PubSub) Publish(ctx context.Context, subject string, event internal.Event) error {
 	bytes, err := json.Marshal(event)
 	if err != nil {
@@ -118,9 +122,6 @@ func (ps *PubSub) Subscribe(
 	errChan chan<- error,
 	cb func(event internal.Event, subject []string) (internal.Event, *internal.ProblemDetail),
 ) {
-	var subCtx, cancel = context.WithCancel(ctx)
-	defer cancel()
-
 	sub, err := ps.natsConn.Subscribe(subject, func(msg *nats.Msg) {
 		req, err := internal.JSONDecodeEvent(ctx, msg.Data)
 		if err != nil {
@@ -158,12 +159,8 @@ func (ps *PubSub) Subscribe(
 		return
 	}
 
-	sub.SetClosedHandler(func(subject string) {
-		cancel()
-	})
 	defer sub.Unsubscribe()
-
-	<-subCtx.Done()
+	<-ctx.Done()
 }
 
 func (ps *PubSub) ChanSubscribe(

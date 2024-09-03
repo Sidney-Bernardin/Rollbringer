@@ -7,13 +7,20 @@ import (
 )
 
 type PubSub interface {
+	Close()
 	Publish(ctx context.Context, subject string, event Event) error
 	Request(ctx context.Context, subject string, req Event) (Event, error)
 	Subscribe(ctx context.Context, subject string, errChan chan<- error, cb func(event Event, subject []string) (Event, *ProblemDetail))
 	ChanSubscribe(ctx context.Context, subject string, resChan chan<- Event, errChan chan<- error)
 }
 
+type Database interface {
+	Close() error
+}
+
 type UsersDatabase interface {
+	Database
+
 	UserInsert(ctx context.Context, user *User) error
 	UserGet(ctx context.Context, userID uuid.UUID, view UserView) (*User, error)
 
@@ -22,6 +29,8 @@ type UsersDatabase interface {
 }
 
 type GamesDatabase interface {
+	Database
+
 	GameInsert(ctx context.Context, game *Game) error
 	GamesCount(ctx context.Context, hostID uuid.UUID) (int, error)
 	GamesGetForHost(ctx context.Context, hostID uuid.UUID, view GameView) ([]*Game, error)

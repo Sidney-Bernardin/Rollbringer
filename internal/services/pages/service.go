@@ -43,6 +43,11 @@ func NewService(cfg *config.Config, logger *slog.Logger, ps internal.PubSub) Ser
 	}
 }
 
+func (svc *service) Shutdown() error {
+	svc.ps.Close()
+	return nil
+}
+
 func (svc *service) GetSession(ctx context.Context, sessionID uuid.UUID) (*internal.Session, error) {
 	res, err := svc.ps.Request(ctx, "sessions", &internal.EventGetSession{
 		BaseEvent: internal.BaseEvent{Type: internal.ETGetSession},

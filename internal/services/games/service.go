@@ -30,13 +30,12 @@ type service struct {
 }
 
 func NewService(
-	ctx context.Context,
 	cfg *config.Config,
 	logger *slog.Logger,
 	ps internal.PubSub,
 	db internal.GamesDatabase,
 ) Service {
-	svc := &service{
+	return &service{
 		Service: &services.Service{
 			Config: cfg,
 			Logger: logger,
@@ -45,9 +44,12 @@ func NewService(
 		db:     db,
 		random: rand.New(rand.NewSource(time.Now().UnixNano())),
 	}
+}
 
-	go svc.doSubscriptions(ctx)
-	return svc
+func (svc *service) Shutdown() error {
+	svc.ps.Close()
+	err := svc.db.Close()
+	return errors.Wrap(err, "cannot close database")
 }
 
 func (svc *service) getGame(ctx context.Context, gameID uuid.UUID, view internal.GameView) (*internal.Game, error) {

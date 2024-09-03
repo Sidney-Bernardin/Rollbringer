@@ -8,8 +8,10 @@ import (
 	"rollbringer/internal"
 )
 
-func (svc *service) doSubscriptions(ctx context.Context) {
-	var errChan = make(chan error)
+func (svc *service) Run() error {
+	errChan := make(chan error)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	go svc.ps.Subscribe(ctx, "games", errChan, func(e internal.Event, subject []string) (internal.Event, *internal.ProblemDetail) {
 		switch event := e.(type) {
@@ -29,13 +31,10 @@ func (svc *service) doSubscriptions(ctx context.Context) {
 		}
 	})
 
-	for {
-		select {
-		case <-ctx.Done():
-			return
-
-		case err := <-errChan:
-			svc.HandleError(ctx, errors.Wrap(err, "subscription error"))
-		}
+	select {
+	case <-ctx.Done():
+		return nil
+	case err := <-errChan:
+		return err
 	}
 }

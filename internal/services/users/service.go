@@ -29,7 +29,6 @@ type service struct {
 }
 
 func NewService(
-	ctx context.Context,
 	cfg *config.Config,
 	logger *slog.Logger,
 	ps internal.PubSub,
@@ -46,8 +45,13 @@ func NewService(
 		oa: oa,
 	}
 
-	go svc.doSubscriptions(ctx)
 	return svc
+}
+
+func (svc *service) Shutdown() error {
+	svc.ps.Close()
+	err := svc.db.Close()
+	return errors.Wrap(err, "cannot close database")
 }
 
 func (svc *service) StartLogin() (consentURL, state, codeVerifier string) {

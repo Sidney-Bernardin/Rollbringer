@@ -12,6 +12,8 @@ import (
 )
 
 type Servicer interface {
+	Run() error
+	Shutdown() error
 	HandleError(ctx context.Context, err error) *internal.ProblemDetail
 	Authenticate(ctx context.Context, sessionID uuid.UUID, csrfToken string) (*internal.Session, error)
 }
@@ -22,6 +24,9 @@ type Service struct {
 
 	ps internal.PubSub
 }
+
+func (svc *Service) Run() error { return nil }
+func (svc *Service) Shutdown() error { return nil }
 
 func (svc *Service) Authenticate(ctx context.Context, sessionID uuid.UUID, csrfToken string) (*internal.Session, error) {
 	res, err := svc.ps.Request(ctx, "users", &internal.EventAuthenticate{

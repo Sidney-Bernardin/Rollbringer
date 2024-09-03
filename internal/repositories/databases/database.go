@@ -42,6 +42,11 @@ func (db *Database[T]) setTX(tx sqlx.ExtContext) {
 	db.TX = tx
 }
 
+func (db *Database[T]) Close() error {
+	err := db.TX.(*sqlx.DB).Close()
+	return errors.Wrap(err, "cannot close database")
+}
+
 func (db *Database[T]) Transaction(ctx context.Context, txFunc func(db *T) error) error {
 
 	tx, err := db.TX.(*sqlx.DB).Beginx()

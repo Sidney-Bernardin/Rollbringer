@@ -6,8 +6,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"rollbringer/internal/config"
 	"rollbringer/internal/handlers"
+	"rollbringer/internal/config"
 	service "rollbringer/internal/services/games"
 )
 
@@ -17,7 +17,7 @@ type handler struct {
 	svc service.Service
 }
 
-func NewHandler(cfg *config.Config, logger *slog.Logger, svc service.Service) *handler {
+func NewHandler(cfg *config.Config, logger *slog.Logger, svc service.Service) http.Handler {
 	h := &handler{
 		Handler: &handlers.Handler{
 			Config: cfg,
