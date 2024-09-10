@@ -17,19 +17,20 @@ import (
 )
 
 type handler struct {
-	*handlers.Handler
+	*handlers.BaseHandler
 
 	svc service.Service
 }
 
-func NewHandler(cfg *config.Config, logger *slog.Logger, service service.Service) *handler {
+func NewHandler(cfg *config.Config, logger *slog.Logger, svc service.Service) *handler {
 	h := &handler{
-		Handler: &handlers.Handler{
-			Config: cfg,
-			Logger: logger,
-			Router: chi.NewRouter(),
+		BaseHandler: &handlers.BaseHandler{
+			Config:  cfg,
+			Logger:  logger,
+			Router:  chi.NewRouter(),
+			BaseService: svc,
 		},
-		svc: service,
+		svc: svc,
 	}
 
 	h.Router.Use(h.Log, h.Instance, h.AuthenticatePage)

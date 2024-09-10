@@ -14,16 +14,15 @@ import (
 )
 
 type Service interface {
-	services.Servicer
+	services.BaseServicer
 
 	StartLogin() (consentURL, state, codeVerifier string)
 	FinishLogin(ctx context.Context, stateA, stateB, code, codeVerifier string) (*internal.Session, error)
 }
 
 type service struct {
-	*services.Service
+	*services.BaseService
 
-	ps internal.PubSub
 	db internal.UsersDatabase
 	oa internal.OAuth
 }
@@ -36,11 +35,11 @@ func NewService(
 	oa internal.OAuth,
 ) Service {
 	svc := &service{
-		Service: &services.Service{
+		BaseService: &services.BaseService{
 			Config: cfg,
 			Logger: logger,
+			PS:     ps,
 		},
-		ps: ps,
 		db: db,
 		oa: oa,
 	}
@@ -49,7 +48,7 @@ func NewService(
 }
 
 func (svc *service) Shutdown() error {
-	svc.ps.Close()
+	svc.PS.Close()
 	err := svc.db.Close()
 	return errors.Wrap(err, "cannot close database")
 }

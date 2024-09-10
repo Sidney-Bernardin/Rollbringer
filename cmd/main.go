@@ -15,7 +15,7 @@ import (
 	"rollbringer/internal/services"
 )
 
-var features = map[string]func(*config.Config, *slog.Logger) (http.Handler, services.Servicer, error){}
+var features = map[string]func(*config.Config, *slog.Logger) (http.Handler, services.BaseServicer, error){}
 
 func main() {
 
@@ -31,7 +31,7 @@ func main() {
 
 	var (
 		router   = chi.NewRouter()
-		services = map[string]services.Servicer{}
+		services = map[string]services.BaseServicer{}
 	)
 
 	for name, fn := range features {
@@ -55,14 +55,14 @@ func main() {
 	})
 }
 
-func run(cfg *config.Config, logger *slog.Logger, services map[string]services.Servicer, svr *http.Server) {
+func run(cfg *config.Config, logger *slog.Logger, services map[string]services.BaseServicer, svr *http.Server) {
 	errChan := make(chan error)
 
 	// Run the services.
 	for name, svc := range services {
 		go func() {
 			logger.Info("Running " + name + " service")
-			err := svc.Run()
+			err := svc.Listen()
 			errChan <- errors.Wrapf(err, "cannot run %s service", name)
 		}()
 	}
@@ -75,18 +75,28 @@ func run(cfg *config.Config, logger *slog.Logger, services map[string]services.S
 	}()
 
 	// Create a channel for Interrupt signals.
-	signalChan := make(chan os.Signal)
+	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt)
 
 	// Wait...
+wait:
 	select {
 	case sig := <-signalChan:
 		logger.Info("Signal interruption", "signal", sig)
 	case err := <-errChan:
+		if err == nil {
+			goto wait
+		}
 		logger.Error("Fatal error", "err", err.Error())
 	}
 
+	shutdown(cfg, logger, services, svr)
+}
+
+func shutdown(cfg *config.Config, logger *slog.Logger, services map[string]services.BaseServicer, svr *http.Server) {
 	logger.Info("Gracefully shutting down")
+	defer logger.Info("Goodbye, World!")
+
 	ctx, _ := context.WithTimeout(context.Background(), cfg.ShutdownTimeout)
 
 	// Gracefully shutdown the HTTP server.
@@ -100,12 +110,10 @@ func run(cfg *config.Config, logger *slog.Logger, services map[string]services.S
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			if err := svc.Close(); err != nil {
+			if err := svc.Shutdown(); err != nil {
 				logger.Error("Cannot gracefully shutdown "+name+" service", "err", err.Error())
 			}
 		}()
 	}
 	wg.Wait()
-
-	logger.Info("Done")
 }

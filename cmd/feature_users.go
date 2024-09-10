@@ -21,7 +21,7 @@ import (
 )
 
 func init() {
-	features["users"] = func(cfg *config.Config, logger *slog.Logger) (http.Handler, services.Servicer, error) {
+	features["users"] = func(cfg *config.Config, logger *slog.Logger) (http.Handler, services.BaseServicer, error) {
 
 		// Create a PubSub repository.
 		ps, err := pubsub.New(cfg, logger)
@@ -36,15 +36,7 @@ func init() {
 		}
 
 		// Create an OAuth repository.
-		oa := &oauth.OAuth{
-			GoogleConfig: &oauth2.Config{
-				Endpoint:     google.Endpoint,
-				ClientID:     cfg.UsersGoogleClientID,
-				ClientSecret: cfg.UsersGoogleClientSecret,
-				RedirectURL:  cfg.UsersRedirectURL,
-				Scopes:       []string{"openid", "profile", "email"},
-			},
-		}
+		oa := oauth.New(cfg)
 
 		// Create a service and handler.
 		svc := service.NewService(cfg, logger, ps, db, oa)

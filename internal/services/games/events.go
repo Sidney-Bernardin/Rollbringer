@@ -14,8 +14,8 @@ func (svc *service) ProcessGameEvents(
 	ctx context.Context,
 	session *internal.Session,
 	gameID uuid.UUID,
-	incomingChan <-chan internal.Event,
-	outgoingChan chan<- internal.Event,
+	incomingChan <-chan []byte,
+	outgoingChan chan<- []byte,
 	errChan chan<- error,
 ) {
 	defer close(errChan)
@@ -33,7 +33,7 @@ func (svc *service) ProcessGameEvents(
 			return
 		}
 
-		go svc.ps.ChanSubscribe(ctx, fmt.Sprintf("games.%s.plays", gameID), outgoingChan, errChan)
+		go svc.subscribeToGame(ctx, gameID, incomingChan, errChan)
 	}
 
 	for {
@@ -62,7 +62,7 @@ func (svc *service) ProcessGameEvents(
 				pdfID = event.PDFID
 				pdfCtx, pdfCtxCancel = context.WithCancel(eventCtx)
 
-				go svc.ps.ChanSubscribe(pdfCtx, fmt.Sprintf("pdfs.%s", pdfID), outgoingChan, errChan)
+				go svc.PS.ChanSubscribe(pdfCtx, fmt.Sprintf("pdfs.%s", pdfID), outgoingChan, errChan)
 
 				outgoingChan <- &internal.EventPDFFields{
 					BaseEvent: internal.BaseEvent{Type: internal.ETPdfFields},
@@ -76,8 +76,8 @@ func (svc *service) ProcessGameEvents(
 
 				if pdfID == uuid.Nil {
 					errChan <- internal.NewProblemDetail(eventCtx, internal.PDOpts{
-						Type:     internal.PDTypeNotSubscribedToPDF,
-						Detail:   "You must be subscribed to a PDF before updating it.",
+						Type:   internal.PDTypeNotSubscribedToPDF,
+						Detail: "You must be subscribed to a PDF before updating it.",
 					})
 				}
 
@@ -87,7 +87,7 @@ func (svc *service) ProcessGameEvents(
 					continue
 				}
 
-				err = svc.ps.Publish(eventCtx, "pdfs."+pdfID.String(), &internal.EventPDFFields{
+				err = svc.PS.Publish(eventCtx, "pdfs."+pdfID.String(), &internal.EventPDFFields{
 					BaseEvent: internal.BaseEvent{Type: internal.ETPdfFields},
 					PDFID:     pdfID,
 					PageNum:   event.PageNum,
@@ -116,7 +116,7 @@ func (svc *service) ProcessGameEvents(
 					continue
 				}
 
-				err = svc.ps.Publish(eventCtx, "games."+gameID.String(), &internal.EventRoll{
+				err = svc.PS.Publish(eventCtx, "games."+gameID.String(), &internal.EventRoll{
 					BaseEvent: internal.BaseEvent{Type: internal.ETRoll},
 					Roll:      *roll,
 				})

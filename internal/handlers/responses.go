@@ -14,7 +14,8 @@ var problemDetailStatusCodes = map[internal.PDType]int{
 	internal.PDTypeServerError:  http.StatusInternalServerError,
 	internal.PDTypeUnauthorized: http.StatusUnauthorized,
 	internal.PDTypeInvalidView:  http.StatusBadRequest,
-	internal.PDTypeInvalidEvent: http.StatusUnprocessableEntity,
+	internal.PDTypeInvalidEvent: http.StatusBadRequest,
+	internal.PDTypeInvalidJSON:  http.StatusBadRequest,
 
 	internal.PDTypeUserNotFound:    http.StatusNotFound,
 	internal.PDTypeSessionNotFound: http.StatusNotFound,
@@ -31,12 +32,12 @@ var problemDetailStatusCodes = map[internal.PDType]int{
 	internal.PDTypeInvalidDie: http.StatusBadRequest,
 }
 
-func (h *Handler) Err(w http.ResponseWriter, r *http.Request, err error) {
-	pd := h.svc.HandleError(r.Context(), err)
+func (h *BaseHandler) Err(w http.ResponseWriter, r *http.Request, err error) {
+	pd := internal.HandleError(r.Context(), h.Logger, err)
 	h.Render(w, r, problemDetailStatusCodes[pd.Type], views.ProblemDetail(pd))
 }
 
-func (h *Handler) Render(w io.Writer, r *http.Request, statusCode int, data templ.Component) {
+func (h *BaseHandler) Render(w io.Writer, r *http.Request, statusCode int, data templ.Component) {
 	if rw, ok := w.(http.ResponseWriter); ok {
 		rw.WriteHeader(statusCode)
 	}

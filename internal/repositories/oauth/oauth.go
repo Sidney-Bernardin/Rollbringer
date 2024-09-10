@@ -8,8 +8,10 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 
 	"rollbringer/internal"
+	"rollbringer/internal/config"
 )
 
 // openIDConnectClaims represents an OpenID Connect JWT.
@@ -29,6 +31,18 @@ func NewOauthState() string {
 
 type OAuth struct {
 	GoogleConfig *oauth2.Config
+}
+
+func New(cfg *config.Config) *OAuth {
+	return &OAuth{
+		GoogleConfig: &oauth2.Config{
+			Endpoint:     google.Endpoint,
+			ClientID:     cfg.UsersGoogleClientID,
+			ClientSecret: cfg.UsersGoogleClientSecret,
+			RedirectURL:  cfg.UsersRedirectURL,
+			Scopes:       []string{"openid", "profile", "email"},
+		},
+	}
 }
 
 func (oa *OAuth) GenerateCodeVerifier() string {
@@ -70,7 +84,7 @@ func (oa *OAuth) AuthenticateConsent(ctx context.Context, stateA, stateB, code, 
 
 	claims, _ := idToken.Claims.(*openIDConnectClaims)
 	return &internal.GoogleUserInfo{
-		GoogleID: claims.Subject,
+		GoogleID:  claims.Subject,
 		GivenName: claims.GivenName,
 	}, nil
 }

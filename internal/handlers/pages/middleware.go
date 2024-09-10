@@ -23,7 +23,7 @@ func (h *handler) AuthenticatePage(next http.Handler) http.Handler {
 		}
 		sessionID, _ := uuid.Parse(cookie.Value)
 
-		session, err := h.svc.GetSession(r.Context(), sessionID)
+		session, err := h.svc.GetSession(r.Context(), sessionID, internal.SessionViewAll)
 		if err != nil {
 			if internal.IsDetailed(err, internal.PDTypeUnauthorized) {
 				http.Redirect(w, r, "/users/login", http.StatusTemporaryRedirect)

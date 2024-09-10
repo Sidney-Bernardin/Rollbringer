@@ -16,19 +16,19 @@ import (
 )
 
 type usersHandler struct {
-	*handlers.Handler
+	*handlers.BaseHandler
 
-	service users.Service
+	svc users.Service
 }
 
 func NewHandler(cfg *config.Config, logger *slog.Logger, service users.Service) *usersHandler {
 	h := &usersHandler{
-		Handler: &handlers.Handler{
+		BaseHandler: &handlers.BaseHandler{
 			Config: cfg,
 			Logger: logger,
 			Router: chi.NewRouter(),
 		},
-		service: service,
+		svc: service,
 	}
 
 	h.Router.Use(h.Log, h.Instance)
@@ -39,7 +39,7 @@ func NewHandler(cfg *config.Config, logger *slog.Logger, service users.Service) 
 }
 
 func (h *usersHandler) HandleLogin(w http.ResponseWriter, r *http.Request) {
-	consentURL, state, codeVerifier := h.service.StartLogin()
+	consentURL, state, codeVerifier := h.svc.StartLogin()
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     "STATE_AND_VERIFIER",
@@ -71,7 +71,7 @@ func (h *usersHandler) HandleConsentCallback(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	session, err := h.service.FinishLogin(ctx,
+	session, err := h.svc.FinishLogin(ctx,
 		state_and_verifier[0],
 		r.FormValue("state"),
 		r.FormValue("code"),
@@ -86,8 +86,9 @@ func (h *usersHandler) HandleConsentCallback(w http.ResponseWriter, r *http.Requ
 	http.SetCookie(w, &http.Cookie{
 		Name:     "SESSION_ID",
 		Value:    session.ID.String(),
-		Path:     "/",
+		Domain:   h.Config.CookieDomain,
 		Expires:  time.Now().Add(15 * time.Minute),
+		SameSite: http.SameSiteStrictMode,
 		HttpOnly: true,
 	})
 

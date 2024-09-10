@@ -18,7 +18,7 @@ import (
 )
 
 func init() {
-	features["games"] = func(cfg *config.Config, logger *slog.Logger) (http.Handler, services.Servicer, error) {
+	features["games"] = func(cfg *config.Config, logger *slog.Logger) (http.Handler, services.BaseServicer, error) {
 
 		// Create a PubSub repository.
 		ps, err := pubsub.New(cfg, logger)

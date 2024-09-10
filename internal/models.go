@@ -1,8 +1,34 @@
 package internal
 
 import (
+	"fmt"
+
 	"github.com/google/uuid"
 )
+
+type Event string
+
+type EventWrapper[T any] struct {
+	Event   Event
+	Payload T
+}
+
+// =====
+
+const EventError Event = "ERROR"
+
+type ProblemDetail struct {
+	Instance string `json:"instance,omitempty"`
+	Type     PDType `json:"type"`
+	Detail   string `json:"detail,omitempty"`
+	Extra    map[string]any
+}
+
+func (pd *ProblemDetail) Error() string {
+	return fmt.Sprintf("%s: %s", pd.Type, pd.Detail)
+}
+
+// =====
 
 type GoogleUserInfo struct {
 	GoogleID  string
@@ -11,10 +37,12 @@ type GoogleUserInfo struct {
 
 // =====
 
-type UserView int
+type UserView string
 
 const (
-	UserViewAll UserView = iota
+	UserViewAll UserView = "ALL"
+
+	EventUser Event = "USER"
 )
 
 type User struct {
@@ -30,10 +58,33 @@ type User struct {
 
 // =====
 
-type SessionView int
+const EventGetUserRequest Event = "GET_USER_REQUEST"
+
+type GetUserRequest struct {
+	UserID          uuid.UUID `json:"user_id,omitempty"`
+	UserView        UserView  `json:"user_view,omitempty"`
+	PDFsView        PDFView   `json:"pdfs_view,omitempty"`
+	HostedGamesView GameView  `json:"hosted_view,omitempty"`
+	JoinedGamesView GameView  `json:"joined_view,omitempty"`
+}
+
+// =====
+
+const EventAuthenticateUserRequest Event = "AUTHENTICATE_USER_REQUEST"
+
+type AuthenticateUserRequest struct {
+	SessionID uuid.UUID `json:"session_id,omitempty"`
+	CSRFToken string    `json:"csrf_token,omitempty"`
+}
+
+// =====
+
+type SessionView string
 
 const (
-	SessionViewAll SessionView = iota
+	SessionViewAll SessionView = "ALL"
+
+	EventSession Event = "SESSION"
 )
 
 type Session struct {
@@ -45,17 +96,19 @@ type Session struct {
 
 // =====
 
-type GameView int
+const EventGetSessionRequest Event = "GET_SESSION_REQUEST"
 
-const (
-	GameViewAll GameView = iota
-	GameViewAll_HostInfo
-)
-
-var GameViews = map[string]GameView{
-	"All":          GameViewAll,
-	"All_HostInfo": GameViewAll_HostInfo,
+type GetSessionRequest struct {
+	SessionID   uuid.UUID   `json:"session_id,omitempty"`
+	SessionView SessionView `json:"view,omitempty"`
 }
+
+// =====
+
+const EventGame Event = "GAME"
+
+var GameViews = []string{"all"}
+var GameHostViews = []string{"all", "name"}
 
 type Game struct {
 	ID uuid.UUID `json:"id,omitempty"`
@@ -72,13 +125,21 @@ type Game struct {
 
 // =====
 
-type PDFView int
+const EventGetGameRequest Event = "GET_GAME_REQUEST"
+
+type GetGameRequest struct {
+	GameID uuid.UUID `json:"game_id,omitempty"`
+	View   string    `json:"view"`
+}
+
+// =====
+
+type PDFView string
 
 const (
-	PDFViewAll PDFView = iota
-	PDFViewAll_OwnerInfo_GameInfo
-	PDFViewAll_OwnerInfo
-	PDFViewAll_GameInfo
+	PDFViewAll PDFView = "ALL"
+
+	EventPDF Event = "PDF"
 )
 
 type PDF struct {
@@ -97,11 +158,37 @@ type PDF struct {
 
 // =====
 
-type RollView int
+const EventSubToPDFRequest Event = "SUB_TO_PDF_REQUEST"
 
-const (
-	RollViewAll RollView = iota
-)
+type SubToPDFRequest struct {
+	PDFID   uuid.UUID `json:"pdf_id,omitempty"`
+	PageNum int       `json:"page_num,string,omitempty"`
+}
+
+// =====
+
+const EventPDFFields Event = "PDF_FIELDS"
+
+type PDFFields struct {
+	PDFID   uuid.UUID         `json:"pdf_id,omitempty"`
+	PageNum int               `json:"page_num,string,omitempty"`
+	Fields  map[string]string `json:"fields,omitempty"`
+}
+
+// =====
+
+const EventUpdatePDFFieldRequest Event = "UPDATE_PDF_FIELD_REQUEST"
+
+type UpdatePDFFieldRequest struct {
+	PDFID      uuid.UUID `json:"pdf_id,omitempty"`
+	PageNum    int       `json:"page_num,string,omitempty"`
+	FieldName  string    `json:"field_name,omitempty"`
+	FieldValue string    `json:"field_value,omitempty"`
+}
+
+// =====
+
+const EventRoll Event = "ROLL"
 
 type Roll struct {
 	ID uuid.UUID `json:"id,omitempty"`
@@ -114,4 +201,13 @@ type Roll struct {
 
 	DiceNames   []int32 `json:"dice_names,omitempty"`
 	DiceResults []int32 `json:"dice_results,omitempty"`
+}
+
+// =====
+
+const EventCreateRollRequest Event = "CREATE_ROLL_REQUEST"
+
+type CreateRollRequest struct {
+	Dice     string `json:"dice,omitempty"`
+	Modifier string `json:"modifier,omitempty"`
 }

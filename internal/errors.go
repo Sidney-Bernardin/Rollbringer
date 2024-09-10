@@ -2,7 +2,7 @@ package internal
 
 import (
 	"context"
-	"fmt"
+	"log/slog"
 
 	"github.com/pkg/errors"
 )
@@ -16,6 +16,7 @@ const (
 	PDTypeUnauthorized PDType = "unauthorized"
 	PDTypeInvalidView  PDType = "invalid_view"
 	PDTypeInvalidEvent PDType = "invalid_event"
+	PDTypeInvalidJSON  PDType = "invalid_json"
 
 	PDTypeUserNotFound    PDType = "user_not_found"
 	PDTypeSessionNotFound PDType = "session_not_found"
@@ -32,13 +33,6 @@ const (
 	PDTypeInvalidDie PDType = "invalid_die"
 )
 
-type ProblemDetail struct {
-	Instance string `json:"instance,omitempty"`
-	Type     PDType `json:"type"`
-	Detail   string `json:"detail,omitempty"`
-	Extra    map[string]any
-}
-
 type PDOpts struct {
 	Type   PDType
 	Detail string
@@ -54,12 +48,19 @@ func NewProblemDetail(ctx context.Context, opts PDOpts) *ProblemDetail {
 	}
 }
 
-func (pd *ProblemDetail) Error() string {
-	return fmt.Sprintf("%s: %s", pd.Type, pd.Detail)
-}
-
 // IsDetailed checks if the error is a ProblemDetail and has the PDType.
 func IsDetailed(err error, t PDType) bool {
 	pd, ok := errors.Cause(err).(*ProblemDetail)
 	return ok && pd.Type == t
+}
+
+func HandleError(ctx context.Context, logger *slog.Logger, err error) *ProblemDetail {
+	pd, ok := errors.Cause(err).(*ProblemDetail)
+	if !ok {
+		logger.Error("Server error", "err", err.Error())
+		pd = NewProblemDetail(ctx, PDOpts{
+			Type: PDTypeServerError,
+		})
+	}
+	return pd
 }

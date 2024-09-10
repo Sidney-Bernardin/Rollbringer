@@ -13,10 +13,10 @@ func (svc *service) Run() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	go svc.ps.Subscribe(ctx, "users", errChan, func(e internal.Event, subject []string) (internal.Event, *internal.ProblemDetail) {
+	go svc.PS.Subscribe(ctx, "users", errChan, func(e internal.Event, subject []string) (internal.Event, *internal.ProblemDetail) {
 		switch event := e.(type) {
 		case *internal.EventGetUser:
-			user, err := svc.getUser(ctx, event.UserID, event.View)
+			user, err := svc.getUser(ctx, event.UserID, event.UserView)
 			if err != nil {
 				return nil, svc.HandleError(ctx, errors.Wrap(err, "cannot get user"))
 			}
@@ -42,7 +42,7 @@ func (svc *service) Run() error {
 		}
 	})
 
-	go svc.ps.Subscribe(ctx, "sessions", errChan, func(e internal.Event, subject []string) (internal.Event, *internal.ProblemDetail) {
+	go svc.PS.Subscribe(ctx, "sessions", errChan, func(e internal.Event, subject []string) (internal.Event, *internal.ProblemDetail) {
 		switch event := e.(type) {
 		case *internal.EventGetSession:
 			session, err := svc.getSession(ctx, event.SessionID, event.View)

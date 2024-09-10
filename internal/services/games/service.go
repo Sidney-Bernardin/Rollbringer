@@ -17,13 +17,15 @@ import (
 )
 
 type Service interface {
-	services.Servicer
+	services.BaseServicer
+
+	CreateGame(ctx context.Context, session *internal.Session, game *internal.Game) error
+	DeleteGame(ctx context.Context, session *internal.Session, gameID uuid.UUID) error
 }
 
 type service struct {
-	*services.Service
+	*services.BaseService
 
-	ps internal.PubSub
 	db internal.GamesDatabase
 
 	random *rand.Rand
@@ -36,25 +38,51 @@ func NewService(
 	db internal.GamesDatabase,
 ) Service {
 	return &service{
-		Service: &services.Service{
+		BaseService: &services.BaseService{
 			Config: cfg,
 			Logger: logger,
+			PS:     ps,
 		},
-		ps:     ps,
 		db:     db,
 		random: rand.New(rand.NewSource(time.Now().UnixNano())),
 	}
 }
 
 func (svc *service) Shutdown() error {
-	svc.ps.Close()
+	svc.PS.Close()
 	err := svc.db.Close()
 	return errors.Wrap(err, "cannot close database")
 }
 
-func (svc *service) getGame(ctx context.Context, gameID uuid.UUID, view internal.GameView) (*internal.Game, error) {
+func (svc *service) CreateGame(ctx context.Context, session *internal.Session, game *internal.Game) error {
+	return nil
+}
+
+func (svc *service) getGame(ctx context.Context, gameID uuid.UUID, view string) (*internal.Game, error) {
 	game, err := svc.db.GameGet(ctx, gameID, view)
-	return game, errors.Wrap(err, "cannot get game")
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot get game")
+	}
+
+	if req.HostView != internal.UserViewNone {
+		err := svc.PS.Request(ctx, "users", game.Host, &internal.EventWrapper[any]{
+			Event: internal.EventGetUserRequest,
+			Payload: internal.GetUserRequest{
+				UserID:   game.HostID,
+				UserView: req.HostView,
+			},
+		})
+
+		if err != nil {
+			return nil, errors.Wrap(err, "cannot get user")
+		}
+	}
+
+	return game, nil
+}
+
+func (svc *service) DeleteGame(ctx context.Context, session *internal.Session, gameID uuid.UUID) error {
+	return nil
 }
 
 func (svc *service) roll(ctx context.Context, diceNamesStr string) (*internal.Roll, error) {

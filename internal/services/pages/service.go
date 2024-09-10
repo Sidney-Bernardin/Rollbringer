@@ -21,45 +21,47 @@ type PlayPage struct {
 }
 
 type Service interface {
-	services.Servicer
+	services.BaseServicer
 
-	GetSession(ctx context.Context, sessionID uuid.UUID) (*internal.Session, error)
+	GetSession(ctx context.Context, sessionID uuid.UUID, view internal.SessionView) (*internal.Session, error)
 	PlayPage(ctx context.Context, session *internal.Session, gameID uuid.UUID) (*PlayPage, error)
 }
 
 type service struct {
-	*services.Service
-
-	ps internal.PubSub
+	*services.BaseService
 }
 
 func NewService(cfg *config.Config, logger *slog.Logger, ps internal.PubSub) Service {
 	return &service{
-		Service: &services.Service{
+		BaseService: &services.BaseService{
 			Config: cfg,
 			Logger: logger,
+			PS:     ps,
 		},
-		ps: ps,
 	}
 }
 
 func (svc *service) Shutdown() error {
-	svc.ps.Close()
+	svc.PS.Close()
 	return nil
 }
 
-func (svc *service) GetSession(ctx context.Context, sessionID uuid.UUID) (*internal.Session, error) {
-	res, err := svc.ps.Request(ctx, "sessions", &internal.EventGetSession{
-		BaseEvent: internal.BaseEvent{Type: internal.ETGetSession},
-		SessionID: sessionID,
+func (svc *service) GetSession(ctx context.Context, sessionID uuid.UUID, sessionView internal.SessionView) (*internal.Session, error) {
+
+	var session internal.Session
+	err := svc.PS.Request(ctx, "sessions", &session, &internal.EventWrapper[any]{
+		Event: internal.EventGetSessionRequest,
+		Payload: internal.GetSessionRequest{
+			SessionID:   sessionID,
+			SessionView: sessionView,
+		},
 	})
 
 	if err != nil {
-		return nil, errors.Wrap(err, "cannot authenticate")
+		return nil, errors.Wrap(err, "cannot get session")
 	}
 
-	event, _ := res.(*internal.EventSession)
-	return &event.Session, nil
+	return &session, nil
 }
 
 func (svc *service) PlayPage(ctx context.Context, session *internal.Session, gameID uuid.UUID) (*PlayPage, error) {
@@ -70,33 +72,28 @@ func (svc *service) PlayPage(ctx context.Context, session *internal.Session, gam
 	)
 
 	group.Go(func() error {
-		res, err := svc.ps.Request(ctx, "users", &internal.EventGetUser{
-			UserID: session.UserID,
-			View:   internal.UserViewAll,
+		err := svc.PS.Request(ctx, "users", page.User, &internal.EventWrapper[any]{
+			Event: internal.EventGetUserRequest,
+			Payload: &internal.GetUserRequest{
+				UserID:          session.UserID,
+				UserView:        internal.UserViewAll,
+				PDFsView:        internal.PDFViewAll,
+				HostedGamesView: internal.GameViewAll,
+				JoinedGamesView: internal.GameViewAll,
+			},
 		})
-
-		if err != nil {
-			return errors.Wrap(err, "cannot get user")
-		}
-
-		event, _ := res.(*internal.EventUser)
-		page.User = &event.User
-		return nil
+		return errors.Wrap(err, "cannot get user")
 	})
 
 	group.Go(func() error {
-		res, err := svc.ps.Request(ctx, "games", &internal.EventGetGame{
-			GameID: gameID,
-			View:   internal.GameViewAll,
+		err := svc.PS.Request(ctx, "games", page.Game, &internal.EventWrapper[any]{
+			Event: internal.EventGetGameRequest,
+			Payload: &internal.GetGameRequest{
+				GameID:   gameID,
+				GameView: internal.GameViewAll,
+			},
 		})
-
-		if err != nil {
-			return errors.Wrap(err, "cannot get game")
-		}
-
-		event, _ := res.(*internal.EventGame)
-		page.Game = &event.Game
-		return nil
+		return errors.Wrap(err, "cannot get game")
 	})
 
 	if err := group.Wait(); err != nil {

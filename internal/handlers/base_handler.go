@@ -10,15 +10,15 @@ import (
 	"rollbringer/internal/services"
 )
 
-type Handler struct {
+type BaseHandler struct {
 	Config *config.Config
 	Logger *slog.Logger
 
 	Router *chi.Mux
 
-	svc services.Servicer
+	BaseService services.BaseServicer
 }
 
-func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *BaseHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.Router.ServeHTTP(w, r)
 }

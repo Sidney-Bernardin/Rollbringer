@@ -8,10 +8,9 @@ import (
 
 type PubSub interface {
 	Close()
-	Publish(ctx context.Context, subject string, event Event) error
-	Request(ctx context.Context, subject string, req Event) (Event, error)
-	Subscribe(ctx context.Context, subject string, errChan chan<- error, cb func(event Event, subject []string) (Event, *ProblemDetail))
-	ChanSubscribe(ctx context.Context, subject string, resChan chan<- Event, errChan chan<- error)
+	Publish(ctx context.Context, subject string, data *EventWrapper[any]) error
+	Request(ctx context.Context, subject string, incomingData any, outgoingData *EventWrapper[any]) error
+	Subscribe(ctx context.Context, subject string, errChan chan<- error, cb func(*EventWrapper[[]byte]) *EventWrapper[any])
 }
 
 type Database interface {

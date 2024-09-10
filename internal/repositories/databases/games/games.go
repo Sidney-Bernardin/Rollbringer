@@ -13,7 +13,8 @@ import (
 )
 
 var gameViewColumns = map[internal.GameView]string{
-	internal.GameViewAll: `games.*`,
+	internal.GameViewAll:          `games.*`,
+	internal.GameViewAll_HostName: `games.*, users.id AS "host.id", users.username AS "host.username"`,
 }
 
 type dbGame struct {
@@ -55,7 +56,9 @@ func (db *GamesDatabase) GamesCount(ctx context.Context, hostID uuid.UUID) (coun
 func (db *GamesDatabase) GamesGetForHost(ctx context.Context, hostID uuid.UUID, view internal.GameView) ([]*internal.Game, error) {
 	columns, ok := gameViewColumns[view]
 	if !ok {
-		return nil, fmt.Errorf("bad game view %d", view)
+		return nil, internal.NewProblemDetail(ctx, internal.PDOpts{
+			Type: internal.PDTypeInvalidView,
+		})
 	}
 	query := fmt.Sprintf(`SELECT %s FROM games WHERE games.host_id = $1`, columns)
 
@@ -73,10 +76,12 @@ func (db *GamesDatabase) GamesGetForHost(ctx context.Context, hostID uuid.UUID, 
 	return ret, nil
 }
 
-func (db *GamesDatabase) GameGet(ctx context.Context, gameID uuid.UUID, view internal.GameView) (*internal.Game, error) {
+func (db *GamesDatabase) GameGet(ctx context.Context, gameID uuid.UUID, view string) (*internal.Game, error) {
 	columns, ok := gameViewColumns[view]
 	if !ok {
-		return nil, fmt.Errorf("bad game view %d", view)
+		return nil, internal.NewProblemDetail(ctx, internal.PDOpts{
+			Type: internal.PDTypeInvalidView,
+		})
 	}
 	query := fmt.Sprintf(`SELECT %s FROM games WHERE games.id = $1`, columns)
 
