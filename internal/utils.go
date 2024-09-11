@@ -1,6 +1,9 @@
 package internal
 
-import "strings"
+import (
+	"context"
+	"strings"
+)
 
 type CtxKey string
 
@@ -8,13 +11,19 @@ var PDFSchemaPageNames = map[string][]string{
 	"DND_CHARACTER_SHEET": {"main", "info", "spells"},
 }
 
-func ParseViews(views string) {
-	// pdf-all,owner-name,game-all
-	for _, view := range strings.Split(views, ",") {
-		viewParts := strings.Split(view, "-")
+func ParseViews[T UserView | SessionView | GameView | PDFView](ctx context.Context, views string) (map[string]T, error) {
+	ret := map[string]T{}
 
-		switch viewParts[0] {
-		case GameViews[0]:
+	for _, view := range strings.Split(views, ",") {
+		if field := strings.Split(view, "-"); len(field) == 2 {
+			ret[field[0]] = T(field[1])
+			continue
 		}
+
+		return nil, NewProblemDetail(ctx, PDOpts{
+			Type: PDTypeInvalidView,
+		})
 	}
+
+	return ret, nil
 }

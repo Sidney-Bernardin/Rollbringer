@@ -44,7 +44,7 @@ CREATE TABLE games.pdfs (
     name text NOT NULL,
     schema text NOT NULL,
 
-    fields hstore[] NOT NULL
+    pages hstore[] NOT NULL
 );
 
 CREATE TABLE games.rolls (

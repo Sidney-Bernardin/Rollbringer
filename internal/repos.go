@@ -17,30 +17,30 @@ type Database interface {
 	Close() error
 }
 
-type UsersDatabase interface {
+type UsersSchema interface {
 	Database
 
 	UserInsert(ctx context.Context, user *User) error
-	UserGet(ctx context.Context, userID uuid.UUID, view UserView) (*User, error)
+	UserGet(ctx context.Context, userID uuid.UUID, views map[string]UserView) (*User, error)
 
 	SessionUpsert(ctx context.Context, session *Session) error
-	SessionGet(ctx context.Context, sessionID uuid.UUID, view SessionView) (*Session, error)
+	SessionGet(ctx context.Context, sessionID uuid.UUID, views map[string]SessionView) (*Session, error)
 }
 
-type GamesDatabase interface {
+type GamesSchema interface {
 	Database
 
 	GameInsert(ctx context.Context, game *Game) error
 	GamesCount(ctx context.Context, hostID uuid.UUID) (int, error)
-	GamesGetForHost(ctx context.Context, hostID uuid.UUID, view GameView) ([]*Game, error)
-	GameGet(ctx context.Context, gameID uuid.UUID, view GameView) (*Game, error)
+	GameGet(ctx context.Context, gameID uuid.UUID, views map[string]GameView) (*Game, error)
+	GamesGetForHost(ctx context.Context, hostID uuid.UUID, views map[string]GameView) ([]*Game, error)
 	GameDelete(ctx context.Context, gameID, hostID uuid.UUID) error
 
-	PDFInsert(ctx context.Context, pdf *PDF, pageCount int) error
-	PDFsGetForOwner(ctx context.Context, ownerID uuid.UUID, view PDFView) ([]*PDF, error)
-	PDFsGetForGame(ctx context.Context, gameID uuid.UUID, view PDFView) ([]*PDF, error)
-	PDFGet(ctx context.Context, pdfID uuid.UUID, view PDFView) (*PDF, error)
+	PDFInsert(ctx context.Context, pdf *PDF) error
+	PDFGet(ctx context.Context, pdfID uuid.UUID, view map[string]PDFView) (*PDF, error)
 	PDFGetPage(ctx context.Context, pdfID uuid.UUID, pageIdx int) (map[string]string, error)
+	PDFsGetForOwner(ctx context.Context, ownerID uuid.UUID, views map[string]PDFView) ([]*PDF, error)
+	PDFsGetForGame(ctx context.Context, gameID uuid.UUID, views map[string]PDFView) ([]*PDF, error)
 	PDFUpdatePage(ctx context.Context, pdfID uuid.UUID, pageIdx int, fieldName, fieldValue string) error
 	PDFDelete(ctx context.Context, pdfID, ownerID uuid.UUID) error
 

@@ -40,7 +40,7 @@ type GoogleUserInfo struct {
 type UserView string
 
 const (
-	UserViewAll UserView = "ALL"
+	UserViewUserAll UserView = "all"
 
 	EventUser Event = "USER"
 )
@@ -61,11 +61,8 @@ type User struct {
 const EventGetUserRequest Event = "GET_USER_REQUEST"
 
 type GetUserRequest struct {
-	UserID          uuid.UUID `json:"user_id,omitempty"`
-	UserView        UserView  `json:"user_view,omitempty"`
-	PDFsView        PDFView   `json:"pdfs_view,omitempty"`
-	HostedGamesView GameView  `json:"hosted_view,omitempty"`
-	JoinedGamesView GameView  `json:"joined_view,omitempty"`
+	UserID uuid.UUID `json:"user_id,omitempty"`
+	View   UserView  `json:"view,omitempty"`
 }
 
 // =====
@@ -82,7 +79,7 @@ type AuthenticateUserRequest struct {
 type SessionView string
 
 const (
-	SessionViewAll SessionView = "ALL"
+	SessionViewSessionAll SessionView = "all"
 
 	EventSession Event = "SESSION"
 )
@@ -105,10 +102,14 @@ type GetSessionRequest struct {
 
 // =====
 
-const EventGame Event = "GAME"
+type GameView string
 
-var GameViews = []string{"all"}
-var GameHostViews = []string{"all", "name"}
+const (
+	GameViewGameAll  GameView = "all"
+	GameViewHostInfo GameView = "info"
+
+	EventGame Event = "GAME"
+)
 
 type Game struct {
 	ID uuid.UUID `json:"id,omitempty"`
@@ -129,7 +130,7 @@ const EventGetGameRequest Event = "GET_GAME_REQUEST"
 
 type GetGameRequest struct {
 	GameID uuid.UUID `json:"game_id,omitempty"`
-	View   string    `json:"view"`
+	View   GameView  `json:"view"`
 }
 
 // =====
@@ -137,7 +138,9 @@ type GetGameRequest struct {
 type PDFView string
 
 const (
-	PDFViewAll PDFView = "ALL"
+	PDFViewPDFAll    PDFView = "all"
+	PDFViewOwnerInfo PDFView = "info"
+	PDFViewGameInfo  PDFView = "game"
 
 	EventPDF Event = "PDF"
 )
@@ -153,7 +156,7 @@ type PDF struct {
 
 	Name   string              `json:"name,omitempty"`
 	Schema string              `json:"schema,omitempty"`
-	Fields []map[string]string `json:"fields,omitempty"`
+	Pages  []map[string]string `json:"pages,omitempty"`
 }
 
 // =====

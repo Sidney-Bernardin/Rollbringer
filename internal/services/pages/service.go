@@ -75,11 +75,8 @@ func (svc *service) PlayPage(ctx context.Context, session *internal.Session, gam
 		err := svc.PS.Request(ctx, "users", page.User, &internal.EventWrapper[any]{
 			Event: internal.EventGetUserRequest,
 			Payload: &internal.GetUserRequest{
-				UserID:          session.UserID,
-				UserView:        internal.UserViewAll,
-				PDFsView:        internal.PDFViewAll,
-				HostedGamesView: internal.GameViewAll,
-				JoinedGamesView: internal.GameViewAll,
+				UserID: session.UserID,
+				View:   "user-all,games-all,pdfs-all",
 			},
 		})
 		return errors.Wrap(err, "cannot get user")
@@ -89,8 +86,8 @@ func (svc *service) PlayPage(ctx context.Context, session *internal.Session, gam
 		err := svc.PS.Request(ctx, "games", page.Game, &internal.EventWrapper[any]{
 			Event: internal.EventGetGameRequest,
 			Payload: &internal.GetGameRequest{
-				GameID:   gameID,
-				GameView: internal.GameViewAll,
+				GameID: gameID,
+				View:   internal.GameViewAll,
 			},
 		})
 		return errors.Wrap(err, "cannot get game")
