@@ -4,16 +4,12 @@
 package main
 
 import (
-	"log/slog"
 	"net/http"
 
 	"github.com/pkg/errors"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
 
-	"rollbringer/internal/config"
 	handler "rollbringer/internal/handlers/users"
-	database "rollbringer/internal/repositories/databases/users"
+	schema "rollbringer/internal/repositories/database/users"
 	"rollbringer/internal/repositories/oauth"
 	"rollbringer/internal/repositories/pubsub"
 	"rollbringer/internal/services"
@@ -21,25 +17,22 @@ import (
 )
 
 func init() {
-	features["users"] = func(cfg *config.Config, logger *slog.Logger) (http.Handler, services.BaseServicer, error) {
+	features["users"] = func(deps globalDependencies) (http.Handler, services.BaseServicer, error) {
 
 		// Create a PubSub repository.
-		ps, err := pubsub.New(cfg, logger)
+		pubsubRepo, err := pubsub.New(deps.cfg, deps.logger)
 		if err != nil {
 			return nil, nil, errors.Wrap(err, "cannot create pubsub repository")
 		}
 
 		// Create a UsersDatabase repository.
-		db, err := database.New(cfg, logger)
-		if err != nil {
-			return nil, nil, errors.Wrap(err, "cannot create database repository")
-		}
+		schemaRepo := schema.New(deps.dbRepo)
 
 		// Create an OAuth repository.
-		oa := oauth.New(cfg)
+		oa := oauth.New(deps.cfg)
 
 		// Create a service and handler.
-		svc := service.NewService(cfg, logger, ps, db, oa)
-		return handler.NewHandler(cfg, logger, svc), svc, nil
+		svc := service.NewService(deps.cfg, deps.logger, pubsubRepo, schemaRepo, oa)
+		return handler.NewHandler(deps.cfg, deps.logger, svc), svc, nil
 	}
 }

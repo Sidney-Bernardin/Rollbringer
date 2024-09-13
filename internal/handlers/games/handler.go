@@ -3,11 +3,11 @@ package games
 import (
 	"log/slog"
 	"net/http"
-	"slices"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"golang.org/x/net/websocket"
 
 	"rollbringer/internal"
 	"rollbringer/internal/config"
@@ -34,13 +34,19 @@ func NewHandler(cfg *config.Config, logger *slog.Logger, svc service.Service) ht
 	}
 
 	h.Router.Use(h.Log, h.Instance, h.Authenticate)
-	h.Router.Post("/", h.HandleCreateGame)
-	h.Router.Delete("/{game_id}", h.HandleDeleteGame)
+
+	h.Router.Post("/games", h.handleCreateGame)
+	h.Router.Method("/games/{game_id}", "GET", websocket.Handler(h.handleGameWebsocket))
+	h.Router.Delete("/games/{game_id}", h.handleDeleteGame)
+
+	h.Router.Post("/pdfs", h.handleCreatePDF)
+	h.Router.Get("/pdfs", h.handleGetPDF)
+	h.Router.Delete("/pdfs/{pdf_id}", h.handleDeletePDF)
 
 	return h
 }
 
-func (h *handler) HandleCreateGame(w http.ResponseWriter, r *http.Request) {
+func (h *handler) handleCreateGame(w http.ResponseWriter, r *http.Request) {
 
 	var (
 		session, _ = r.Context().Value("session").(*internal.Session)
@@ -57,7 +63,7 @@ func (h *handler) HandleCreateGame(w http.ResponseWriter, r *http.Request) {
 	h.Render(w, r, http.StatusCreated, play.HostedGameRow(game))
 }
 
-func (h *handler) HandleDeleteGame(w http.ResponseWriter, r *http.Request) {
+func (h *handler) handleDeleteGame(w http.ResponseWriter, r *http.Request) {
 
 	var (
 		session, _ = r.Context().Value("session").(*internal.Session)
@@ -66,6 +72,51 @@ func (h *handler) HandleDeleteGame(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.svc.DeleteGame(r.Context(), session, gameID); err != nil {
 		h.Err(w, r, errors.Wrap(err, "cannot delete game"))
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *handler) handleCreatePDF(w http.ResponseWriter, r *http.Request) {
+
+	var (
+		session, _ = r.Context().Value("session").(*internal.Session)
+		pdf        = &internal.PDF{
+			Name:   r.FormValue("name"),
+			Schema: r.FormValue("schema"),
+		}
+	)
+
+	if err := h.svc.CreatePDF(r.Context(), session, pdf); err != nil {
+		h.Err(w, r, errors.Wrap(err, "cannot create pdf"))
+		return
+	}
+
+	h.Render(w, r, http.StatusCreated, play.PDFTableRow(pdf))
+}
+
+func (h *handler) handleGetPDF(w http.ResponseWriter, r *http.Request) {
+	var pdfID, _ = uuid.Parse(chi.URLParam(r, "pdf_id"))
+
+	pdf, err := h.svc.GetPDF(r.Context(), pdfID, "pdf-all")
+	if err != nil {
+		h.Err(w, r, errors.Wrap(err, "cannot get pdf"))
+		return
+	}
+
+	h.Render(w, r, http.StatusOK, play.PDFTab(pdf))
+}
+
+func (h *handler) handleDeletePDF(w http.ResponseWriter, r *http.Request) {
+
+	var (
+		session, _ = r.Context().Value("session").(*internal.Session)
+		pdfID, _   = uuid.Parse(chi.URLParam(r, "pdf_id"))
+	)
+
+	if err := h.svc.DeletePDF(r.Context(), session, pdfID); err != nil {
+		h.Err(w, r, errors.Wrap(err, "cannot delete pdf"))
 		return
 	}
 

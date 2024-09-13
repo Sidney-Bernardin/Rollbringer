@@ -32,13 +32,13 @@ func NewHandler(cfg *config.Config, logger *slog.Logger, service users.Service) 
 	}
 
 	h.Router.Use(h.Log, h.Instance)
-	h.Router.Get("/login", h.HandleLogin)
-	h.Router.Get("/consent-callback", h.HandleConsentCallback)
+	h.Router.Get("/login", h.handleLogin)
+	h.Router.Get("/consent-callback", h.handleConsentCallback)
 
 	return h
 }
 
-func (h *usersHandler) HandleLogin(w http.ResponseWriter, r *http.Request) {
+func (h *usersHandler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	consentURL, state, codeVerifier := h.svc.StartLogin()
 
 	http.SetCookie(w, &http.Cookie{
@@ -51,7 +51,7 @@ func (h *usersHandler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, consentURL, http.StatusTemporaryRedirect)
 }
 
-func (h *usersHandler) HandleConsentCallback(w http.ResponseWriter, r *http.Request) {
+func (h *usersHandler) handleConsentCallback(w http.ResponseWriter, r *http.Request) {
 	var ctx = r.Context()
 
 	cookie, err := r.Cookie("STATE_AND_VERIFIER")

@@ -13,13 +13,6 @@ import (
 	"rollbringer/internal/services"
 )
 
-type PlayPage struct {
-	IsHost bool
-
-	User *internal.User
-	Game *internal.Game
-}
-
 type Service interface {
 	services.BaseServicer
 
@@ -67,11 +60,11 @@ func (svc *service) GetSession(ctx context.Context, sessionID uuid.UUID, session
 func (svc *service) PlayPage(ctx context.Context, session *internal.Session, gameID uuid.UUID) (*PlayPage, error) {
 
 	var (
-		page  = &PlayPage{}
-		group = &errgroup.Group{}
+		page = &PlayPage{}
+		errs = &errgroup.Group{}
 	)
 
-	group.Go(func() error {
+	errs.Go(func() error {
 		err := svc.PS.Request(ctx, "users", page.User, &internal.EventWrapper[any]{
 			Event: internal.EventGetUserRequest,
 			Payload: &internal.GetUserRequest{
@@ -82,18 +75,18 @@ func (svc *service) PlayPage(ctx context.Context, session *internal.Session, gam
 		return errors.Wrap(err, "cannot get user")
 	})
 
-	group.Go(func() error {
+	errs.Go(func() error {
 		err := svc.PS.Request(ctx, "games", page.Game, &internal.EventWrapper[any]{
 			Event: internal.EventGetGameRequest,
 			Payload: &internal.GetGameRequest{
 				GameID: gameID,
-				View:   internal.GameViewAll,
+				View:   "game-all",
 			},
 		})
 		return errors.Wrap(err, "cannot get game")
 	})
 
-	if err := group.Wait(); err != nil {
+	if err := errs.Wait(); err != nil {
 		return nil, err
 	}
 

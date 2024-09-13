@@ -37,8 +37,11 @@ func (svc *service) doUsersSubscription(ctx context.Context, errChan chan<- erro
 
 		if err := json.Unmarshal(incoming.Payload, &payload); err != nil {
 			return &internal.EventWrapper[any]{
-				Event:   internal.EventError,
-				Payload: internal.HandleError(ctx, svc.Logger, errors.Wrap(err, "cannot JSON decode incoming payload")),
+				Event: internal.EventError,
+				Payload: internal.NewProblemDetail(ctx, internal.PDOpts{
+					Type:   internal.PDTypeInvalidJSON,
+					Detail: err.Error(),
+				}),
 			}
 		}
 
@@ -67,8 +70,8 @@ func (svc *service) doUsersSubscription(ctx context.Context, errChan chan<- erro
 			}
 
 			return &internal.EventWrapper[any]{
-				Event:     internal.EventSession,
-				Payload:   session,
+				Event:   internal.EventSession,
+				Payload: session,
 			}
 
 		default:

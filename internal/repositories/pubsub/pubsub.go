@@ -130,48 +130,44 @@ func (ps *PubSub) Request(ctx context.Context, subject string, res any, req *int
 	return errors.Wrap(err, "cannot JSON decode response")
 }
 
-func (ps *PubSub) Subscribe(
-	ctx context.Context,
-	subject string,
-	errChan chan<- error,
-	cb func(*internal.EventWrapper[[]byte]) *internal.EventWrapper[any],
-) {
+func (ps *PubSub) Subscribe(ctx context.Context, subject string, cb func(*internal.EventWrapper[[]byte]) *internal.EventWrapper[any]) error {
 	subscriptionCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	sub, err := ps.natsConn.Subscribe(subject, func(incoming *nats.Msg) {
+	sub, err := ps.natsConn.Subscribe(subject, func(reqMsg *nats.Msg) {
 		res := cb(&internal.EventWrapper[[]byte]{
-			Event:   internal.Event(incoming.Header.Get("event")),
-			Payload: incoming.Data,
+			Event:   internal.Event(reqMsg.Header.Get("event")),
+			Payload: reqMsg.Data,
 		})
 
 		if res == nil {
 			return
 		}
 
-		bytes, err := json.Marshal(res)
+		resBytes, err := json.Marshal(res)
 		if err != nil {
-			errChan <- errors.Wrap(err, "cannot JSON encode response")
+			internal.HandleError(subscriptionCtx, ps.logger, errors.Wrap(err, "cannot JSON encode response"))
 			return
 		}
 
 		resMsg := nats.NewMsg("")
 		resMsg.Header.Add("event", string(res.Event))
-		resMsg.Data = bytes
+		resMsg.Data = resBytes
 
-		if err := incoming.RespondMsg(resMsg); err != nil {
-			errChan <- errors.Wrap(err, "cannot respond")
+		if err := reqMsg.RespondMsg(resMsg); err != nil {
+			internal.HandleError(subscriptionCtx, ps.logger, errors.Wrap(err, "cannot respond"))
 		}
 	})
 
 	if err != nil {
-		errChan <- errors.Wrap(err, "cannot subscribe")
-		return
+		return errors.Wrap(err, "cannot subscribe")
 	}
 
 	defer sub.Unsubscribe()
 	sub.SetClosedHandler(func(subject string) {
 		cancel()
 	})
+
 	<-subscriptionCtx.Done()
+	return subscriptionCtx.Err()
 }

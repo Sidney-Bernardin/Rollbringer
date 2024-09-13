@@ -1,4 +1,4 @@
-package databases
+package database
 
 import (
 	"github.com/google/uuid"

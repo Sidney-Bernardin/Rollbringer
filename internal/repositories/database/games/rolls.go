@@ -1,4 +1,4 @@
-package database
+package games
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 
 	"rollbringer/internal"
-	"rollbringer/internal/repositories/databases"
+	"rollbringer/internal/repositories/database"
 )
 
 func (db *gamesSchema) RollInsert(ctx context.Context, roll *internal.Roll) error {
@@ -25,7 +25,7 @@ func (db *gamesSchema) RollInsert(ctx context.Context, roll *internal.Roll) erro
 
 func (db *gamesSchema) RollsGetForGame(ctx context.Context, gameID uuid.UUID) ([]*internal.Roll, error) {
 
-	var rolls []*databases.Roll
+	var rolls []*database.Roll
 	err := sqlx.SelectContext(ctx, db.TX, &rolls,
 		`SELECT rolls.* FROM rolls WHERE rolls.game_id = $1`, gameID)
 

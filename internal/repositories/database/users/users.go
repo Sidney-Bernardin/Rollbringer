@@ -1,4 +1,4 @@
-package database
+package users
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 
 	"rollbringer/internal"
-	"rollbringer/internal/repositories/databases"
+	"rollbringer/internal/repositories/database"
 )
 
 func userColumns(views map[string]internal.UserView) (columns string) {
@@ -37,7 +37,7 @@ func (db *usersSchema) UserInsert(ctx context.Context, user *internal.User) erro
 
 func (db *usersSchema) UserGet(ctx context.Context, userID uuid.UUID, views map[string]internal.UserView) (*internal.User, error) {
 
-	var user databases.User
+	var user database.User
 	query := fmt.Sprintf(`SELECT %s FROM users WHERE id = $1`, userColumns(views))
 	if err := sqlx.GetContext(ctx, db.TX, &user, query, userID); err != nil {
 		if err == sql.ErrNoRows {

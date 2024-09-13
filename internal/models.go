@@ -9,7 +9,7 @@ import (
 type Event string
 
 type EventWrapper[T any] struct {
-	Event   Event
+	Event   Event `json:"event"`
 	Payload T
 }
 
@@ -25,7 +25,7 @@ type ProblemDetail struct {
 }
 
 func (pd *ProblemDetail) Error() string {
-	return fmt.Sprintf("%s: %s", pd.Type, pd.Detail)
+	return fmt.Sprintf(`ProblemDetail("%s", "%s")`, pd.Type, pd.Detail)
 }
 
 // =====
@@ -62,7 +62,7 @@ const EventGetUserRequest Event = "GET_USER_REQUEST"
 
 type GetUserRequest struct {
 	UserID uuid.UUID `json:"user_id,omitempty"`
-	View   UserView  `json:"view,omitempty"`
+	View   string    `json:"view"`
 }
 
 // =====
@@ -81,7 +81,8 @@ type SessionView string
 const (
 	SessionViewSessionAll SessionView = "all"
 
-	EventSession Event = "SESSION"
+	CtxKeySession CtxKey = "session"
+	EventSession  Event  = "SESSION"
 )
 
 type Session struct {
@@ -96,8 +97,8 @@ type Session struct {
 const EventGetSessionRequest Event = "GET_SESSION_REQUEST"
 
 type GetSessionRequest struct {
-	SessionID   uuid.UUID   `json:"session_id,omitempty"`
-	SessionView SessionView `json:"view,omitempty"`
+	SessionID uuid.UUID `json:"session_id,omitempty"`
+	View      string    `json:"view"`
 }
 
 // =====
@@ -119,9 +120,9 @@ type Game struct {
 
 	Name string `json:"name,omitempty"`
 
-	Players []*User `json:"players,omitempty"`
-	PDFs    []*PDF  `json:"pdfs,omitempty"`
-	Rolls   []*Roll `json:"rolls,omitempty"`
+	Guests []*User `json:"guests,omitempty"`
+	PDFs   []*PDF  `json:"pdfs,omitempty"`
+	Rolls  []*Roll `json:"rolls,omitempty"`
 }
 
 // =====
@@ -130,7 +131,7 @@ const EventGetGameRequest Event = "GET_GAME_REQUEST"
 
 type GetGameRequest struct {
 	GameID uuid.UUID `json:"game_id,omitempty"`
-	View   GameView  `json:"view"`
+	View   string    `json:"view"`
 }
 
 // =====
@@ -170,9 +171,9 @@ type SubToPDFRequest struct {
 
 // =====
 
-const EventPDFFields Event = "PDF_FIELDS"
+const EventPDFPage Event = "PDF_PAGE"
 
-type PDFFields struct {
+type PDFPage struct {
 	PDFID   uuid.UUID         `json:"pdf_id,omitempty"`
 	PageNum int               `json:"page_num,string,omitempty"`
 	Fields  map[string]string `json:"fields,omitempty"`

@@ -23,7 +23,10 @@ type Service interface {
 	DeleteGame(ctx context.Context, session *internal.Session, gameID uuid.UUID) error
 
 	CreatePDF(ctx context.Context, session *internal.Session, pdf *internal.PDF) error
+	SubToPDFPage(ctx context.Context, pdfID uuid.UUID, pageNum int, outgoing chan<- any) error
 	GetPDF(ctx context.Context, pdfID uuid.UUID, views string) (*internal.PDF, error)
+	GetPDFPage(ctx context.Context, pdfID uuid.UUID, pageNum int) (map[string]string, error)
+	UpdatePDFPage(ctx context.Context, pdfID uuid.UUID, pageNum int, fieldName, fieldValue string) error
 	DeletePDF(ctx context.Context, session *internal.Session, pdfID uuid.UUID) error
 }
 
@@ -77,6 +80,10 @@ func (svc *service) CreateGame(ctx context.Context, session *internal.Session, g
 }
 
 func (svc *service) getGame(ctx context.Context, gameID uuid.UUID, views string) (*internal.Game, error) {
+	svc.db.Transaction(ctx, func(schema *internal.UsersSchema) error {
+
+	})
+
 	parsedViews, err := internal.ParseViews[internal.GameView](ctx, views)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot parse game view")

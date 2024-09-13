@@ -12,10 +12,19 @@ import (
 	"github.com/pkg/errors"
 
 	"rollbringer/internal/config"
+	"rollbringer/internal/repositories/database"
+	databases "rollbringer/internal/repositories/database"
 	"rollbringer/internal/services"
 )
 
-var features = map[string]func(*config.Config, *slog.Logger) (http.Handler, services.BaseServicer, error){}
+type globalDependencies struct {
+	cfg    *config.Config
+	logger *slog.Logger
+
+	dbRepo *databases.Database
+}
+
+var features = map[string]func(globalDependencies) (http.Handler, services.BaseServicer, error){}
 
 func main() {
 
@@ -29,6 +38,13 @@ func main() {
 		return
 	}
 
+	// Create a Database repository.
+	dbRepo, err := database.New(cfg, logger)
+	if err != nil {
+		logger.Error("Cannot create database repository", "err", err.Error())
+		return
+	}
+
 	var (
 		router   = chi.NewRouter()
 		services = map[string]services.BaseServicer{}
@@ -37,7 +53,12 @@ func main() {
 	for name, fn := range features {
 
 		// Create feature.
-		handler, service, err := fn(cfg, logger)
+		handler, service, err := fn(globalDependencies{
+			cfg:    cfg,
+			logger: logger,
+			dbRepo: dbRepo,
+		})
+
 		if err != nil {
 			logger.Error("Cannot create "+name+" feature", "err", err.Error())
 			return

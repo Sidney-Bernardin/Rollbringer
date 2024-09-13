@@ -1,4 +1,4 @@
-package database
+package games
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 
 	"rollbringer/internal"
-	"rollbringer/internal/repositories/databases"
+	"rollbringer/internal/repositories/database"
 )
 
 func pdfColumns(views map[string]internal.PDFView) (columns string) {
@@ -70,7 +70,7 @@ func (db *gamesSchema) PDFInsert(ctx context.Context, pdf *internal.PDF) error {
 
 func (db *gamesSchema) PDFGet(ctx context.Context, pdfID uuid.UUID, view map[string]internal.PDFView) (*internal.PDF, error) {
 
-	var pdf databases.PDF
+	var pdf database.PDF
 	query := fmt.Sprintf(`SELECT %s FROM pdfs %s WHERE pdfs.id = $1`, pdfColumns(view), pdfJoins(view))
 	if err := sqlx.GetContext(ctx, db.TX, &pdf, query, pdfID); err != nil {
 		if err == sql.ErrNoRows {
@@ -122,7 +122,7 @@ func (db *gamesSchema) PDFGetPage(ctx context.Context, pdfID uuid.UUID, pageIdx 
 
 func (db *gamesSchema) PDFsGetForOwner(ctx context.Context, ownerID uuid.UUID, views map[string]internal.PDFView) ([]*internal.PDF, error) {
 
-	var pdfs []*databases.PDF
+	var pdfs []*database.PDF
 	query := fmt.Sprintf(`SELECT %s FROM pdfs %s WHERE pdfs.owner_id = $1`, pdfColumns(views), pdfJoins(views))
 	if err := sqlx.SelectContext(ctx, db.TX, &pdfs, query, ownerID); err != nil {
 		return nil, errors.Wrap(err, "cannot select PDFs")
@@ -139,7 +139,7 @@ func (db *gamesSchema) PDFsGetForOwner(ctx context.Context, ownerID uuid.UUID, v
 
 func (db *gamesSchema) PDFsGetForGame(ctx context.Context, gameID uuid.UUID, views map[string]internal.PDFView) ([]*internal.PDF, error) {
 
-	var pdfs []*databases.PDF
+	var pdfs []*database.PDF
 	query := fmt.Sprintf(`SELECT %s FROM pdfs %s WHERE pdfs.game_id = $1`, pdfColumns(views), pdfJoins(views))
 	if err := sqlx.SelectContext(ctx, db.TX, &pdfs, query, gameID); err != nil {
 		return nil, errors.Wrap(err, "cannot select PDFs")

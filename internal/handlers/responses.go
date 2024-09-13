@@ -32,14 +32,20 @@ var problemDetailStatusCodes = map[internal.PDType]int{
 	internal.PDTypeInvalidDie: http.StatusBadRequest,
 }
 
-func (h *BaseHandler) Err(w http.ResponseWriter, r *http.Request, err error) {
+func (h *BaseHandler) Err(w io.Writer, r *http.Request, err error) {
 	pd := internal.HandleError(r.Context(), h.Logger, err)
-	h.Render(w, r, problemDetailStatusCodes[pd.Type], views.ProblemDetail(pd))
+	
+	var httpStatusCode int
+	if _, ok := w.(http.ResponseWriter); ok {
+		httpStatusCode = problemDetailStatusCodes[pd.Type]
+	}
+
+	h.Render(w, r, httpStatusCode, views.ProblemDetail(pd))
 }
 
-func (h *BaseHandler) Render(w io.Writer, r *http.Request, statusCode int, data templ.Component) {
+func (h *BaseHandler) Render(w io.Writer, r *http.Request, httpStatusCode int, data templ.Component) {
 	if rw, ok := w.(http.ResponseWriter); ok {
-		rw.WriteHeader(statusCode)
+		rw.WriteHeader(httpStatusCode)
 	}
 
 	if err := data.Render(r.Context(), w); err != nil {

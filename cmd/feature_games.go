@@ -4,36 +4,31 @@
 package main
 
 import (
-	"log/slog"
 	"net/http"
 
 	"github.com/pkg/errors"
 
-	"rollbringer/internal/config"
 	handler "rollbringer/internal/handlers/games"
-	database "rollbringer/internal/repositories/databases/games"
+	schema "rollbringer/internal/repositories/database/games"
 	"rollbringer/internal/repositories/pubsub"
 	"rollbringer/internal/services"
 	service "rollbringer/internal/services/games"
 )
 
 func init() {
-	features["games"] = func(cfg *config.Config, logger *slog.Logger) (http.Handler, services.BaseServicer, error) {
+	features["games"] = func(deps globalDependencies) (http.Handler, services.BaseServicer, error) {
 
 		// Create a PubSub repository.
-		ps, err := pubsub.New(cfg, logger)
+		pubsubRepo, err := pubsub.New(deps.cfg, deps.logger)
 		if err != nil {
 			return nil, nil, errors.Wrap(err, "cannot create pubsub repository")
 		}
 
-		// Create a GamesDatabase repository.
-		db, err := database.New(cfg, logger)
-		if err != nil {
-			return nil, nil, errors.Wrap(err, "cannot create database repository")
-		}
+		// Create a GamesSchema repository.
+		schemaRepo := schema.New(deps.dbRepo)
 
 		// Create a service and handler.
-		svc := service.NewService(cfg, logger, ps, db)
-		return handler.NewHandler(cfg, logger, svc), svc, nil
+		svc := service.NewService(deps.cfg, deps.logger, pubsubRepo, schemaRepo)
+		return handler.NewHandler(deps.cfg, deps.logger, svc), svc, nil
 	}
 }

@@ -1,4 +1,4 @@
-package database
+package games
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 
 	"rollbringer/internal"
-	"rollbringer/internal/repositories/databases"
+	"rollbringer/internal/repositories/database"
 )
 
 func gameColumns(views map[string]internal.GameView) (columns string) {
@@ -55,7 +55,7 @@ func (db *gamesSchema) GamesCount(ctx context.Context, hostID uuid.UUID) (count 
 
 func (db *gamesSchema) GameGet(ctx context.Context, gameID uuid.UUID, views map[string]internal.GameView) (*internal.Game, error) {
 
-	var game databases.Game
+	var game database.Game
 	query := fmt.Sprintf(`SELECT %s FROM games %s WHERE games.id = $1`, gameColumns(views), gameJoins(views))
 	if err := sqlx.GetContext(ctx, db.TX, &game, query, gameID); err != nil {
 		if err == sql.ErrNoRows {
@@ -76,7 +76,7 @@ func (db *gamesSchema) GameGet(ctx context.Context, gameID uuid.UUID, views map[
 
 func (db *gamesSchema) GamesGetForHost(ctx context.Context, hostID uuid.UUID, views map[string]internal.GameView) ([]*internal.Game, error) {
 
-	var games []*databases.Game
+	var games []*database.Game
 	query := fmt.Sprintf(`SELECT %s FROM games %s WHERE games.host_id = $1`, gameColumns(views), gameJoins(views))
 	if err := sqlx.SelectContext(ctx, db.TX, &games, query, hostID); err != nil {
 		return nil, errors.Wrap(err, "cannot select games")

@@ -64,7 +64,7 @@ func (svc *service) ProcessGameEvents(
 
 				go svc.PS.ChanSubscribe(pdfCtx, fmt.Sprintf("pdfs.%s", pdfID), outgoingChan, errChan)
 
-				outgoingChan <- &internal.EventPDFFields{
+				outgoingChan <- &internal.EventPDFPage{
 					BaseEvent: internal.BaseEvent{Type: internal.ETPdfFields},
 					PDFID:     pdfID,
 					PageNum:   event.PageNum,
@@ -87,7 +87,7 @@ func (svc *service) ProcessGameEvents(
 					continue
 				}
 
-				err = svc.PS.Publish(eventCtx, "pdfs."+pdfID.String(), &internal.EventPDFFields{
+				err = svc.PS.Publish(eventCtx, "pdfs."+pdfID.String(), &internal.EventPDFPage{
 					BaseEvent: internal.BaseEvent{Type: internal.ETPdfFields},
 					PDFID:     pdfID,
 					PageNum:   event.PageNum,

@@ -1,4 +1,4 @@
-package database
+package users
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 
 	"rollbringer/internal"
-	"rollbringer/internal/repositories/databases"
+	"rollbringer/internal/repositories/database"
 )
 
 func sessionColumns(views map[string]internal.SessionView) (columns string) {
@@ -39,7 +39,7 @@ func (db *usersSchema) SessionUpsert(ctx context.Context, session *internal.Sess
 
 func (db *usersSchema) SessionGet(ctx context.Context, sessionID uuid.UUID, views map[string]internal.SessionView) (*internal.Session, error) {
 
-	var session databases.Session
+	var session database.Session
 	query := fmt.Sprintf(`SELECT %s FROM sessions WHERE id = $1`, sessionColumns(views))
 	if err := sqlx.GetContext(ctx, db.TX, &session, query, sessionID); err != nil {
 		if err == sql.ErrNoRows {

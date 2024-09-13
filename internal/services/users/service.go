@@ -86,18 +86,18 @@ func (svc *service) FinishLogin(ctx context.Context, stateA, stateB, code, codeV
 	return session, nil
 }
 
-func (svc *service) getUser(ctx context.Context, userID uuid.UUID, view internal.UserView) (*internal.User, error) {
+func (svc *service) getUser(ctx context.Context, userID uuid.UUID, view string) (*internal.User, error) {
 	user, err := svc.db.UserGet(ctx, userID, view)
 	return user, errors.Wrap(err, "cannot get user")
 }
 
-func (svc *service) getSession(ctx context.Context, sessionID uuid.UUID, view internal.SessionView) (*internal.Session, error) {
+func (svc *service) getSession(ctx context.Context, sessionID uuid.UUID, view string) (*internal.Session, error) {
 	session, err := svc.db.SessionGet(ctx, sessionID, view)
 	return session, errors.Wrap(err, "cannot get session")
 }
 
 func (svc *service) authenticate(ctx context.Context, sessionID uuid.UUID, csrfToken string) (*internal.Session, error) {
-	session, err := svc.db.SessionGet(ctx, sessionID, internal.SessionViewAll)
+	session, err := svc.db.SessionGet(ctx, sessionID, map[string]internal.SessionView{"session": "all"})
 	if err != nil {
 		if internal.IsDetailed(err, internal.PDTypeSessionNotFound) {
 			return nil, internal.NewProblemDetail(ctx, internal.PDOpts{

@@ -33,13 +33,13 @@ func NewHandler(cfg *config.Config, logger *slog.Logger, svc service.Service) *h
 		svc: svc,
 	}
 
-	h.Router.Use(h.Log, h.Instance, h.AuthenticatePage)
-	h.Router.Get("/", h.HandlePlayPage)
+	h.Router.Use(h.Log, h.Instance, h.authenticatePage)
+	h.Router.Get("/", h.handlePlayPage)
 
 	return h
 }
 
-func (h *handler) HandlePlayPage(w http.ResponseWriter, r *http.Request) {
+func (h *handler) handlePlayPage(w http.ResponseWriter, r *http.Request) {
 
 	var (
 		session, _ = r.Context().Value("session").(*internal.Session)
