@@ -26,7 +26,7 @@ func userColumns(views map[string]internal.UserView) (columns string) {
 
 func (db *usersSchema) UserInsert(ctx context.Context, user *internal.User) error {
 	err := db.TX.QueryRowxContext(ctx,
-		`INSERT INTO users (id, google_id, username)
+		`INSERT INTO users.users (id, google_id, username)
 			VALUES ($1, $2, $3)
 		ON CONFLICT (google_id)
 			DO UPDATE SET google_id = EXCLUDED.google_id
@@ -40,7 +40,7 @@ func (db *usersSchema) UserInsert(ctx context.Context, user *internal.User) erro
 func (db *usersSchema) UserGet(ctx context.Context, userID uuid.UUID, views map[string]internal.UserView) (*internal.User, error) {
 
 	var user database.User
-	query := fmt.Sprintf(`SELECT %s FROM users WHERE id = $1`, userColumns(views))
+	query := fmt.Sprintf(`SELECT %s FROM users.users WHERE id = $1`, userColumns(views))
 	if err := sqlx.GetContext(ctx, db.TX, &user, query, userID); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, internal.NewProblemDetail(ctx, internal.PDOpts{

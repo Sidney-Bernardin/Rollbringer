@@ -17,7 +17,7 @@ CREATE TABLE users.users (
 CREATE TABLE users.sessions (
     id UUID PRIMARY KEY,
 
-    user_id UUID NOT NULL REFERENCES users ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users.users ON DELETE CASCADE,
     csrf_token text NOT NULL,
 
     UNIQUE(user_id),
@@ -31,15 +31,15 @@ CREATE SCHEMA games;
 CREATE TABLE games.games (
     id UUID PRIMARY KEY,
 
-    host_id UUID NOT NULL REFERENCES users ON DELETE CASCADE,
+    host_id UUID NOT NULL REFERENCES users.users ON DELETE CASCADE,
     name text NOT NULL
 );
 
 CREATE TABLE games.pdfs (
     id UUID PRIMARY KEY,
 
-    owner_id UUID NOT NULL REFERENCES users ON DELETE CASCADE,
-    game_id UUID REFERENCES games ON DELETE SET NULL,
+    owner_id UUID NOT NULL REFERENCES users.users ON DELETE CASCADE,
+    game_id UUID REFERENCES games.games ON DELETE SET NULL,
 
     name text NOT NULL,
     schema text NOT NULL,
@@ -50,16 +50,17 @@ CREATE TABLE games.pdfs (
 CREATE TABLE games.rolls (
     id UUID PRIMARY KEY,
 
-    owner_id UUID NOT NULL REFERENCES users ON DELETE CASCADE,
-    game_id UUID NOT NULL REFERENCES games ON DELETE CASCADE,
+    owner_id UUID NOT NULL REFERENCES users.users ON DELETE CASCADE,
+    game_id UUID NOT NULL REFERENCES games.games ON DELETE CASCADE,
 
-    dice_names int32[] NOT NULL,
-    dice_results int32[] NOT NULL
+    dice_types int[] NOT NULL,
+    dice_results int[] NOT NULL,
+    modifiers text NOT NULL
 );
 
 
 
-CREATE TABLE GameGuests (
-    guest_id UUID NOT NULL REFERENCES users,
-    game_id UUID NOT NULL REFERENCES games,
-)
+CREATE TABLE game_guests (
+    guest_id UUID NOT NULL REFERENCES users.users,
+    game_id UUID NOT NULL REFERENCES games.games
+);

@@ -2,10 +2,12 @@ package users
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"golang.org/x/sync/errgroup"
 
 	"rollbringer/internal"
 	"rollbringer/internal/config"
@@ -87,17 +89,64 @@ func (svc *service) FinishLogin(ctx context.Context, stateA, stateB, code, codeV
 }
 
 func (svc *service) getUser(ctx context.Context, userID uuid.UUID, viewQuery string) (*internal.User, error) {
-	views, err := internal.ParseViews[internal.UserView](ctx, viewQuery)
+	views, err := internal.ParseViewQuery[internal.UserView](ctx, viewQuery)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot parse user view query")
 	}
 
 	user, err := svc.schema.UserGet(ctx, userID, views)
-	return user, errors.Wrap(err, "cannot get user")
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot get user")
+	}
+
+	errs, errsCtx := errgroup.WithContext(ctx)
+
+	if pdfsView, ok := views["pdfs"]; ok {
+		errs.Go(func() error {
+			err := svc.PubSub.Request(errsCtx, "pdfs", &user.PDFs, &internal.EventWrapper[any]{
+				Event: internal.EventGetPDFsByOwnerRequest,
+				Payload: &internal.GetPDFsByOwnerRequest{
+					OwnerID:   userID,
+					ViewQuery: fmt.Sprintf("pdfs-%s", pdfsView),
+				},
+			})
+			return errors.Wrap(err, "cannot get PDFs by owner")
+		})
+	}
+
+	if gamesView, ok := views["games"]; ok {
+		errs.Go(func() error {
+			err := svc.PubSub.Request(errsCtx, "games", &user.PDFs, &internal.EventWrapper[any]{
+				Event: internal.EventGetGamesByHostRequest,
+				Payload: &internal.GetGamesByHostRequest{
+					HostID:    userID,
+					ViewQuery: fmt.Sprintf("games-%s", gamesView),
+				},
+			})
+			return errors.Wrap(err, "cannot get games by host")
+		})
+
+		errs.Go(func() error {
+			err := svc.PubSub.Request(errsCtx, "games", &user.PDFs, &internal.EventWrapper[any]{
+				Event: internal.EventGetGamesByGuestRequest,
+				Payload: &internal.GetGamesByGuestRequest{
+					GuestID:   userID,
+					ViewQuery: fmt.Sprintf("games-%s", gamesView),
+				},
+			})
+			return errors.Wrap(err, "cannot get games by guest")
+		})
+	}
+
+	if err := errs.Wait(); err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
 
 func (svc *service) getSession(ctx context.Context, sessionID uuid.UUID, viewQuery string) (*internal.Session, error) {
-	views, err := internal.ParseViews[internal.SessionView](ctx, viewQuery)
+	views, err := internal.ParseViewQuery[internal.SessionView](ctx, viewQuery)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot parse user view query")
 	}

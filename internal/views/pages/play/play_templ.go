@@ -311,7 +311,7 @@ func userPDFs() templ.Component {
 			return templ_7745c5c3_Err
 		}
 		for _, pdf := range GetPlayPage(ctx).User.PDFs {
-			templ_7745c5c3_Err = PDFTableRow(pdf, pdf.Game.Name).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = PDFTableRow(pdf, false).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -332,7 +332,7 @@ func userPDFs() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form x-data=\"{ view: &#39;pdf-all,game-all&#39; }\" x-init=\"$watch(&#39;view&#39;, () =&gt; htmx.process($el))\" :hx-post=\"`/play-materials/pdfs?view=${view}`\"><input type=\"hidden\" name=\"schema\" value=\"DND_CHARACTER_SHEET\"><label for=\"game_id\">Game: <select name=\"game_id\" @change=\"view = ($event.target.value === $store.game?.id) ? &#39;pdf-all,game-all,owner-all&#39; : &#39;pdf-all,game-all&#39;\"><option value=\"\">None</option> ")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form x-data=\"{ view: &#39;&#39; }\" x-init=\"$watch(&#39;view&#39;, () =&gt; htmx.process($el))\" :hx-post=\"`/games/pdfs?view=${view}`\"><input type=\"hidden\" name=\"schema\" value=\"DND_CHARACTER_SHEET\"><label for=\"game_id\">Game: <select name=\"game_id\" @change=\"view = ($event.target.value === $store.game?.id) ? &#39;with-game-row&#39; : &#39;&#39;\"><option value=\"\">None</option> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -405,7 +405,7 @@ func gamePDFs() templ.Component {
 			return templ_7745c5c3_Err
 		}
 		for _, pdf := range GetPlayPage(ctx).Game.PDFs {
-			templ_7745c5c3_Err = PDFTableRow(pdf, pdf.Owner.Username).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = PDFTableRow(pdf, true).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

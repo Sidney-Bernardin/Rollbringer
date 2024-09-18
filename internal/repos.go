@@ -33,14 +33,15 @@ type GamesSchema interface {
 	GameInsert(ctx context.Context, game *Game) error
 	GamesCount(ctx context.Context, hostID uuid.UUID) (int, error)
 	GameGet(ctx context.Context, gameID uuid.UUID, views map[string]GameView) (*Game, error)
-	GamesGetForHost(ctx context.Context, hostID uuid.UUID, views map[string]GameView) ([]*Game, error)
+	GamesGetByHost(ctx context.Context, hostID uuid.UUID, views map[string]GameView) ([]*Game, error)
+	GamesGetByGuest(ctx context.Context, hostID uuid.UUID, views map[string]GameView) ([]*Game, error)
 	GameDelete(ctx context.Context, gameID, hostID uuid.UUID) error
 
 	PDFInsert(ctx context.Context, pdf *PDF) error
 	PDFGet(ctx context.Context, pdfID uuid.UUID, view map[string]PDFView) (*PDF, error)
 	PDFGetPage(ctx context.Context, pdfID uuid.UUID, pageIdx int) (map[string]string, error)
-	PDFsGetForOwner(ctx context.Context, ownerID uuid.UUID, views map[string]PDFView) ([]*PDF, error)
-	PDFsGetForGame(ctx context.Context, gameID uuid.UUID, views map[string]PDFView) ([]*PDF, error)
+	PDFsGetByOwner(ctx context.Context, ownerID uuid.UUID, views map[string]PDFView) ([]*PDF, error)
+	PDFsGetByGame(ctx context.Context, gameID uuid.UUID, views map[string]PDFView) ([]*PDF, error)
 	PDFUpdatePage(ctx context.Context, pdfID uuid.UUID, pageIdx int, fieldName, fieldValue string) error
 	PDFDelete(ctx context.Context, pdfID, ownerID uuid.UUID) error
 

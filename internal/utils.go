@@ -11,10 +11,10 @@ var PDFSchemaPageNames = map[string][]string{
 	"DND_CHARACTER_SHEET": {"main", "info", "spells"},
 }
 
-func ParseViews[T UserView | SessionView | GameView | PDFView](ctx context.Context, views string) (map[string]T, error) {
+func ParseViewQuery[T UserView | SessionView | GameView | PDFView](ctx context.Context, viewQuery string) (map[string]T, error) {
 	ret := map[string]T{}
 
-	for _, view := range strings.Split(views, ",") {
+	for _, view := range strings.Split(viewQuery, ",") {
 		if field := strings.Split(view, "-"); len(field) == 2 {
 			ret[field[0]] = T(field[1])
 			continue

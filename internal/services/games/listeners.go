@@ -19,6 +19,10 @@ func (svc *service) Listen() error {
 		return svc.subToGames(ctx)
 	})
 
+	errs.Go(func() error {
+		return svc.subToPDFs(ctx)
+	})
+
 	return errs.Wait()
 }
 
@@ -29,6 +33,10 @@ func (svc *service) subToGames(ctx context.Context) error {
 		switch req.Event {
 		case internal.EventGetGameRequest:
 			payload = &internal.GetGameRequest{}
+		case internal.EventGetGamesByHostRequest:
+			payload = &internal.GetGamesByHostRequest{}
+		case internal.EventGetGamesByGuestRequest:
+			payload = &internal.GetGamesByGuestRequest{}
 		default:
 			return &internal.EventWrapper[any]{
 				Event: internal.EventError,
@@ -67,6 +75,92 @@ func (svc *service) subToGames(ctx context.Context) error {
 			return &internal.EventWrapper[any]{
 				Event:   internal.EventGame,
 				Payload: game,
+			}
+
+		case *internal.GetGamesByHostRequest:
+			games, err := svc.getGamesByHost(instanceCtx, payload.HostID, payload.ViewQuery)
+			if err != nil {
+				return &internal.EventWrapper[any]{
+					Event:   internal.EventError,
+					Payload: internal.HandleError(instanceCtx, svc.Logger, errors.Wrap(err, "cannot get games by host")),
+				}
+			}
+
+			return &internal.EventWrapper[any]{
+				Event:   internal.EventGames,
+				Payload: games,
+			}
+
+		case *internal.GetGamesByGuestRequest:
+			games, err := svc.getGamesByGuest(instanceCtx, payload.GuestID, payload.ViewQuery)
+			if err != nil {
+				return &internal.EventWrapper[any]{
+					Event:   internal.EventError,
+					Payload: internal.HandleError(instanceCtx, svc.Logger, errors.Wrap(err, "cannot get games by guest")),
+				}
+			}
+
+			return &internal.EventWrapper[any]{
+				Event:   internal.EventGames,
+				Payload: games,
+			}
+
+		default:
+			return &internal.EventWrapper[any]{
+				Event:   internal.EventError,
+				Payload: internal.HandleError(ctx, svc.Logger, internal.SvrErrUnknownEvent),
+			}
+		}
+	})
+
+	return errors.Wrap(err, "cannot subscribe to games")
+}
+
+func (svc *service) subToPDFs(ctx context.Context) error {
+	err := svc.PubSub.Subscribe(ctx, "pdfs", func(req *internal.EventWrapper[[]byte]) *internal.EventWrapper[any] {
+
+		var payload any
+		switch req.Event {
+		case internal.EventGetPDFsByOwnerRequest:
+			payload = &internal.GetPDFsByOwnerRequest{}
+		default:
+			return &internal.EventWrapper[any]{
+				Event: internal.EventError,
+				Payload: internal.NewProblemDetail(ctx, internal.PDOpts{
+					Type:   internal.PDTypeInvalidEvent,
+					Detail: "The given evnet is not valid.",
+					Extra: map[string]any{
+						"event": req.Event,
+					},
+				}),
+			}
+		}
+
+		instanceCtx := context.WithValue(ctx, internal.CtxKeyInstance, req.Event)
+
+		if err := json.Unmarshal(req.Payload, &payload); err != nil {
+			return &internal.EventWrapper[any]{
+				Event: internal.EventError,
+				Payload: internal.NewProblemDetail(instanceCtx, internal.PDOpts{
+					Type:   internal.PDTypeInvalidJSON,
+					Detail: err.Error(),
+				}),
+			}
+		}
+
+		switch payload := payload.(type) {
+		case *internal.GetPDFsByOwnerRequest:
+			pdfs, err := svc.getPDFsByOwner(instanceCtx, payload.OwnerID, payload.ViewQuery)
+			if err != nil {
+				return &internal.EventWrapper[any]{
+					Event:   internal.EventError,
+					Payload: internal.HandleError(instanceCtx, svc.Logger, errors.Wrap(err, "cannot get PDFs by owner")),
+				}
+			}
+
+			return &internal.EventWrapper[any]{
+				Event:   internal.EventPDFs,
+				Payload: pdfs,
 			}
 
 		default:

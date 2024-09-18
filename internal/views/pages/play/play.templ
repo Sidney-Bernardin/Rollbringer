@@ -61,21 +61,21 @@ templ userPDFs() {
 		</caption>
 		<tbody>
 			for _, pdf := range GetPlayPage(ctx).User.PDFs {
-				@PDFTableRow(pdf, pdf.Game.Name)
+				@PDFTableRow(pdf, false)
 			}
 		</tbody>
 	</table>
 	@Modal("create-pdf-modal", "Create PDF", "show-create-pdf-modal") {
 		<form
-			x-data="{ view: 'pdf-all,game-all' }"
+			x-data="{ view: '' }"
 			x-init="$watch('view', () => htmx.process($el))"
-			:hx-post="`/play-materials/pdfs?view=${view}`"
+			:hx-post="`/games/pdfs?view=${view}`"
 		>
 			<input type="hidden" name="schema" value="DND_CHARACTER_SHEET"/>
 			//
 			<label for="game_id">
 				Game:
-				<select name="game_id" @change="view = ($event.target.value === $store.game?.id) ? 'pdf-all,game-all,owner-all' : 'pdf-all,game-all'">
+				<select name="game_id" @change="view = ($event.target.value === $store.game?.id) ? 'with-game-row' : ''">
 					<option value="">None</option>
 					for _, game := range slices.Concat(GetPlayPage(ctx).User.HostedGames, GetPlayPage(ctx).User.JoinedGames) {
 						<option value={ game.ID.String() }>{ game.Name }</option>
@@ -103,7 +103,7 @@ templ gamePDFs() {
 		</caption>
 		<tbody>
 			for _, pdf := range GetPlayPage(ctx).Game.PDFs {
-				@PDFTableRow(pdf, pdf.Owner.Username)
+				@PDFTableRow(pdf, true)
 			}
 		</tbody>
 	</table>

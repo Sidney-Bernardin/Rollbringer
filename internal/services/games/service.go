@@ -80,14 +80,34 @@ func (svc *service) CreateGame(ctx context.Context, session *internal.Session, g
 	return errors.Wrap(err, "cannot insert game")
 }
 
-func (svc *service) getGame(ctx context.Context, gameID uuid.UUID, views string) (*internal.Game, error) {
-	parsedViews, err := internal.ParseViews[internal.GameView](ctx, views)
+func (svc *service) getGame(ctx context.Context, gameID uuid.UUID, viewQuery string) (*internal.Game, error) {
+	parsedViews, err := internal.ParseViewQuery[internal.GameView](ctx, viewQuery)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot parse game view query")
 	}
 
 	game, err := svc.schema.GameGet(ctx, gameID, parsedViews)
 	return game, errors.Wrap(err, "cannot get game")
+}
+
+func (svc *service) getGamesByHost(ctx context.Context, hostID uuid.UUID, viewQuery string) ([]*internal.Game, error) {
+	parsedViews, err := internal.ParseViewQuery[internal.GameView](ctx, viewQuery)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot parse game view query")
+	}
+
+	games, err := svc.schema.GamesGetByHost(ctx, hostID, parsedViews)
+	return games, errors.Wrap(err, "cannot get games by host")
+}
+
+func (svc *service) getGamesByGuest(ctx context.Context, guestID uuid.UUID, viewQuery string) ([]*internal.Game, error) {
+	parsedViews, err := internal.ParseViewQuery[internal.GameView](ctx, viewQuery)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot parse game view query")
+	}
+
+	games, err := svc.schema.GamesGetByGuest(ctx, guestID, parsedViews)
+	return games, errors.Wrap(err, "cannot get games by guest")
 }
 
 func (svc *service) DeleteGame(ctx context.Context, session *internal.Session, gameID uuid.UUID) error {
@@ -103,7 +123,7 @@ func (svc *service) CreatePDF(ctx context.Context, session *internal.Session, pd
 		return errors.Wrap(err, "cannot insert PDF")
 	}
 
-	views, err := internal.ParseViews[internal.PDFView](ctx, viewQuery)
+	views, err := internal.ParseViewQuery[internal.PDFView](ctx, viewQuery)
 	if err != nil {
 		return errors.Wrap(err, "cannot parse PDF view query")
 	}
@@ -113,13 +133,23 @@ func (svc *service) CreatePDF(ctx context.Context, session *internal.Session, pd
 }
 
 func (svc *service) GetPDF(ctx context.Context, pdfID uuid.UUID, viewQuery string) (*internal.PDF, error) {
-	views, err := internal.ParseViews[internal.PDFView](ctx, viewQuery)
+	views, err := internal.ParseViewQuery[internal.PDFView](ctx, viewQuery)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot parse PDF view query")
 	}
 
 	pdf, err := svc.schema.PDFGet(ctx, pdfID, views)
 	return pdf, errors.Wrap(err, "cannot get PDF")
+}
+
+func (svc *service) getPDFsByOwner(ctx context.Context, ownerID uuid.UUID, viewQuery string) ([]*internal.PDF, error) {
+	views, err := internal.ParseViewQuery[internal.PDFView](ctx, viewQuery)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot parse PDF view query")
+	}
+
+	pdfs, err := svc.schema.PDFsGetByOwner(ctx, ownerID, views)
+	return pdfs, errors.Wrap(err, "cannot get PDF by owner")
 }
 
 func (svc *service) GetPDFPage(ctx context.Context, pdfID uuid.UUID, pageNum int) (map[string]string, error) {

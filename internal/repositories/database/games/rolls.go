@@ -14,7 +14,7 @@ import (
 
 func (db *gamesSchema) RollInsert(ctx context.Context, roll *internal.Roll) error {
 	err := db.TX.QueryRowxContext(ctx,
-		`INSERT INTO rolls (id, owner_id, game_id, dice_names, dice_results, modifiers)
+		`INSERT INTO games.rolls (id, owner_id, game_id, dice_names, dice_results, modifiers)
 			VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING id`,
 		uuid.New(), roll.OwnerID, roll.GameID, pq.Array(roll.DiceTypes), pq.Array(roll.DiceResults), roll.Modifiers,
@@ -27,7 +27,7 @@ func (db *gamesSchema) RollsGetForGame(ctx context.Context, gameID uuid.UUID) ([
 
 	var rolls []*database.Roll
 	err := sqlx.SelectContext(ctx, db.TX, &rolls,
-		`SELECT rolls.* FROM rolls WHERE rolls.game_id = $1`, gameID)
+		`SELECT rolls.* FROM games.rolls WHERE rolls.game_id = $1`, gameID)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot select rolls")

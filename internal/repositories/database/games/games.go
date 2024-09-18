@@ -14,7 +14,12 @@ import (
 )
 
 func gameColumns(views map[string]internal.GameView) (columns string) {
-	switch views["game"] {
+	gameView, ok := views["game"]
+	if !ok {
+		gameView = views["games"]
+	}
+
+	switch gameView {
 	case internal.GameViewGameAll:
 		columns += `games.*`
 	default:
@@ -39,7 +44,7 @@ func gameJoins(views map[string]internal.GameView) (joins string) {
 
 func (db *gamesSchema) GameInsert(ctx context.Context, game *internal.Game) error {
 	err := db.TX.QueryRowxContext(ctx,
-		`INSERT INTO games (id, host_id, name)
+		`INSERT INTO games.games (id, host_id, name)
 			VALUES ($1, $2, $3)
 		RETURNING id`,
 		uuid.New(), game.HostID, game.Name,
@@ -50,7 +55,7 @@ func (db *gamesSchema) GameInsert(ctx context.Context, game *internal.Game) erro
 
 func (db *gamesSchema) GamesCount(ctx context.Context, hostID uuid.UUID) (count int, err error) {
 	err = sqlx.GetContext(ctx, db.TX, &count,
-		`SELECT COUNT(*) FROM games WHERE host_id = $1`, hostID)
+		`SELECT COUNT(*) FROM games.games WHERE host_id = $1`, hostID)
 
 	return count, errors.Wrap(err, "cannot count games")
 }
@@ -58,7 +63,7 @@ func (db *gamesSchema) GamesCount(ctx context.Context, hostID uuid.UUID) (count 
 func (db *gamesSchema) GameGet(ctx context.Context, gameID uuid.UUID, views map[string]internal.GameView) (*internal.Game, error) {
 
 	var game database.Game
-	query := fmt.Sprintf(`SELECT %s FROM games %s WHERE games.id = $1`, gameColumns(views), gameJoins(views))
+	query := fmt.Sprintf(`SELECT %s FROM games.games %s WHERE games.id = $1`, gameColumns(views), gameJoins(views))
 	if err := sqlx.GetContext(ctx, db.TX, &game, query, gameID); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, internal.NewProblemDetail(ctx, internal.PDOpts{
@@ -76,11 +81,34 @@ func (db *gamesSchema) GameGet(ctx context.Context, gameID uuid.UUID, views map[
 	return game.Internalized(), nil
 }
 
-func (db *gamesSchema) GamesGetForHost(ctx context.Context, hostID uuid.UUID, views map[string]internal.GameView) ([]*internal.Game, error) {
+func (db *gamesSchema) GamesGetByHost(ctx context.Context, hostID uuid.UUID, views map[string]internal.GameView) ([]*internal.Game, error) {
 
 	var games []*database.Game
-	query := fmt.Sprintf(`SELECT %s FROM games %s WHERE games.host_id = $1`, gameColumns(views), gameJoins(views))
+	query := fmt.Sprintf(`SELECT %s FROM games.games %s WHERE games.host_id = $1`, gameColumns(views), gameJoins(views))
 	if err := sqlx.SelectContext(ctx, db.TX, &games, query, hostID); err != nil {
+		return nil, errors.Wrap(err, "cannot select games")
+	}
+
+	// Internalize each game.
+	ret := make([]*internal.Game, len(games))
+	for i, m := range games {
+		ret[i] = m.Internalized()
+	}
+
+	return ret, nil
+}
+
+func (db *gamesSchema) GamesGetByGuest(ctx context.Context, guestID uuid.UUID, views map[string]internal.GameView) ([]*internal.Game, error) {
+
+	var games []*database.Game
+	query := fmt.Sprintf(
+		`SELECT %s FROM games.games %s
+		WHERE EXISTS (
+			SELECT * FROM game_guests WHERE game_guests.guest_id = $1 AND game_guests.game_id = games.id
+		)`,
+		gameColumns(views), gameJoins(views))
+
+	if err := sqlx.SelectContext(ctx, db.TX, &games, query, guestID); err != nil {
 		return nil, errors.Wrap(err, "cannot select games")
 	}
 
@@ -95,7 +123,7 @@ func (db *gamesSchema) GamesGetForHost(ctx context.Context, hostID uuid.UUID, vi
 
 func (db *gamesSchema) GameDelete(ctx context.Context, gameID, hostID uuid.UUID) error {
 	_, err := db.TX.ExecContext(ctx,
-		`DELETE FROM games WHERE id = $1 AND host_id = $2`, gameID, hostID)
+		`DELETE FROM games.games WHERE id = $1 AND host_id = $2`, gameID, hostID)
 
 	return errors.Wrap(err, "cannot delete game")
 }

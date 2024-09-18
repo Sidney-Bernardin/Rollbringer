@@ -84,7 +84,7 @@ func (h *handler) handleCreatePDF(w http.ResponseWriter, r *http.Request) {
 
 	var (
 		session, _ = r.Context().Value(internal.CtxKeySession).(*internal.Session)
-		viewQuery = r.URL.Query().Get("view")
+		view       = r.URL.Query().Get("view")
 		pdf        = &internal.PDF{
 			Name:   r.FormValue("name"),
 			Schema: r.FormValue("schema"),
@@ -95,12 +95,13 @@ func (h *handler) handleCreatePDF(w http.ResponseWriter, r *http.Request) {
 		pdf.GameID = &gameID
 	}
 
-	if err := h.svc.CreatePDF(r.Context(), session, pdf, viewQuery); err != nil {
+	err := h.svc.CreatePDF(r.Context(), session, pdf, "pdf-all,owner-all,game-all")
+	if err != nil {
 		h.Err(w, r, errors.Wrap(err, "cannot create pdf"))
 		return
 	}
 
-	h.Render(w, r, http.StatusCreated, play.NewPDFTableRow(pdf))
+	h.Render(w, r, http.StatusCreated, play.NewPDFTableRow(pdf, view == "with-game-row"))
 }
 
 func (h *handler) handleGetPDF(w http.ResponseWriter, r *http.Request) {

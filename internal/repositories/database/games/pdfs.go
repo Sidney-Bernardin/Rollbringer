@@ -16,7 +16,12 @@ import (
 )
 
 func pdfColumns(views map[string]internal.PDFView) (columns string) {
-	switch views["pdf"] {
+	pdfView, ok := views["pdf"]
+	if !ok {
+		pdfView = views["pdfs"]
+	}
+
+	switch pdfView {
 	case internal.PDFViewPDFAll:
 		columns += `pdfs.id, pdfs.owner_id, pdfs.game_id, pdfs.name, pdfs.schema`
 	default:
@@ -25,12 +30,12 @@ func pdfColumns(views map[string]internal.PDFView) (columns string) {
 
 	switch views["owner"] {
 	case internal.PDFViewOwnerInfo:
-		columns += `users.id AS "owner.id", COALESCE(users.username, '') AS "owner.username"`
+		columns += `, users.id AS "owner.id", COALESCE(users.username, '') AS "owner.username"`
 	}
 
 	switch views["game"] {
 	case internal.PDFViewGameInfo:
-		columns += `games.id AS "game.id", COALESCE(games.name, '') AS "game.name"`
+		columns += `, games.id AS "game.id", COALESCE(games.name, '') AS "game.name"`
 	}
 
 	return columns
@@ -38,11 +43,11 @@ func pdfColumns(views map[string]internal.PDFView) (columns string) {
 
 func pdfJoins(views map[string]internal.PDFView) (joins string) {
 	if _, ok := views["owner"]; ok {
-		joins += `LEFT JOIN users ON users.id = pdfs.owner_id`
+		joins += `LEFT JOIN users.users ON users.id = pdfs.owner_id`
 	}
 
-	if _, ok := views["host"]; ok {
-		joins += `LEFT JOIN games ON games.id = pdfs.game_id`
+	if _, ok := views["game"]; ok {
+		joins += ` LEFT JOIN games.games ON games.id = pdfs.game_id`
 	}
 
 	return joins
@@ -61,7 +66,7 @@ func (db *gamesSchema) PDFInsert(ctx context.Context, pdf *internal.PDF) error {
 	}
 
 	err := db.TX.QueryRowxContext(ctx,
-		`INSERT INTO pdfs (id, owner_id, game_id, name, schema, pages)
+		`INSERT INTO games.pdfs (id, owner_id, game_id, name, schema, pages)
 			VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING id`,
 		uuid.New(), pdf.OwnerID, pdf.GameID, pdf.Name, pdf.Schema, pq.Array(hstorePages),
@@ -73,7 +78,7 @@ func (db *gamesSchema) PDFInsert(ctx context.Context, pdf *internal.PDF) error {
 func (db *gamesSchema) PDFGet(ctx context.Context, pdfID uuid.UUID, view map[string]internal.PDFView) (*internal.PDF, error) {
 
 	var pdf database.PDF
-	query := fmt.Sprintf(`SELECT %s FROM pdfs %s WHERE pdfs.id = $1`, pdfColumns(view), pdfJoins(view))
+	query := fmt.Sprintf(`SELECT %s FROM games.pdfs %s WHERE pdfs.id = $1`, pdfColumns(view), pdfJoins(view))
 	if err := sqlx.GetContext(ctx, db.TX, &pdf, query, pdfID); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, internal.NewProblemDetail(ctx, internal.PDOpts{
@@ -95,7 +100,7 @@ func (db *gamesSchema) PDFGetPage(ctx context.Context, pdfID uuid.UUID, pageIdx 
 
 	var page hstore.Hstore
 	err := db.TX.QueryRowxContext(ctx,
-		`SELECT pages[$1] FROM pdfs WHERE id = $2`,
+		`SELECT pages[$1] FROM games.pdfs WHERE id = $2`,
 		pageIdx+1, pdfID,
 	).Scan(&page)
 
@@ -122,10 +127,10 @@ func (db *gamesSchema) PDFGetPage(ctx context.Context, pdfID uuid.UUID, pageIdx 
 	return ret, nil
 }
 
-func (db *gamesSchema) PDFsGetForOwner(ctx context.Context, ownerID uuid.UUID, views map[string]internal.PDFView) ([]*internal.PDF, error) {
+func (db *gamesSchema) PDFsGetByOwner(ctx context.Context, ownerID uuid.UUID, views map[string]internal.PDFView) ([]*internal.PDF, error) {
 
 	var pdfs []*database.PDF
-	query := fmt.Sprintf(`SELECT %s FROM pdfs %s WHERE pdfs.owner_id = $1`, pdfColumns(views), pdfJoins(views))
+	query := fmt.Sprintf(`SELECT %s FROM games.pdfs %s WHERE pdfs.owner_id = $1`, pdfColumns(views), pdfJoins(views))
 	if err := sqlx.SelectContext(ctx, db.TX, &pdfs, query, ownerID); err != nil {
 		return nil, errors.Wrap(err, "cannot select PDFs")
 	}
@@ -139,10 +144,10 @@ func (db *gamesSchema) PDFsGetForOwner(ctx context.Context, ownerID uuid.UUID, v
 	return ret, nil
 }
 
-func (db *gamesSchema) PDFsGetForGame(ctx context.Context, gameID uuid.UUID, views map[string]internal.PDFView) ([]*internal.PDF, error) {
+func (db *gamesSchema) PDFsGetByGame(ctx context.Context, gameID uuid.UUID, views map[string]internal.PDFView) ([]*internal.PDF, error) {
 
 	var pdfs []*database.PDF
-	query := fmt.Sprintf(`SELECT %s FROM pdfs %s WHERE pdfs.game_id = $1`, pdfColumns(views), pdfJoins(views))
+	query := fmt.Sprintf(`SELECT %s FROM games.pdfs %s WHERE pdfs.game_id = $1`, pdfColumns(views), pdfJoins(views))
 	if err := sqlx.SelectContext(ctx, db.TX, &pdfs, query, gameID); err != nil {
 		return nil, errors.Wrap(err, "cannot select PDFs")
 	}
@@ -158,7 +163,7 @@ func (db *gamesSchema) PDFsGetForGame(ctx context.Context, gameID uuid.UUID, vie
 
 func (db *gamesSchema) PDFUpdatePage(ctx context.Context, pdfID uuid.UUID, pageIdx int, fieldName, fieldValue string) error {
 	_, err := db.TX.ExecContext(ctx,
-		`UPDATE pdfs SET pages[$1] = pages[$1] || hstore($2, $3) WHERE id = $4`,
+		`UPDATE games.pdfs SET pages[$1] = pages[$1] || hstore($2, $3) WHERE id = $4`,
 		pageIdx+1, fieldName, fieldValue, pdfID)
 
 	return errors.Wrap(err, "cannot update PDF page")
@@ -166,7 +171,7 @@ func (db *gamesSchema) PDFUpdatePage(ctx context.Context, pdfID uuid.UUID, pageI
 
 func (db *gamesSchema) PDFDelete(ctx context.Context, pdfID, ownerID uuid.UUID) error {
 	_, err := db.TX.ExecContext(ctx,
-		`DELETE FROM pdfs WHERE id = $1 AND owner_id = $2`,
+		`DELETE FROM games.pdfs WHERE id = $1 AND owner_id = $2`,
 		pdfID, ownerID)
 
 	return errors.Wrap(err, "cannot delete PDF")

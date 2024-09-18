@@ -28,7 +28,7 @@ func NewService(cfg *config.Config, logger *slog.Logger, ps internal.PubSub) Ser
 		BaseService: &services.BaseService{
 			Config: cfg,
 			Logger: logger,
-			PubSub:     ps,
+			PubSub: ps,
 		},
 	}
 }

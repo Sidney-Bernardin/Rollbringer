@@ -26,7 +26,7 @@ func sessionColumns(views map[string]internal.SessionView) (columns string) {
 
 func (db *usersSchema) SessionUpsert(ctx context.Context, session *internal.Session) error {
 	err := db.TX.QueryRowxContext(ctx,
-		`INSERT INTO sessions (id, user_id, csrf_token)
+		`INSERT INTO users.sessions (id, user_id, csrf_token)
 			VALUES ($1, $2, $3)
 		ON CONFLICT (user_id) DO UPDATE SET 
 			id = EXCLUDED.id,
@@ -42,7 +42,7 @@ func (db *usersSchema) SessionUpsert(ctx context.Context, session *internal.Sess
 func (db *usersSchema) SessionGet(ctx context.Context, sessionID uuid.UUID, views map[string]internal.SessionView) (*internal.Session, error) {
 
 	var session database.Session
-	query := fmt.Sprintf(`SELECT %s FROM sessions WHERE id = $1`, sessionColumns(views))
+	query := fmt.Sprintf(`SELECT %s FROM users.sessions WHERE id = $1`, sessionColumns(views))
 	if err := sqlx.GetContext(ctx, db.TX, &session, query, sessionID); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, internal.NewProblemDetail(ctx, internal.PDOpts{

@@ -109,7 +109,8 @@ const (
 	GameViewGameAll  GameView = "all"
 	GameViewHostInfo GameView = "info"
 
-	EventGame Event = "GAME"
+	EventGame  Event = "GAME"
+	EventGames Event = "GAMES"
 )
 
 type Game struct {
@@ -136,14 +137,33 @@ type GetGameRequest struct {
 
 // =====
 
+const EventGetGamesByHostRequest Event = "GET_GAMES_BY_HOST_REQUEST"
+
+type GetGamesByHostRequest struct {
+	HostID    uuid.UUID `json:"host_id,omitempty"`
+	ViewQuery string    `json:"view_query,omitempty"`
+}
+
+// =====
+
+const EventGetGamesByGuestRequest Event = "GET_GAMES_BY_GUEST_REQUEST"
+
+type GetGamesByGuestRequest struct {
+	GuestID   uuid.UUID `json:"guest_id,omitempty"`
+	ViewQuery string    `json:"view_query,omitempty"`
+}
+
+// =====
+
 type PDFView string
 
 const (
 	PDFViewPDFAll    PDFView = "all"
-	PDFViewOwnerInfo PDFView = "info"
-	PDFViewGameInfo  PDFView = "game"
+	PDFViewOwnerInfo PDFView = "all"
+	PDFViewGameInfo  PDFView = "all"
 
-	EventPDF Event = "PDF"
+	EventPDF  Event = "PDF"
+	EventPDFs Event = "PDFS"
 )
 
 type PDF struct {
@@ -167,6 +187,15 @@ const EventSubToPDFRequest Event = "SUB_TO_PDF_REQUEST"
 type SubToPDFRequest struct {
 	PDFID   uuid.UUID `json:"pdf_id,omitempty"`
 	PageNum int       `json:"page_num,string,omitempty"`
+}
+
+// =====
+
+const EventGetPDFsByOwnerRequest Event = "GET_PDFS_BY_OWNER_REQUEST"
+
+type GetPDFsByOwnerRequest struct {
+	OwnerID   uuid.UUID `json:"owner_id,omitempty"`
+	ViewQuery string    `json:"view_query,omitempty"`
 }
 
 // =====
