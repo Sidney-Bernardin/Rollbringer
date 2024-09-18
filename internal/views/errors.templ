@@ -3,4 +3,5 @@ package views
 import "rollbringer/internal"
 
 templ ProblemDetail(pd *internal.ProblemDetail) {
+	{ pd.Error() }
 }

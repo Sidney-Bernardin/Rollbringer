@@ -4,8 +4,6 @@ import (
 	"context"
 	"log/slog"
 	"math/rand"
-	"strconv"
-	"strings"
 	"time"
 
 	"rollbringer/internal"
@@ -20,20 +18,23 @@ type Service interface {
 	services.BaseServicer
 
 	CreateGame(ctx context.Context, session *internal.Session, game *internal.Game) error
+	SubToGame(ctx context.Context, gameID uuid.UUID, resChan chan<- any) error
 	DeleteGame(ctx context.Context, session *internal.Session, gameID uuid.UUID) error
 
-	CreatePDF(ctx context.Context, session *internal.Session, pdf *internal.PDF) error
-	SubToPDFPage(ctx context.Context, pdfID uuid.UUID, pageNum int, outgoing chan<- any) error
-	GetPDF(ctx context.Context, pdfID uuid.UUID, views string) (*internal.PDF, error)
+	CreatePDF(ctx context.Context, session *internal.Session, pdf *internal.PDF, viewQuery string) error
+	SubToPDFPage(ctx context.Context, pdfID uuid.UUID, pageNum int, resChan chan<- any) error
+	GetPDF(ctx context.Context, pdfID uuid.UUID, viewQuery string) (*internal.PDF, error)
 	GetPDFPage(ctx context.Context, pdfID uuid.UUID, pageNum int) (map[string]string, error)
 	UpdatePDFPage(ctx context.Context, pdfID uuid.UUID, pageNum int, fieldName, fieldValue string) error
 	DeletePDF(ctx context.Context, session *internal.Session, pdfID uuid.UUID) error
+
+	CreateRoll(ctx context.Context, dice []int, modifier string) error
 }
 
 type service struct {
 	*services.BaseService
 
-	db internal.GamesSchema
+	schema internal.GamesSchema
 
 	random *rand.Rand
 }
@@ -48,21 +49,21 @@ func NewService(
 		BaseService: &services.BaseService{
 			Config: cfg,
 			Logger: logger,
-			PS:     ps,
+			PubSub: ps,
 		},
-		db:     db,
+		schema: db,
 		random: rand.New(rand.NewSource(time.Now().UnixNano())),
 	}
 }
 
 func (svc *service) Shutdown() error {
-	svc.PS.Close()
-	err := svc.db.Close()
+	svc.PubSub.Close()
+	err := svc.schema.Close()
 	return errors.Wrap(err, "cannot close database")
 }
 
 func (svc *service) CreateGame(ctx context.Context, session *internal.Session, game *internal.Game) error {
-	count, err := svc.db.GamesCount(ctx, session.UserID)
+	count, err := svc.schema.GamesCount(ctx, session.UserID)
 	if err != nil {
 		return errors.Wrap(err, "cannot count games")
 	}
@@ -75,77 +76,67 @@ func (svc *service) CreateGame(ctx context.Context, session *internal.Session, g
 	}
 
 	game.HostID = session.UserID
-	err = svc.db.GameInsert(ctx, game)
+	err = svc.schema.GameInsert(ctx, game)
 	return errors.Wrap(err, "cannot insert game")
 }
 
 func (svc *service) getGame(ctx context.Context, gameID uuid.UUID, views string) (*internal.Game, error) {
-	svc.db.Transaction(ctx, func(schema *internal.UsersSchema) error {
-
-	})
-
 	parsedViews, err := internal.ParseViews[internal.GameView](ctx, views)
 	if err != nil {
-		return nil, errors.Wrap(err, "cannot parse game view")
+		return nil, errors.Wrap(err, "cannot parse game view query")
 	}
 
-	game, err := svc.db.GameGet(ctx, gameID, parsedViews)
+	game, err := svc.schema.GameGet(ctx, gameID, parsedViews)
 	return game, errors.Wrap(err, "cannot get game")
 }
 
 func (svc *service) DeleteGame(ctx context.Context, session *internal.Session, gameID uuid.UUID) error {
-	err := svc.db.GameDelete(ctx, gameID, session.UserID)
+	err := svc.schema.GameDelete(ctx, gameID, session.UserID)
 	return errors.Wrap(err, "cannot delete game")
 }
 
-func (svc *service) CreatePDF(ctx context.Context, session *internal.Session, pdf *internal.PDF) error {
+func (svc *service) CreatePDF(ctx context.Context, session *internal.Session, pdf *internal.PDF, viewQuery string) error {
 	pdf.OwnerID = session.UserID
-	pdf.Fields = make([]map[string]string, len(internal.PDFSchemaPageNames[pdf.Schema]))
+	pdf.Pages = make([]map[string]string, len(internal.PDFSchemaPageNames[pdf.Schema]))
 
-	err := svc.db.PDFInsert(ctx, pdf, len(internal.PDFSchemaPageNames[pdf.Schema]))
-	return errors.Wrap(err, "cannot insert PDF")
-}
-
-func (svc *service) GetPDF(ctx context.Context, pdfID uuid.UUID, views string) (*internal.PDF, error) {
-	parsedViews, err := internal.ParseViews[internal.PDFView](ctx, views)
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot parse PDF view")
+	if err := svc.schema.PDFInsert(ctx, pdf); err != nil {
+		return errors.Wrap(err, "cannot insert PDF")
 	}
 
-	pdf, err := svc.db.PDFGet(ctx, pdfID, parsedViews)
+	views, err := internal.ParseViews[internal.PDFView](ctx, viewQuery)
+	if err != nil {
+		return errors.Wrap(err, "cannot parse PDF view query")
+	}
+
+	pdf, err = svc.schema.PDFGet(ctx, pdf.ID, views)
+	return errors.Wrap(err, "cannot get PDF")
+}
+
+func (svc *service) GetPDF(ctx context.Context, pdfID uuid.UUID, viewQuery string) (*internal.PDF, error) {
+	views, err := internal.ParseViews[internal.PDFView](ctx, viewQuery)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot parse PDF view query")
+	}
+
+	pdf, err := svc.schema.PDFGet(ctx, pdfID, views)
 	return pdf, errors.Wrap(err, "cannot get PDF")
 }
 
+func (svc *service) GetPDFPage(ctx context.Context, pdfID uuid.UUID, pageNum int) (map[string]string, error) {
+	pageFields, err := svc.schema.PDFGetPage(ctx, pdfID, pageNum-1)
+	return pageFields, errors.Wrap(err, "cannot get PDF page")
+}
+
+func (svc *service) UpdatePDFPage(ctx context.Context, pdfID uuid.UUID, pageNum int, fieldName, fieldValue string) error {
+	err := svc.schema.PDFUpdatePage(ctx, pdfID, pageNum-1, fieldName, fieldValue)
+	return errors.Wrap(err, "cannot update PDF page")
+}
+
 func (svc *service) DeletePDF(ctx context.Context, session *internal.Session, pdfID uuid.UUID) error {
-	err := svc.db.PDFDelete(ctx, pdfID, session.UserID)
+	err := svc.schema.PDFDelete(ctx, pdfID, session.UserID)
 	return errors.Wrap(err, "cannot delete PDF")
 }
 
-func (svc *service) roll(ctx context.Context, diceNamesStr string) (*internal.Roll, error) {
-	roll := &internal.Roll{
-		DiceNames:   []int32{},
-		DiceResults: []int32{},
-	}
-
-	for _, dieNameStr := range strings.Split(diceNamesStr, "d")[1:] {
-		dName, err := strconv.ParseInt(dieNameStr, 10, 32)
-		if err != nil {
-			return nil, &internal.ProblemDetail{
-				Instance: ctx.Value(internal.CtxKeyInstance).(string),
-				Type:     internal.PDTypeInvalidDie,
-				Detail:   "Die names must resemble 32-bit integers.",
-				Extra: map[string]any{
-					"die_name": dieNameStr,
-				},
-			}
-		}
-
-		roll.DiceNames = append(roll.DiceNames, int32(dName))
-	}
-
-	for _, dieName := range roll.DiceNames {
-		roll.DiceResults = append(roll.DiceResults, svc.random.Int31n(dieName)+1)
-	}
-
-	return roll, nil
+func (svc *service) CreateRoll(ctx context.Context, dice []int, modifier string) error {
+	return nil
 }

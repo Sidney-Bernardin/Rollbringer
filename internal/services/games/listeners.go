@@ -12,27 +12,42 @@ import (
 	"rollbringer/internal"
 )
 
-func (svc *service) Run() error {
+func (svc *service) Listen() error {
 	errs, ctx := errgroup.WithContext(context.Background())
-	go svc.subToGames(ctx)
+
+	errs.Go(func() error {
+		return svc.subToGames(ctx)
+	})
+
 	return errs.Wait()
 }
 
 func (svc *service) subToGames(ctx context.Context) error {
-	err := svc.PS.Subscribe(ctx, "games", func(incoming *internal.EventWrapper[[]byte]) *internal.EventWrapper[any] {
+	err := svc.PubSub.Subscribe(ctx, "games", func(req *internal.EventWrapper[[]byte]) *internal.EventWrapper[any] {
 
 		var payload any
-		switch incoming.Event {
+		switch req.Event {
 		case internal.EventGetGameRequest:
-			payload = internal.GetGameRequest{}
+			payload = &internal.GetGameRequest{}
 		default:
-			return nil
-		}
-
-		if err := json.Unmarshal(incoming.Payload, &payload); err != nil {
 			return &internal.EventWrapper[any]{
 				Event: internal.EventError,
 				Payload: internal.NewProblemDetail(ctx, internal.PDOpts{
+					Type:   internal.PDTypeInvalidEvent,
+					Detail: "The given evnet is not valid.",
+					Extra: map[string]any{
+						"event": req.Event,
+					},
+				}),
+			}
+		}
+
+		instanceCtx := context.WithValue(ctx, internal.CtxKeyInstance, req.Event)
+
+		if err := json.Unmarshal(req.Payload, &payload); err != nil {
+			return &internal.EventWrapper[any]{
+				Event: internal.EventError,
+				Payload: internal.NewProblemDetail(instanceCtx, internal.PDOpts{
 					Type:   internal.PDTypeInvalidJSON,
 					Detail: err.Error(),
 				}),
@@ -40,12 +55,12 @@ func (svc *service) subToGames(ctx context.Context) error {
 		}
 
 		switch payload := payload.(type) {
-		case internal.GetGameRequest:
-			game, err := svc.getGame(ctx, payload.GameID, payload.View)
+		case *internal.GetGameRequest:
+			game, err := svc.getGame(instanceCtx, payload.GameID, payload.ViewQuery)
 			if err != nil {
 				return &internal.EventWrapper[any]{
 					Event:   internal.EventError,
-					Payload: internal.HandleError(ctx, svc.Logger, errors.Wrap(err, "cannot get game")),
+					Payload: internal.HandleError(instanceCtx, svc.Logger, errors.Wrap(err, "cannot get game")),
 				}
 			}
 
@@ -55,26 +70,31 @@ func (svc *service) subToGames(ctx context.Context) error {
 			}
 
 		default:
-			return nil
+			return &internal.EventWrapper[any]{
+				Event:   internal.EventError,
+				Payload: internal.HandleError(ctx, svc.Logger, internal.SvrErrUnknownEvent),
+			}
 		}
 	})
 
 	return errors.Wrap(err, "cannot subscribe to games")
 }
 
-func (svc *service) SubToPDFPage(ctx context.Context, pdfID uuid.UUID, pageNum int, resChan chan<- any) error {
-	subject := fmt.Sprintf("pdfs.%s.pages.%v", pdfID, pageNum)
-	err := svc.PS.Subscribe(ctx, subject, func(incoming *internal.EventWrapper[[]byte]) *internal.EventWrapper[any] {
+func (svc *service) SubToGame(ctx context.Context, gameID uuid.UUID, resChan chan<- any) error {
+	subject := fmt.Sprintf("games.%s", gameID)
+	err := svc.PubSub.Subscribe(ctx, subject, func(req *internal.EventWrapper[[]byte]) *internal.EventWrapper[any] {
 
 		var payload any
-		switch incoming.Event {
+		switch req.Event {
 		case internal.EventPDFPage:
-			payload = internal.PDFPage{}
+			payload = &internal.PDFPage{}
+		case internal.EventRoll:
+			payload = &internal.Roll{}
 		default:
 			return nil
 		}
 
-		if err := json.Unmarshal(incoming.Payload, &payload); err != nil {
+		if err := json.Unmarshal(req.Payload, &payload); err != nil {
 			return &internal.EventWrapper[any]{
 				Event: internal.EventError,
 				Payload: internal.NewProblemDetail(ctx, internal.PDOpts{
@@ -88,5 +108,34 @@ func (svc *service) SubToPDFPage(ctx context.Context, pdfID uuid.UUID, pageNum i
 		return nil
 	})
 
-	return errors.Wrap(err, "cannot subscribe to pdfs.%s.pages.%v")
+	return errors.Wrapf(err, "cannot subscribe to games.%s", gameID)
+}
+
+func (svc *service) SubToPDFPage(ctx context.Context, pdfID uuid.UUID, pageNum int, resChan chan<- any) error {
+	subject := fmt.Sprintf("pdfs.%s.pages.%v", pdfID, pageNum)
+	err := svc.PubSub.Subscribe(ctx, subject, func(req *internal.EventWrapper[[]byte]) *internal.EventWrapper[any] {
+
+		var payload any
+		switch req.Event {
+		case internal.EventPDFPage:
+			payload = &internal.PDFPage{}
+		default:
+			return nil
+		}
+
+		if err := json.Unmarshal(req.Payload, &payload); err != nil {
+			return &internal.EventWrapper[any]{
+				Event: internal.EventError,
+				Payload: internal.NewProblemDetail(ctx, internal.PDOpts{
+					Type:   internal.PDTypeInvalidJSON,
+					Detail: err.Error(),
+				}),
+			}
+		}
+
+		resChan <- payload
+		return nil
+	})
+
+	return errors.Wrapf(err, "cannot subscribe to pdfs.%s.pages.%v", pdfID, pageNum)
 }

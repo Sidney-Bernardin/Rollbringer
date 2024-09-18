@@ -61,8 +61,8 @@ type User struct {
 const EventGetUserRequest Event = "GET_USER_REQUEST"
 
 type GetUserRequest struct {
-	UserID uuid.UUID `json:"user_id,omitempty"`
-	View   string    `json:"view"`
+	UserID    uuid.UUID `json:"user_id,omitempty"`
+	ViewQuery string    `json:"view_query,omitempty"`
 }
 
 // =====
@@ -98,7 +98,7 @@ const EventGetSessionRequest Event = "GET_SESSION_REQUEST"
 
 type GetSessionRequest struct {
 	SessionID uuid.UUID `json:"session_id,omitempty"`
-	View      string    `json:"view"`
+	ViewQuery string    `json:"view_query,omitempty"`
 }
 
 // =====
@@ -130,8 +130,8 @@ type Game struct {
 const EventGetGameRequest Event = "GET_GAME_REQUEST"
 
 type GetGameRequest struct {
-	GameID uuid.UUID `json:"game_id,omitempty"`
-	View   string    `json:"view"`
+	GameID    uuid.UUID `json:"game_id,omitempty"`
+	ViewQuery string    `json:"view_query,omitempty"`
 }
 
 // =====
@@ -181,9 +181,9 @@ type PDFPage struct {
 
 // =====
 
-const EventUpdatePDFFieldRequest Event = "UPDATE_PDF_FIELD_REQUEST"
+const EventUpdatePDFPageRequest Event = "UPDATE_PDF_PAGE_REQUEST"
 
-type UpdatePDFFieldRequest struct {
+type UpdatePDFPageRequest struct {
 	PDFID      uuid.UUID `json:"pdf_id,omitempty"`
 	PageNum    int       `json:"page_num,string,omitempty"`
 	FieldName  string    `json:"field_name,omitempty"`
@@ -203,8 +203,9 @@ type Roll struct {
 	GameID uuid.UUID `json:"game_id,omitempty"`
 	Game   *Game     `json:"game,omitempty"`
 
-	DiceNames   []int32 `json:"dice_names,omitempty"`
+	DiceTypes   []int32 `json:"dice_types,omitempty"`
 	DiceResults []int32 `json:"dice_results,omitempty"`
+	Modifiers   string  `json:"modifiers,omitempty"`
 }
 
 // =====
@@ -212,6 +213,6 @@ type Roll struct {
 const EventCreateRollRequest Event = "CREATE_ROLL_REQUEST"
 
 type CreateRollRequest struct {
-	Dice     string `json:"dice,omitempty"`
-	Modifier string `json:"modifier,omitempty"`
+	DiceTypes []int  `json:"dice_types,omitempty"`
+	Modifiers string `json:"modifiers,omitempty"`
 }

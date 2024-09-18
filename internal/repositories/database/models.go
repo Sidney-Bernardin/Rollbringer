@@ -100,8 +100,9 @@ type Roll struct {
 	GameID uuid.UUID `db:"game_id"`
 	Game   *Game     `db:"game"`
 
-	DiceNames   pq.Int32Array `db:"dice_names"`
+	DiceTypes   pq.Int32Array `db:"dice_types"`
 	DiceResults pq.Int32Array `db:"dice_results"`
+	Modifiers   string        `db:"modifiers"`
 }
 
 func (roll *Roll) Internalized() *internal.Roll {
@@ -111,8 +112,9 @@ func (roll *Roll) Internalized() *internal.Roll {
 			OwnerID:     roll.OwnerID,
 			GameID:      roll.GameID,
 			Game:        roll.Game.Internalized(),
-			DiceNames:   roll.DiceNames,
+			DiceTypes:   roll.DiceTypes,
 			DiceResults: roll.DiceResults,
+			Modifiers:   roll.Modifiers,
 		}
 	}
 	return nil

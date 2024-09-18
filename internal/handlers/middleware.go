@@ -61,7 +61,39 @@ func (h *BaseHandler) Authenticate(next http.Handler) http.Handler {
 			return
 		}
 
-		r = r.WithContext(context.WithValue(r.Context(), "session", session))
+		r = r.WithContext(context.WithValue(r.Context(), internal.CtxKeySession, session))
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (h *BaseHandler) GetSession(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var ctx = r.Context()
+
+		cookie, err := r.Cookie("SESSION_ID")
+		if err != nil {
+			if err == http.ErrNoCookie {
+				http.Redirect(w, r, "/users/login", http.StatusTemporaryRedirect)
+				return
+			}
+
+			h.Err(w, r, errors.Wrap(err, "cannot get SESSION_ID cookie"))
+			return
+		}
+		sessionID, _ := uuid.Parse(cookie.Value)
+
+		session, err := h.BaseService.GetSession(ctx, sessionID, "session-all")
+		if err != nil {
+			if internal.IsDetailed(err, internal.PDTypeUnauthorized) {
+				http.Redirect(w, r, "/users/login", http.StatusTemporaryRedirect)
+				return
+			}
+
+			h.Err(w, r, errors.Wrap(err, "cannot get session"))
+			return
+		}
+
+		r = r.WithContext(context.WithValue(ctx, internal.CtxKeySession, session))
 		next.ServeHTTP(w, r)
 	})
 }

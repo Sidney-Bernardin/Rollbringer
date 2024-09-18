@@ -86,11 +86,11 @@ func (h *usersHandler) handleConsentCallback(w http.ResponseWriter, r *http.Requ
 	http.SetCookie(w, &http.Cookie{
 		Name:     "SESSION_ID",
 		Value:    session.ID.String(),
-		Domain:   h.Config.CookieDomain,
+		Path:     h.Config.CookiePath,
 		Expires:  time.Now().Add(15 * time.Minute),
 		SameSite: http.SameSiteStrictMode,
 		HttpOnly: true,
 	})
 
-	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+	http.Redirect(w, r, "/pages", http.StatusTemporaryRedirect)
 }

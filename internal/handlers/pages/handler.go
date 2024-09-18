@@ -12,6 +12,7 @@ import (
 	"rollbringer/internal"
 	"rollbringer/internal/config"
 	"rollbringer/internal/handlers"
+	"rollbringer/internal/services/pages"
 	service "rollbringer/internal/services/pages"
 	"rollbringer/internal/views/pages/play"
 )
@@ -25,15 +26,15 @@ type handler struct {
 func NewHandler(cfg *config.Config, logger *slog.Logger, svc service.Service) *handler {
 	h := &handler{
 		BaseHandler: &handlers.BaseHandler{
-			Config:  cfg,
-			Logger:  logger,
-			Router:  chi.NewRouter(),
+			Config:      cfg,
+			Logger:      logger,
+			Router:      chi.NewRouter(),
 			BaseService: svc,
 		},
 		svc: svc,
 	}
 
-	h.Router.Use(h.Log, h.Instance, h.authenticatePage)
+	h.Router.Use(h.Log, h.Instance, h.GetSession)
 	h.Router.Get("/", h.handlePlayPage)
 
 	return h
@@ -42,7 +43,7 @@ func NewHandler(cfg *config.Config, logger *slog.Logger, svc service.Service) *h
 func (h *handler) handlePlayPage(w http.ResponseWriter, r *http.Request) {
 
 	var (
-		session, _ = r.Context().Value("session").(*internal.Session)
+		session, _ = r.Context().Value(internal.CtxKeySession).(*internal.Session)
 		gameID, _  = uuid.Parse(r.URL.Query().Get("g"))
 	)
 
@@ -51,7 +52,7 @@ func (h *handler) handlePlayPage(w http.ResponseWriter, r *http.Request) {
 		h.Err(w, r, errors.Wrap(err, "cannot get play page"))
 		return
 	}
-	r = r.WithContext(context.WithValue(r.Context(), "play_page", page))
+	r = r.WithContext(context.WithValue(r.Context(), pages.CtxKeyPlayPage, page))
 
 	h.Render(w, r, http.StatusOK, play.Play())
 }

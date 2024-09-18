@@ -14,13 +14,13 @@ import (
 
 func (db *gamesSchema) RollInsert(ctx context.Context, roll *internal.Roll) error {
 	err := db.TX.QueryRowxContext(ctx,
-		`INSERT INTO rolls (id, owner_id, game_id, dice_names, dice_results)
-			VALUES ($1, $2, $3, $4, $5)
+		`INSERT INTO rolls (id, owner_id, game_id, dice_names, dice_results, modifiers)
+			VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING id`,
-		uuid.New(), roll.OwnerID, roll.GameID, pq.Array(roll.DiceNames), pq.Array(roll.DiceResults),
+		uuid.New(), roll.OwnerID, roll.GameID, pq.Array(roll.DiceTypes), pq.Array(roll.DiceResults), roll.Modifiers,
 	).Scan(&roll.ID)
 
-	return errors.Wrap(err, "cannot insert Roll")
+	return errors.Wrap(err, "cannot insert roll")
 }
 
 func (db *gamesSchema) RollsGetForGame(ctx context.Context, gameID uuid.UUID) ([]*internal.Roll, error) {
@@ -30,7 +30,7 @@ func (db *gamesSchema) RollsGetForGame(ctx context.Context, gameID uuid.UUID) ([
 		`SELECT rolls.* FROM rolls WHERE rolls.game_id = $1`, gameID)
 
 	if err != nil {
-		return nil, errors.Wrap(err, "cannot select Rolls")
+		return nil, errors.Wrap(err, "cannot select rolls")
 	}
 
 	// Internalize each roll.

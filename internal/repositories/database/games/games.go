@@ -17,6 +17,8 @@ func gameColumns(views map[string]internal.GameView) (columns string) {
 	switch views["game"] {
 	case internal.GameViewGameAll:
 		columns += `games.*`
+	default:
+		columns += `games.*`
 	}
 
 	switch views["host"] {

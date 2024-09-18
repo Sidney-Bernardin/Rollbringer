@@ -10,7 +10,7 @@ import (
 type Config struct {
 	Port            string        `required:"true" split_words:"true"`
 	ShutdownTimeout time.Duration `required:"false" default:"10s" split_words:"true"`
-	CookieDomain    string        `required:"true" split_words:"true"`
+	CookiePath      string        `required:"true" split_words:"true"`
 
 	UsersGoogleClientID     string        `required:"true" split_words:"true"`
 	UsersGoogleClientSecret string        `required:"true" split_words:"true"`

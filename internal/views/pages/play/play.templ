@@ -13,9 +13,9 @@ templ Play() {
 			hx-headers={ F(`{"CSRF-Token": "%s" }`, GetSession(ctx).CSRFToken) }
 			if game := GetPlayPage(ctx).Game; game != nil {
 				data-game-id={ game.ID.String() }
-				ws-connect={ F("/ws?g=%s", game.ID) }
+				ws-connect={ F("/games/ws?g=%s", game.ID) }
 			} else {
-				ws-connect="/ws"
+				ws-connect="/games/ws"
 			}
 		>
 			<div class="play-layout">
@@ -61,13 +61,13 @@ templ userPDFs() {
 		</caption>
 		<tbody>
 			for _, pdf := range GetPlayPage(ctx).User.PDFs {
-				@PDFTableRow(pdf)
+				@PDFTableRow(pdf, pdf.Game.Name)
 			}
 		</tbody>
 	</table>
 	@Modal("create-pdf-modal", "Create PDF", "show-create-pdf-modal") {
 		<form
-			x-data="{ view: 'All_GameInfo' }"
+			x-data="{ view: 'pdf-all,game-all' }"
 			x-init="$watch('view', () => htmx.process($el))"
 			:hx-post="`/play-materials/pdfs?view=${view}`"
 		>
@@ -75,7 +75,7 @@ templ userPDFs() {
 			//
 			<label for="game_id">
 				Game:
-				<select name="game_id" @change="view = ($event.target.value === $store.game?.id) ? 'All_OwnerInfo_GameInfo' : 'All_GameInfo'">
+				<select name="game_id" @change="view = ($event.target.value === $store.game?.id) ? 'pdf-all,game-all,owner-all' : 'pdf-all,game-all'">
 					<option value="">None</option>
 					for _, game := range slices.Concat(GetPlayPage(ctx).User.HostedGames, GetPlayPage(ctx).User.JoinedGames) {
 						<option value={ game.ID.String() }>{ game.Name }</option>
@@ -103,7 +103,7 @@ templ gamePDFs() {
 		</caption>
 		<tbody>
 			for _, pdf := range GetPlayPage(ctx).Game.PDFs {
-				@PDFTableRow(pdf)
+				@PDFTableRow(pdf, pdf.Owner.Username)
 			}
 		</tbody>
 	</table>

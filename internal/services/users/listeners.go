@@ -5,53 +5,66 @@ import (
 	"encoding/json"
 
 	"github.com/pkg/errors"
+	"golang.org/x/sync/errgroup"
 
 	"rollbringer/internal"
 )
 
 func (svc *service) Listen() error {
-	errChan := make(chan error)
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	errs, ctx := errgroup.WithContext(context.Background())
 
-	go svc.doUsersSubscription(ctx, errChan)
+	errs.Go(func() error {
+		return svc.subToUsers(ctx)
+	})
 
-	select {
-	case <-ctx.Done():
-		return nil
-	case err := <-errChan:
-		return err
-	}
+	errs.Go(func() error {
+		return svc.subToSessions(ctx)
+	})
+
+	return errs.Wait()
 }
 
-func (svc *service) doUsersSubscription(ctx context.Context, errChan chan<- error) {
-	svc.PS.Subscribe(ctx, "users", errChan, func(incoming *internal.EventWrapper[[]byte]) *internal.EventWrapper[any] {
+func (svc *service) subToUsers(ctx context.Context) error {
+	err := svc.PubSub.Subscribe(ctx, "users", func(req *internal.EventWrapper[[]byte]) *internal.EventWrapper[any] {
 
 		var payload any
-		switch incoming.Event {
+		switch req.Event {
 		case internal.EventGetUserRequest:
-			payload = internal.GetUserRequest{}
+			payload = &internal.GetUserRequest{}
+		case internal.EventAuthenticateUserRequest:
+			payload = &internal.AuthenticateUserRequest{}
 		default:
-			return nil
-		}
-
-		if err := json.Unmarshal(incoming.Payload, &payload); err != nil {
 			return &internal.EventWrapper[any]{
 				Event: internal.EventError,
 				Payload: internal.NewProblemDetail(ctx, internal.PDOpts{
+					Type:   internal.PDTypeInvalidEvent,
+					Detail: "The given evnet is not valid.",
+					Extra: map[string]any{
+						"event": req.Event,
+					},
+				}),
+			}
+		}
+
+		instanceCtx := context.WithValue(ctx, internal.CtxKeyInstance, req.Event)
+
+		if err := json.Unmarshal(req.Payload, &payload); err != nil {
+			return &internal.EventWrapper[any]{
+				Event: internal.EventError,
+				Payload: internal.NewProblemDetail(instanceCtx, internal.PDOpts{
 					Type:   internal.PDTypeInvalidJSON,
 					Detail: err.Error(),
 				}),
 			}
 		}
 
-		switch incoming := payload.(type) {
-		case internal.GetUserRequest:
-			user, err := svc.getUser(ctx, incoming.UserID, incoming.View)
+		switch payload := payload.(type) {
+		case *internal.GetUserRequest:
+			user, err := svc.getUser(instanceCtx, payload.UserID, payload.ViewQuery)
 			if err != nil {
 				return &internal.EventWrapper[any]{
 					Event:   internal.EventError,
-					Payload: internal.HandleError(ctx, svc.Logger, errors.Wrap(err, "cannot get game")),
+					Payload: internal.HandleError(instanceCtx, svc.Logger, errors.Wrap(err, "cannot get user")),
 				}
 			}
 
@@ -61,11 +74,11 @@ func (svc *service) doUsersSubscription(ctx context.Context, errChan chan<- erro
 			}
 
 		case *internal.AuthenticateUserRequest:
-			session, err := svc.authenticate(ctx, incoming.SessionID, incoming.CSRFToken)
+			session, err := svc.authenticate(ctx, payload.SessionID, payload.CSRFToken)
 			if err != nil {
 				return &internal.EventWrapper[any]{
 					Event:   internal.EventError,
-					Payload: internal.HandleError(ctx, svc.Logger, errors.Wrap(err, "cannot authenticate")),
+					Payload: internal.HandleError(instanceCtx, svc.Logger, errors.Wrap(err, "cannot authenticate")),
 				}
 			}
 
@@ -75,7 +88,70 @@ func (svc *service) doUsersSubscription(ctx context.Context, errChan chan<- erro
 			}
 
 		default:
-			return nil
+			return &internal.EventWrapper[any]{
+				Event:   internal.EventError,
+				Payload: internal.HandleError(ctx, svc.Logger, internal.SvrErrUnknownEvent),
+			}
 		}
 	})
+
+	return errors.Wrap(err, "cannot subscribe to users")
+}
+
+func (svc *service) subToSessions(ctx context.Context) error {
+	err := svc.PubSub.Subscribe(ctx, "sessions", func(req *internal.EventWrapper[[]byte]) *internal.EventWrapper[any] {
+
+		var payload any
+		switch req.Event {
+		case internal.EventGetSessionRequest:
+			payload = &internal.GetSessionRequest{}
+		default:
+			return &internal.EventWrapper[any]{
+				Event: internal.EventError,
+				Payload: internal.NewProblemDetail(ctx, internal.PDOpts{
+					Type:   internal.PDTypeInvalidEvent,
+					Detail: "The given evnet is not valid.",
+					Extra: map[string]any{
+						"event": req.Event,
+					},
+				}),
+			}
+		}
+
+		instanceCtx := context.WithValue(ctx, internal.CtxKeyInstance, req.Event)
+
+		if err := json.Unmarshal(req.Payload, &payload); err != nil {
+			return &internal.EventWrapper[any]{
+				Event: internal.EventError,
+				Payload: internal.NewProblemDetail(instanceCtx, internal.PDOpts{
+					Type:   internal.PDTypeInvalidJSON,
+					Detail: err.Error(),
+				}),
+			}
+		}
+
+		switch payload := payload.(type) {
+		case *internal.GetSessionRequest:
+			session, err := svc.getSession(instanceCtx, payload.SessionID, payload.ViewQuery)
+			if err != nil {
+				return &internal.EventWrapper[any]{
+					Event:   internal.EventError,
+					Payload: internal.HandleError(instanceCtx, svc.Logger, errors.Wrap(err, "cannot get session")),
+				}
+			}
+
+			return &internal.EventWrapper[any]{
+				Event:   internal.EventUser,
+				Payload: session,
+			}
+
+		default:
+			return &internal.EventWrapper[any]{
+				Event:   internal.EventError,
+				Payload: internal.HandleError(ctx, svc.Logger, internal.SvrErrUnknownEvent),
+			}
+		}
+	})
+
+	return errors.Wrap(err, "cannot subscribe to sessions")
 }

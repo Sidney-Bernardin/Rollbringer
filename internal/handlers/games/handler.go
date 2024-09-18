@@ -33,15 +33,17 @@ func NewHandler(cfg *config.Config, logger *slog.Logger, svc service.Service) ht
 		svc: svc,
 	}
 
-	h.Router.Use(h.Log, h.Instance, h.Authenticate)
+	h.Router.Use(h.Log, h.Instance)
+	h.Router.With(h.GetSession).Method("GET", "/ws", websocket.Handler(h.handleGameWebsocket))
 
-	h.Router.Post("/games", h.handleCreateGame)
-	h.Router.Method("/games/{game_id}", "GET", websocket.Handler(h.handleGameWebsocket))
-	h.Router.Delete("/games/{game_id}", h.handleDeleteGame)
+	authRouter := h.Router.With(h.Authenticate)
 
-	h.Router.Post("/pdfs", h.handleCreatePDF)
-	h.Router.Get("/pdfs", h.handleGetPDF)
-	h.Router.Delete("/pdfs/{pdf_id}", h.handleDeletePDF)
+	authRouter.Post("/games", h.handleCreateGame)
+	authRouter.Delete("/games/{game_id}", h.handleDeleteGame)
+
+	authRouter.Post("/pdfs", h.handleCreatePDF)
+	authRouter.Get("/pdfs", h.handleGetPDF)
+	authRouter.Delete("/pdfs/{pdf_id}", h.handleDeletePDF)
 
 	return h
 }
@@ -49,7 +51,7 @@ func NewHandler(cfg *config.Config, logger *slog.Logger, svc service.Service) ht
 func (h *handler) handleCreateGame(w http.ResponseWriter, r *http.Request) {
 
 	var (
-		session, _ = r.Context().Value("session").(*internal.Session)
+		session, _ = r.Context().Value(internal.CtxKeySession).(*internal.Session)
 		game       = &internal.Game{
 			Name: r.FormValue("name"),
 		}
@@ -66,7 +68,7 @@ func (h *handler) handleCreateGame(w http.ResponseWriter, r *http.Request) {
 func (h *handler) handleDeleteGame(w http.ResponseWriter, r *http.Request) {
 
 	var (
-		session, _ = r.Context().Value("session").(*internal.Session)
+		session, _ = r.Context().Value(internal.CtxKeySession).(*internal.Session)
 		gameID, _  = uuid.Parse(chi.URLParam(r, "game_id"))
 	)
 
@@ -81,19 +83,24 @@ func (h *handler) handleDeleteGame(w http.ResponseWriter, r *http.Request) {
 func (h *handler) handleCreatePDF(w http.ResponseWriter, r *http.Request) {
 
 	var (
-		session, _ = r.Context().Value("session").(*internal.Session)
+		session, _ = r.Context().Value(internal.CtxKeySession).(*internal.Session)
+		viewQuery = r.URL.Query().Get("view")
 		pdf        = &internal.PDF{
 			Name:   r.FormValue("name"),
 			Schema: r.FormValue("schema"),
 		}
 	)
 
-	if err := h.svc.CreatePDF(r.Context(), session, pdf); err != nil {
+	if gameID, err := uuid.Parse(r.FormValue("game_id")); err == nil {
+		pdf.GameID = &gameID
+	}
+
+	if err := h.svc.CreatePDF(r.Context(), session, pdf, viewQuery); err != nil {
 		h.Err(w, r, errors.Wrap(err, "cannot create pdf"))
 		return
 	}
 
-	h.Render(w, r, http.StatusCreated, play.PDFTableRow(pdf))
+	h.Render(w, r, http.StatusCreated, play.NewPDFTableRow(pdf))
 }
 
 func (h *handler) handleGetPDF(w http.ResponseWriter, r *http.Request) {
@@ -111,7 +118,7 @@ func (h *handler) handleGetPDF(w http.ResponseWriter, r *http.Request) {
 func (h *handler) handleDeletePDF(w http.ResponseWriter, r *http.Request) {
 
 	var (
-		session, _ = r.Context().Value("session").(*internal.Session)
+		session, _ = r.Context().Value(internal.CtxKeySession).(*internal.Session)
 		pdfID, _   = uuid.Parse(chi.URLParam(r, "pdf_id"))
 	)
 

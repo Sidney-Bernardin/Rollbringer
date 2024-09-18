@@ -7,6 +7,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+var (
+	SvrErrUnknownEvent = errors.New("unknown event")
+)
+
 type PDType string
 
 const CtxKeyInstance CtxKey = "instance"
@@ -40,8 +44,10 @@ type PDOpts struct {
 }
 
 func NewProblemDetail(ctx context.Context, opts PDOpts) *ProblemDetail {
+	instance, _ := ctx.Value(CtxKeyInstance).(string)
+
 	return &ProblemDetail{
-		Instance: ctx.Value(CtxKeyInstance).(string),
+		Instance: instance,
 		Type:     opts.Type,
 		Detail:   opts.Detail,
 		Extra:    opts.Extra,

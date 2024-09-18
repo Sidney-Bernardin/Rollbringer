@@ -80,9 +80,9 @@ func Play() templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var5 string
-				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(F("/ws?g=%s", game.ID))
+				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(F("/games/ws?g=%s", game.ID))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/play.templ`, Line: 16, Col: 39}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/play.templ`, Line: 16, Col: 45}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
@@ -93,7 +93,7 @@ func Play() templ.Component {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" ws-connect=\"/ws\"")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" ws-connect=\"/games/ws\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -311,7 +311,7 @@ func userPDFs() templ.Component {
 			return templ_7745c5c3_Err
 		}
 		for _, pdf := range GetPlayPage(ctx).User.PDFs {
-			templ_7745c5c3_Err = PDFTableRow(pdf).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = PDFTableRow(pdf, pdf.Game.Name).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -332,7 +332,7 @@ func userPDFs() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form x-data=\"{ view: &#39;All_GameInfo&#39; }\" x-init=\"$watch(&#39;view&#39;, () =&gt; htmx.process($el))\" :hx-post=\"`/play-materials/pdfs?view=${view}`\"><input type=\"hidden\" name=\"schema\" value=\"DND_CHARACTER_SHEET\"><label for=\"game_id\">Game: <select name=\"game_id\" @change=\"view = ($event.target.value === $store.game?.id) ? &#39;All_OwnerInfo_GameInfo&#39; : &#39;All_GameInfo&#39;\"><option value=\"\">None</option> ")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form x-data=\"{ view: &#39;pdf-all,game-all&#39; }\" x-init=\"$watch(&#39;view&#39;, () =&gt; htmx.process($el))\" :hx-post=\"`/play-materials/pdfs?view=${view}`\"><input type=\"hidden\" name=\"schema\" value=\"DND_CHARACTER_SHEET\"><label for=\"game_id\">Game: <select name=\"game_id\" @change=\"view = ($event.target.value === $store.game?.id) ? &#39;pdf-all,game-all,owner-all&#39; : &#39;pdf-all,game-all&#39;\"><option value=\"\">None</option> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -405,7 +405,7 @@ func gamePDFs() templ.Component {
 			return templ_7745c5c3_Err
 		}
 		for _, pdf := range GetPlayPage(ctx).Game.PDFs {
-			templ_7745c5c3_Err = PDFTableRow(pdf).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = PDFTableRow(pdf, pdf.Owner.Username).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -9,7 +9,7 @@ import (
 type PubSub interface {
 	Close()
 	Publish(ctx context.Context, subject string, data *EventWrapper[any]) error
-	Request(ctx context.Context, subject string, incomingData any, outgoingData *EventWrapper[any]) error
+	Request(ctx context.Context, subject string, res any, req *EventWrapper[any]) error
 	Subscribe(ctx context.Context, subject string, cb func(*EventWrapper[[]byte]) *EventWrapper[any]) error
 }
 

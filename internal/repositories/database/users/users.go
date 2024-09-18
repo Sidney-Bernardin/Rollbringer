@@ -17,6 +17,8 @@ func userColumns(views map[string]internal.UserView) (columns string) {
 	switch views["user"] {
 	case internal.UserViewUserAll:
 		columns += `users.*`
+	default:
+		columns += `users.*`
 	}
 
 	return columns

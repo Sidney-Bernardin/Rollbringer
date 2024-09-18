@@ -8,16 +8,16 @@ import (
 
 templ NewPDFTableRow(pdf *internal.PDF) {
 	<tbody hx-swap-oob="beforeend:.user-pdfs tbody">
-		@PDFTableRow(pdf)
+		@PDFTableRow(pdf, pdf.Game.Name)
 	</tbody>
 	if pdf.Owner != nil {
 		<tbody hx-swap-oob="beforeend:.game-pdfs tbody">
-			@PDFTableRow(pdf)
+			@PDFTableRow(pdf, pdf.Owner.Username)
 		</tbody>
 	}
 }
 
-templ PDFTableRow(pdf *internal.PDF) {
+templ PDFTableRow(pdf *internal.PDF, info string) {
 	<tr x-data data-pdf-id={ pdf.ID.String() }>
 		<td>
 			<button
@@ -29,11 +29,7 @@ templ PDFTableRow(pdf *internal.PDF) {
 				{ pdf.Name }
 			</button>
 		</td>
-		if pdf.Game != nil {
-			<td>{ pdf.Game.Name }</td>
-		} else {
-			<td>{ pdf.Owner.Username }</td>
-		}
+		<td>{ info }</td>
 		<td>
 			<button class="icon-btn" :hx-delete="`/play-materials/pdfs/${$root.dataset.pdfId}`">
 				<iconify-icon icon="material-symbols:delete"></iconify-icon>

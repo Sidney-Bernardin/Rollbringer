@@ -59,7 +59,7 @@ func PDFViewer(pdf *internal.PDF, pages []string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" x-data=\"pdfViewer($el.dataset.pdfId, $el.dataset.pdfSchema)\"><div class=\"update-pdf-info\"><input type=\"hidden\" name=\"OPERATION\" value=\"UPDATE_PDF_FIELD\"> <input type=\"hidden\" name=\"page_num\" :value=\"currentPage\"></div><form ws-send x-ref=\"subscribe_form\"><input type=\"hidden\" name=\"OPERATION\" value=\"SUB_TO_PDF\"> <input type=\"hidden\" name=\"pdf_id\" :value=\"$root.dataset.pdfId\"> <input type=\"hidden\" name=\"page_num\" :value=\"currentPage\"></form><div class=\"page-buttons\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" x-data=\"pdfViewer($el.dataset.pdfId, $el.dataset.pdfSchema)\"><div class=\"update-pdf-info\"><input type=\"hidden\" name=\"EVENT\" value=\"UPDATE_PDF_PAGE\"> <input type=\"hidden\" name=\"page_num\" :value=\"currentPage\"></div><form ws-send x-ref=\"subscribe_form\"><input type=\"hidden\" name=\"EVENT\" value=\"SUB_TO_PDF\"> <input type=\"hidden\" name=\"pdf_id\" :value=\"$root.dataset.pdfId\"> <input type=\"hidden\" name=\"page_num\" :value=\"currentPage\"></form><div class=\"page-buttons\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

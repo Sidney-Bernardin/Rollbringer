@@ -80,7 +80,7 @@ func (ps *PubSub) Close() {
 }
 
 func (ps *PubSub) Publish(ctx context.Context, subject string, data *internal.EventWrapper[any]) error {
-	bytes, err := json.Marshal(data)
+	payload, err := json.Marshal(data.Payload)
 	if err != nil {
 		return internal.NewProblemDetail(ctx, internal.PDOpts{
 			Type:   internal.PDTypeInvalidJSON,
@@ -88,7 +88,11 @@ func (ps *PubSub) Publish(ctx context.Context, subject string, data *internal.Ev
 		})
 	}
 
-	err = ps.natsConn.Publish(subject, bytes)
+	msg := nats.NewMsg(subject)
+	msg.Header.Add("event", string(data.Event))
+	msg.Data = payload
+
+	err = ps.natsConn.PublishMsg(msg)
 	return errors.Wrap(err, "cannot publish")
 }
 
@@ -144,7 +148,7 @@ func (ps *PubSub) Subscribe(ctx context.Context, subject string, cb func(*intern
 			return
 		}
 
-		resBytes, err := json.Marshal(res)
+		resBytes, err := json.Marshal(res.Payload)
 		if err != nil {
 			internal.HandleError(subscriptionCtx, ps.logger, errors.Wrap(err, "cannot JSON encode response"))
 			return

@@ -1,6 +1,6 @@
 [build]
 pre_cmd = ["templ generate -path ./internal/views"]
-cmd = "go build -tags=${GO_BUILD_TAGS} -o ./tmp/main ./cmd"
+cmd = 'go build -tags="$GO_BUILD_TAGS" -o ./tmp/main ./cmd'
 
 exclude_dir = ["Docker", "tmp", "web", "node_modules"]
 exclude_regex = [".*_templ.go"]

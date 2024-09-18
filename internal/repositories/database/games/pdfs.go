@@ -19,6 +19,8 @@ func pdfColumns(views map[string]internal.PDFView) (columns string) {
 	switch views["pdf"] {
 	case internal.PDFViewPDFAll:
 		columns += `pdfs.id, pdfs.owner_id, pdfs.game_id, pdfs.name, pdfs.schema`
+	default:
+		columns += `pdfs.id, pdfs.owner_id, pdfs.game_id, pdfs.name, pdfs.schema`
 	}
 
 	switch views["owner"] {

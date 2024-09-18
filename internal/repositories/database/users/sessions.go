@@ -17,6 +17,8 @@ func sessionColumns(views map[string]internal.SessionView) (columns string) {
 	switch views["session"] {
 	case internal.SessionViewSessionAll:
 		columns += `sessions.*`
+	default:
+		columns += `sessions.*`
 	}
 
 	return columns
@@ -31,7 +33,7 @@ func (db *usersSchema) SessionUpsert(ctx context.Context, session *internal.Sess
 			user_id = EXCLUDED.user_id,
 			csrf_token = EXCLUDED.csrf_token
 		RETURNING id`,
-		session.ID, session.UserID, session.CSRFToken,
+		uuid.New(), session.UserID, session.CSRFToken,
 	).Scan(&session.ID)
 
 	return errors.Wrap(err, "cannot insert session")

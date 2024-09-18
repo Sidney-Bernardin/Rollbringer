@@ -2,7 +2,7 @@ package pages
 
 import "rollbringer/internal"
 
-const CtxKey internal.CtxKey = "play_page"
+const CtxKeyPlayPage internal.CtxKey = "play_page"
 
 type PlayPage struct {
 	IsHost bool
