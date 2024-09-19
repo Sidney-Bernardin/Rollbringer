@@ -15,12 +15,13 @@ templ PDFViewer(pdf *internal.PDF, pages []string) {
 		x-data="pdfViewer($el.dataset.pdfId, $el.dataset.pdfSchema)"
 	>
 		<div class="update-pdf-info">
-			<input type="hidden" name="EVENT" value="UPDATE_PDF_PAGE"/>
+			<input type="hidden" name="EVENT" value="UPDATE_PDF_PAGE_REQUEST"/>
+			<input type="hidden" name="pdf_id" :value="$root.dataset.pdfId"/>
 			<input type="hidden" name="page_num" :value="currentPage"/>
 		</div>
 		//
 		<form ws-send x-ref="subscribe_form">
-			<input type="hidden" name="EVENT" value="SUB_TO_PDF"/>
+			<input type="hidden" name="EVENT" value="SUB_TO_PDF_REQUEST"/>
 			<input type="hidden" name="pdf_id" :value="$root.dataset.pdfId"/>
 			<input type="hidden" name="page_num" :value="currentPage"/>
 		</form>

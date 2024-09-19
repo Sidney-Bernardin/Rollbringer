@@ -20,17 +20,16 @@ func (h *handler) handleGameWebsocket(conn *websocket.Conn) {
 		ctx = r.Context()
 
 		gameID, _ = uuid.Parse(r.URL.Query().Get("g"))
-
-		pdfID             = uuid.Nil
 		pdfCtx, pdfCancel = context.WithCancel(context.Background())
-
 		resChan = make(chan any)
 	)
 
-	go func() {
-		err := h.svc.SubToGame(pdfCtx, gameID, resChan)
-		resChan <- errors.Wrap(err, "cannot subscribe to game")
-	}()
+	if gameID != uuid.Nil {
+		go func() {
+			err := h.svc.SubToGame(ctx, gameID, resChan)
+			resChan <- errors.Wrap(err, "cannot subscribe to game")
+		}()
+	}
 
 	go func() {
 		for {
@@ -84,17 +83,18 @@ func (h *handler) handleGameWebsocket(conn *websocket.Conn) {
 					continue
 				}
 
-				pdfID = payload.PDFID
 				pdfCtx, pdfCancel = context.WithCancel(instanceCtx)
 
 				go func() {
 					err := h.svc.SubToPDFPage(pdfCtx, payload.PDFID, payload.PageNum, resChan)
-					resChan <- errors.Wrap(err, "cannot subscribe to PDF page")
+					if errors.Cause(err) != context.Canceled {
+						resChan <- errors.Wrap(err, "cannot subscribe to PDF page")
+					}
 					pdfCancel()
 				}()
 
 				resChan <- &internal.PDFPage{
-					PDFID:   pdfID,
+					PDFID:   payload.PDFID,
 					PageNum: payload.PageNum,
 					Fields:  pageFields,
 				}

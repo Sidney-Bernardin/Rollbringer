@@ -28,7 +28,7 @@ type Service interface {
 	UpdatePDFPage(ctx context.Context, pdfID uuid.UUID, pageNum int, fieldName, fieldValue string) error
 	DeletePDF(ctx context.Context, session *internal.Session, pdfID uuid.UUID) error
 
-	CreateRoll(ctx context.Context, dice []int, modifier string) error
+	CreateRoll(ctx context.Context, dice []int, modifiers string) error
 }
 
 type service struct {
@@ -158,7 +158,7 @@ func (svc *service) GetPDFPage(ctx context.Context, pdfID uuid.UUID, pageNum int
 }
 
 func (svc *service) UpdatePDFPage(ctx context.Context, pdfID uuid.UUID, pageNum int, fieldName, fieldValue string) error {
-	err := svc.schema.PDFUpdatePage(ctx, pdfID, pageNum-1, fieldName, fieldValue)
+	err := svc.schema.PDFUpdatePage(ctx, pdfID, pageNum, fieldName, fieldValue)
 	return errors.Wrap(err, "cannot update PDF page")
 }
 
@@ -167,6 +167,6 @@ func (svc *service) DeletePDF(ctx context.Context, session *internal.Session, pd
 	return errors.Wrap(err, "cannot delete PDF")
 }
 
-func (svc *service) CreateRoll(ctx context.Context, dice []int, modifier string) error {
+func (svc *service) CreateRoll(ctx context.Context, diceTypes []int, modifiers string) error {
 	return nil
 }

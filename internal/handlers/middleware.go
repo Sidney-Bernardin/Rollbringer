@@ -50,7 +50,7 @@ func (h *BaseHandler) Authenticate(next http.Handler) http.Handler {
 
 		session, err := h.BaseService.Authenticate(ctx, sessionID, r.Header.Get("CSRF-Token"))
 		if err != nil {
-			if internal.IsDetailed(err, internal.PDTypeUnauthorized) {
+			if internal.IsDetailed(err, internal.PDTypeSessionNotFound) {
 				h.Err(w, r, internal.NewProblemDetail(ctx, internal.PDOpts{
 					Type: internal.PDTypeUnauthorized,
 				}))
@@ -84,7 +84,7 @@ func (h *BaseHandler) GetSession(next http.Handler) http.Handler {
 
 		session, err := h.BaseService.GetSession(ctx, sessionID, "session-all")
 		if err != nil {
-			if internal.IsDetailed(err, internal.PDTypeUnauthorized) {
+			if internal.IsDetailed(err, internal.PDTypeSessionNotFound) {
 				http.Redirect(w, r, "/users/login", http.StatusTemporaryRedirect)
 				return
 			}

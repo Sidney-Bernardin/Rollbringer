@@ -161,10 +161,25 @@ func (db *gamesSchema) PDFsGetByGame(ctx context.Context, gameID uuid.UUID, view
 	return ret, nil
 }
 
-func (db *gamesSchema) PDFUpdatePage(ctx context.Context, pdfID uuid.UUID, pageIdx int, fieldName, fieldValue string) error {
-	_, err := db.TX.ExecContext(ctx,
+func (db *gamesSchema) PDFUpdatePage(ctx context.Context, pdfID uuid.UUID, pageNum int, fieldName, fieldValue string) error {
+	result, err := db.TX.ExecContext(ctx,
 		`UPDATE games.pdfs SET pages[$1] = pages[$1] || hstore($2, $3) WHERE id = $4`,
-		pageIdx+1, fieldName, fieldValue, pdfID)
+		pageNum, fieldName, fieldValue, pdfID)
+
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "cannot check affected rows")
+	}
+
+	if affected <= 0 {
+		return internal.NewProblemDetail(ctx, internal.PDOpts{
+			Type:   internal.PDTypePDFNotFound,
+			Detail: "Can't find a PDF with the given pdf_id.",
+			Extra: map[string]any{
+				"pdf_id": pdfID,
+			},
+		})
+	}
 
 	return errors.Wrap(err, "cannot update PDF page")
 }

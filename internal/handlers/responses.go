@@ -34,7 +34,7 @@ var problemDetailStatusCodes = map[internal.PDType]int{
 
 func (h *BaseHandler) Err(w io.Writer, r *http.Request, err error) {
 	pd := internal.HandleError(r.Context(), h.Logger, err)
-	
+
 	var httpStatusCode int
 	if _, ok := w.(http.ResponseWriter); ok {
 		httpStatusCode = problemDetailStatusCodes[pd.Type]

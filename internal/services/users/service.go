@@ -116,7 +116,7 @@ func (svc *service) getUser(ctx context.Context, userID uuid.UUID, viewQuery str
 
 	if gamesView, ok := views["games"]; ok {
 		errs.Go(func() error {
-			err := svc.PubSub.Request(errsCtx, "games", &user.PDFs, &internal.EventWrapper[any]{
+			err := svc.PubSub.Request(errsCtx, "games", &user.HostedGames, &internal.EventWrapper[any]{
 				Event: internal.EventGetGamesByHostRequest,
 				Payload: &internal.GetGamesByHostRequest{
 					HostID:    userID,
@@ -127,7 +127,7 @@ func (svc *service) getUser(ctx context.Context, userID uuid.UUID, viewQuery str
 		})
 
 		errs.Go(func() error {
-			err := svc.PubSub.Request(errsCtx, "games", &user.PDFs, &internal.EventWrapper[any]{
+			err := svc.PubSub.Request(errsCtx, "games", &user.JoinedGames, &internal.EventWrapper[any]{
 				Event: internal.EventGetGamesByGuestRequest,
 				Payload: &internal.GetGamesByGuestRequest{
 					GuestID:   userID,

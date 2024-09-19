@@ -23,7 +23,7 @@ templ PDFTableRow(pdf *internal.PDF, asGameRow bool) {
 			<button
 				class="underline-btn"
 				@click="$dispatch('show-pdf-tab-container', { tabID: $root.dataset.pdfId })"
-				:hx-get="`/play-materials/pdfs/${$root.dataset.pdfId}`"
+				:hx-get="`/games/pdfs/${$root.dataset.pdfId}`"
 				hx-swap="none"
 			>
 				{ pdf.Name }
@@ -37,7 +37,7 @@ templ PDFTableRow(pdf *internal.PDF, asGameRow bool) {
 			}
 		</td>
 		<td>
-			<button class="icon-btn" :hx-delete="`/play-materials/pdfs/${$root.dataset.pdfId}`">
+			<button class="icon-btn" :hx-delete="`/games/pdfs/${$root.dataset.pdfId}`">
 				<iconify-icon icon="material-symbols:delete"></iconify-icon>
 			</button>
 			<button class="icon-btn">

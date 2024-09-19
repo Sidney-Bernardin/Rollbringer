@@ -107,7 +107,7 @@ func NavBar() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form hx-post=\"/games\" hx-target=\".games-modal tbody\" hx-swap=\"beforeend\"><label for=\"name\">Name: <input type=\"text\" name=\"name\"></label><input type=\"submit\" value=\"Create\"></form>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form hx-post=\"/games/games\" hx-target=\".games-modal tbody\" hx-swap=\"beforeend\"><label for=\"name\">Name: <input type=\"text\" name=\"name\"></label><input type=\"submit\" value=\"Create\"></form>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -143,7 +143,7 @@ func rollCalculator() templ.Component {
 			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form class=\"roll-calculator\" x-data=\"{ selectedDice: &#39;&#39; }\" ws-send><input type=\"hidden\" name=\"OPERATION\" value=\"CREATE_ROLL\"><button class=\"submit-btn icon-btn\"><iconify-icon icon=\"fa6-solid:dice-d20\"></iconify-icon></button><div class=\"expander\"><div class=\"inner\"><select @change=\"selectedDice+=$el.value; $el.value=&#39;&#39;\"><option value=\"\">Select Dice</option> <option value=\"d4\">D4</option> <option value=\"d6\">D6</option> <option value=\"d8\">D8</option> <option value=\"d10\">d10</option> <option value=\"d12\">d12</option> <option value=\"d20\">d20</option></select><div class=\"dice-preview\"><template x-for=\"die in selectedDice.split(&#39;d&#39;)\"><button class=\"icon-btn\" @click.prevent=\"$el.remove()\"><iconify-icon :icon=\"`mdi:dice-d${die}`\"></iconify-icon></button></template></div><input type=\"hidden\" name=\"dice\" :value=\"selectedDice\"> <input type=\"text\" name=\"modifier\" placeholder=\"Modifier\"></div></div></form>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form class=\"roll-calculator\" x-data=\"{ selectedDiceTypes: [] }\" :hx-vals=\"`{\n            &#34;EVENT&#34;: &#34;CREATE_ROLL_REQUEST&#34;,\n            &#34;dice_types&#34;: [${selectedDiceTypes}]\n        }`\" ws-send><button class=\"submit-btn icon-btn\"><iconify-icon icon=\"fa6-solid:dice-d20\"></iconify-icon></button><div class=\"expander\"><div class=\"inner\"><select @change=\"selectedDiceTypes.push(Number($el.value)); $el.value=&#39;&#39;\"><option value=\"\">Select Dice</option> <option value=\"4\">D4</option> <option value=\"6\">D6</option> <option value=\"8\">D8</option> <option value=\"10\">d10</option> <option value=\"12\">d12</option> <option value=\"20\">d20</option></select><div class=\"dice-preview\"><template x-for=\"dieType in selectedDiceTypes\"><button class=\"icon-btn\" @click.prevent=\"$el.remove()\"><iconify-icon :icon=\"`mdi:dice-d${dieType}`\"></iconify-icon></button></template></div><input type=\"text\" name=\"modifier\" placeholder=\"Modifier\"></div></div></form>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -217,7 +217,7 @@ func Roll(roll *internal.Roll) templ.Component {
 			var templ_7745c5c3_Var7 string
 			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(S(result))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/nav-bar.templ`, Line: 101, Col: 17}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/nav-bar.templ`, Line: 106, Col: 17}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
@@ -261,20 +261,20 @@ func HostedGameRow(game *internal.Game) templ.Component {
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(game.ID.String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/nav-bar.templ`, Line: 107, Col: 43}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/nav-bar.templ`, Line: 112, Col: 43}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><td><button class=\"underline-btn\" @click=\"window.location.href = `/play?g=${$root.dataset.gameId}`\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><td><button class=\"underline-btn\" @click=\"window.location.href = `/pages?g=${$root.dataset.gameId}`\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var10 string
 		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(game.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/nav-bar.templ`, Line: 110, Col: 15}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/nav-bar.templ`, Line: 115, Col: 15}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 		if templ_7745c5c3_Err != nil {
@@ -287,13 +287,13 @@ func HostedGameRow(game *internal.Game) templ.Component {
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(S(len(game.Guests)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/nav-bar.templ`, Line: 113, Col: 27}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/nav-bar.templ`, Line: 118, Col: 27}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" players</td><td><button class=\"icon-btn\" :hx-delete=\"`/games/${$root.dataset.gameId}`\" hx-target=\"closest tr\" hx-swap=\"outerHTML\"><iconify-icon icon=\"material-symbols:delete\"></iconify-icon></button> <button class=\"icon-btn\"><iconify-icon icon=\"material-symbols:edit\"></iconify-icon></button></td></tr>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" players</td><td><button class=\"icon-btn\" :hx-delete=\"`/games/games/${$root.dataset.gameId}`\" hx-target=\"closest tr\" hx-swap=\"outerHTML\"><iconify-icon icon=\"material-symbols:delete\"></iconify-icon></button> <button class=\"icon-btn\"><iconify-icon icon=\"material-symbols:edit\"></iconify-icon></button></td></tr>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -326,7 +326,7 @@ func JoinedGameRow(game *internal.Game) templ.Component {
 		var templ_7745c5c3_Var13 string
 		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(game.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/nav-bar.templ`, Line: 135, Col: 16}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/nav-bar.templ`, Line: 140, Col: 16}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
@@ -339,7 +339,7 @@ func JoinedGameRow(game *internal.Game) templ.Component {
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(S(len(game.Guests)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/nav-bar.templ`, Line: 139, Col: 27}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/nav-bar.templ`, Line: 144, Col: 27}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {

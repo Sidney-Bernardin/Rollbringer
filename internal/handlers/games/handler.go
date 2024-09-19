@@ -42,7 +42,7 @@ func NewHandler(cfg *config.Config, logger *slog.Logger, svc service.Service) ht
 	authRouter.Delete("/games/{game_id}", h.handleDeleteGame)
 
 	authRouter.Post("/pdfs", h.handleCreatePDF)
-	authRouter.Get("/pdfs", h.handleGetPDF)
+	authRouter.Get("/pdfs/{pdf_id}", h.handleGetPDF)
 	authRouter.Delete("/pdfs/{pdf_id}", h.handleDeletePDF)
 
 	return h
@@ -77,7 +77,7 @@ func (h *handler) handleDeleteGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h *handler) handleCreatePDF(w http.ResponseWriter, r *http.Request) {
@@ -128,5 +128,5 @@ func (h *handler) handleDeletePDF(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	w.WriteHeader(http.StatusOK)
 }

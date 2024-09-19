@@ -59,7 +59,7 @@ func PDFViewer(pdf *internal.PDF, pages []string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" x-data=\"pdfViewer($el.dataset.pdfId, $el.dataset.pdfSchema)\"><div class=\"update-pdf-info\"><input type=\"hidden\" name=\"EVENT\" value=\"UPDATE_PDF_PAGE\"> <input type=\"hidden\" name=\"page_num\" :value=\"currentPage\"></div><form ws-send x-ref=\"subscribe_form\"><input type=\"hidden\" name=\"EVENT\" value=\"SUB_TO_PDF\"> <input type=\"hidden\" name=\"pdf_id\" :value=\"$root.dataset.pdfId\"> <input type=\"hidden\" name=\"page_num\" :value=\"currentPage\"></form><div class=\"page-buttons\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" x-data=\"pdfViewer($el.dataset.pdfId, $el.dataset.pdfSchema)\"><div class=\"update-pdf-info\"><input type=\"hidden\" name=\"EVENT\" value=\"UPDATE_PDF_PAGE_REQUEST\"> <input type=\"hidden\" name=\"pdf_id\" :value=\"$root.dataset.pdfId\"> <input type=\"hidden\" name=\"page_num\" :value=\"currentPage\"></div><form ws-send x-ref=\"subscribe_form\"><input type=\"hidden\" name=\"EVENT\" value=\"SUB_TO_PDF_REQUEST\"> <input type=\"hidden\" name=\"pdf_id\" :value=\"$root.dataset.pdfId\"> <input type=\"hidden\" name=\"page_num\" :value=\"currentPage\"></form><div class=\"page-buttons\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -71,7 +71,7 @@ func PDFViewer(pdf *internal.PDF, pages []string) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(i + 1))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pdf-viewer.templ`, Line: 32, Col: 38}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pdf-viewer.templ`, Line: 33, Col: 38}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -84,7 +84,7 @@ func PDFViewer(pdf *internal.PDF, pages []string) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(page)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pdf-viewer.templ`, Line: 35, Col: 11}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pdf-viewer.templ`, Line: 36, Col: 11}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -156,7 +156,7 @@ func pdfViewerField(pdfID uuid.UUID, name, value string) templ.Component {
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(F("outerHTML:.pdf-viewer[data-pdf-id='%s'] #%s", pdfID, name))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pdf-viewer.templ`, Line: 53, Col: 81}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pdf-viewer.templ`, Line: 54, Col: 81}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -174,7 +174,7 @@ func pdfViewerField(pdfID uuid.UUID, name, value string) templ.Component {
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pdf-viewer.templ`, Line: 56, Col: 13}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pdf-viewer.templ`, Line: 57, Col: 13}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -187,7 +187,7 @@ func pdfViewerField(pdfID uuid.UUID, name, value string) templ.Component {
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(value)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pdf-viewer.templ`, Line: 58, Col: 17}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pdf-viewer.templ`, Line: 59, Col: 17}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -200,7 +200,7 @@ func pdfViewerField(pdfID uuid.UUID, name, value string) templ.Component {
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(value)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pdf-viewer.templ`, Line: 62, Col: 11}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pdf-viewer.templ`, Line: 63, Col: 11}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
@@ -218,7 +218,7 @@ func pdfViewerField(pdfID uuid.UUID, name, value string) templ.Component {
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(fieldType)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pdf-viewer.templ`, Line: 66, Col: 20}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pdf-viewer.templ`, Line: 67, Col: 20}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
@@ -231,7 +231,7 @@ func pdfViewerField(pdfID uuid.UUID, name, value string) templ.Component {
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pdf-viewer.templ`, Line: 67, Col: 13}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pdf-viewer.templ`, Line: 68, Col: 13}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
@@ -244,7 +244,7 @@ func pdfViewerField(pdfID uuid.UUID, name, value string) templ.Component {
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(value)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pdf-viewer.templ`, Line: 69, Col: 17}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pdf-viewer.templ`, Line: 70, Col: 17}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
