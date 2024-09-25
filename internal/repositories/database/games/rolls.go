@@ -23,7 +23,7 @@ func (db *gamesSchema) RollInsert(ctx context.Context, roll *internal.Roll) erro
 	return errors.Wrap(err, "cannot insert roll")
 }
 
-func (db *gamesSchema) RollsGetForGame(ctx context.Context, gameID uuid.UUID) ([]*internal.Roll, error) {
+func (db *gamesSchema) RollsGetByGame(ctx context.Context, gameID uuid.UUID) ([]*internal.Roll, error) {
 
 	var rolls []*database.Roll
 	err := sqlx.SelectContext(ctx, db.TX, &rolls,

@@ -98,17 +98,16 @@ func (db *gamesSchema) GamesGetByHost(ctx context.Context, hostID uuid.UUID, vie
 	return ret, nil
 }
 
-func (db *gamesSchema) GamesGetByGuest(ctx context.Context, guestID uuid.UUID, views map[string]internal.GameView) ([]*internal.Game, error) {
-
-	var games []*database.Game
+func (db *gamesSchema) GamesGetByUser(ctx context.Context, userID uuid.UUID, views map[string]internal.GameView) ([]*internal.Game, error) {
 	query := fmt.Sprintf(
 		`SELECT %s FROM games.games %s
 		WHERE EXISTS (
-			SELECT * FROM game_guests WHERE game_guests.guest_id = $1 AND game_guests.game_id = games.id
+			SELECT * FROM game_users WHERE game_users.user_id = $1 AND game_users.game_id = games.id
 		)`,
 		gameColumns(views), gameJoins(views))
 
-	if err := sqlx.SelectContext(ctx, db.TX, &games, query, guestID); err != nil {
+	var games []*database.Game
+	if err := sqlx.SelectContext(ctx, db.TX, &games, query, userID); err != nil {
 		return nil, errors.Wrap(err, "cannot select games")
 	}
 

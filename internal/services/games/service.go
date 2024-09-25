@@ -2,6 +2,7 @@ package games
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"math/rand"
 	"time"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"golang.org/x/sync/errgroup"
 )
 
 type Service interface {
@@ -28,7 +30,7 @@ type Service interface {
 	UpdatePDFPage(ctx context.Context, pdfID uuid.UUID, pageNum int, fieldName, fieldValue string) error
 	DeletePDF(ctx context.Context, session *internal.Session, pdfID uuid.UUID) error
 
-	CreateRoll(ctx context.Context, dice []int, modifiers string) error
+	CreateRoll(ctx context.Context, session *internal.Session, gameID uuid.UUID, dice []int, modifiers string) error
 }
 
 type service struct {
@@ -81,33 +83,73 @@ func (svc *service) CreateGame(ctx context.Context, session *internal.Session, g
 }
 
 func (svc *service) getGame(ctx context.Context, gameID uuid.UUID, viewQuery string) (*internal.Game, error) {
-	parsedViews, err := internal.ParseViewQuery[internal.GameView](ctx, viewQuery)
+	views, err := internal.ParseViewQuery[internal.GameView](ctx, viewQuery)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot parse game view query")
 	}
 
-	game, err := svc.schema.GameGet(ctx, gameID, parsedViews)
-	return game, errors.Wrap(err, "cannot get game")
+	game, err := svc.schema.GameGet(ctx, gameID, views)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot get game")
+	}
+
+	errs, errsCtx := errgroup.WithContext(ctx)
+
+	if usersView, ok := views["users"]; ok {
+		errs.Go(func() error {
+			err := svc.PubSub.Request(errsCtx, "users", &game.Users, &internal.EventWrapper[any]{
+				Event: internal.EventGetUsersByGameRequest,
+				Payload: internal.GetUsersByGameRequest{
+					GameID:    gameID,
+					ViewQuery: fmt.Sprintf("users-%s", usersView),
+				},
+			})
+			fmt.Println("done game users")
+			return errors.Wrap(err, "cannot get users by game")
+		})
+	}
+
+	if pdfsView, ok := views["pdfs"]; ok {
+		errs.Go(func() (err error) {
+			game.PDFs, err = svc.schema.PDFsGetByGame(errsCtx, gameID, map[string]internal.PDFView{"pdfs": internal.PDFView(pdfsView)})
+			fmt.Println("done game pdfs")
+			return errors.Wrap(err, "cannot get PDFs by game")
+		})
+	}
+
+	if _, ok := views["rolls"]; ok {
+		errs.Go(func() (err error) {
+			game.Rolls, err = svc.schema.RollsGetByGame(errsCtx, gameID)
+			fmt.Println("done game rolls")
+			return errors.Wrap(err, "cannot get rolls by game")
+		})
+	}
+
+	if err := errs.Wait(); err != nil {
+		return nil, err
+	}
+
+	return game, nil
 }
 
 func (svc *service) getGamesByHost(ctx context.Context, hostID uuid.UUID, viewQuery string) ([]*internal.Game, error) {
-	parsedViews, err := internal.ParseViewQuery[internal.GameView](ctx, viewQuery)
+	views, err := internal.ParseViewQuery[internal.GameView](ctx, viewQuery)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot parse game view query")
 	}
 
-	games, err := svc.schema.GamesGetByHost(ctx, hostID, parsedViews)
+	games, err := svc.schema.GamesGetByHost(ctx, hostID, views)
 	return games, errors.Wrap(err, "cannot get games by host")
 }
 
-func (svc *service) getGamesByGuest(ctx context.Context, guestID uuid.UUID, viewQuery string) ([]*internal.Game, error) {
-	parsedViews, err := internal.ParseViewQuery[internal.GameView](ctx, viewQuery)
+func (svc *service) getGamesByUser(ctx context.Context, userID uuid.UUID, viewQuery string) ([]*internal.Game, error) {
+	views, err := internal.ParseViewQuery[internal.GameView](ctx, viewQuery)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot parse game view query")
 	}
 
-	games, err := svc.schema.GamesGetByGuest(ctx, guestID, parsedViews)
-	return games, errors.Wrap(err, "cannot get games by guest")
+	games, err := svc.schema.GamesGetByUser(ctx, userID, views)
+	return games, errors.Wrap(err, "cannot get games by user")
 }
 
 func (svc *service) DeleteGame(ctx context.Context, session *internal.Session, gameID uuid.UUID) error {
@@ -153,7 +195,7 @@ func (svc *service) getPDFsByOwner(ctx context.Context, ownerID uuid.UUID, viewQ
 }
 
 func (svc *service) GetPDFPage(ctx context.Context, pdfID uuid.UUID, pageNum int) (map[string]string, error) {
-	pageFields, err := svc.schema.PDFGetPage(ctx, pdfID, pageNum-1)
+	pageFields, err := svc.schema.PDFGetPage(ctx, pdfID, pageNum)
 	return pageFields, errors.Wrap(err, "cannot get PDF page")
 }
 
@@ -167,6 +209,21 @@ func (svc *service) DeletePDF(ctx context.Context, session *internal.Session, pd
 	return errors.Wrap(err, "cannot delete PDF")
 }
 
-func (svc *service) CreateRoll(ctx context.Context, diceTypes []int, modifiers string) error {
-	return nil
+func (svc *service) CreateRoll(ctx context.Context, session *internal.Session, gameID uuid.UUID, diceTypes []int, modifiers string) error {
+	roll := &internal.Roll{
+		OwnerID:     session.UserID,
+		GameID:      gameID,
+		DiceTypes:   []int32{},
+		DiceResults: []int32{},
+		Modifiers:   modifiers,
+	}
+
+	for _, dType := range diceTypes {
+		dType32 := int32(dType)
+		roll.DiceTypes = append(roll.DiceTypes, dType32)
+		roll.DiceResults = append(roll.DiceResults, svc.random.Int31n(dType32)+1)
+	}
+
+	err := svc.schema.RollInsert(ctx, roll)
+	return errors.Wrap(err, "cannot insert roll")
 }

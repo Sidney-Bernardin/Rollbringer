@@ -41,12 +41,12 @@ func (svc *service) Shutdown() error {
 func (svc *service) PlayPage(ctx context.Context, session *internal.Session, gameID uuid.UUID) (*PlayPage, error) {
 
 	var (
-		page = &PlayPage{}
-		errs = &errgroup.Group{}
+		page          = &PlayPage{}
+		errs, errsCtx = errgroup.WithContext(ctx)
 	)
 
 	errs.Go(func() error {
-		err := svc.PubSub.Request(ctx, "users", &page.User, &internal.EventWrapper[any]{
+		err := svc.PubSub.Request(errsCtx, "users", &page.User, &internal.EventWrapper[any]{
 			Event: internal.EventGetUserRequest,
 			Payload: &internal.GetUserRequest{
 				UserID:    session.UserID,
@@ -58,16 +58,20 @@ func (svc *service) PlayPage(ctx context.Context, session *internal.Session, gam
 
 	if gameID != uuid.Nil {
 		errs.Go(func() error {
-			err := svc.PubSub.Request(ctx, "games", &page.Game, &internal.EventWrapper[any]{
+			err := svc.PubSub.Request(errsCtx, "games", &page.Game, &internal.EventWrapper[any]{
 				Event: internal.EventGetGameRequest,
 				Payload: &internal.GetGameRequest{
 					GameID:    gameID,
-					ViewQuery: "game-all",
+					ViewQuery: "game-all,users-all,pdfs-all,rolls-all",
 				},
 			})
 
+			if err != nil {
+				return errors.Wrap(err, "cannot get game")
+			}
+
 			page.IsHost = page.Game.HostID == session.UserID
-			return errors.Wrap(err, "cannot get game")
+			return nil
 		})
 	}
 

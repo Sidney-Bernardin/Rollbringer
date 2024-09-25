@@ -19,9 +19,11 @@ func (h *handler) handleGameWebsocket(conn *websocket.Conn) {
 		r   = conn.Request()
 		ctx = r.Context()
 
-		gameID, _ = uuid.Parse(r.URL.Query().Get("g"))
+		session, _ = ctx.Value(internal.CtxKeySession).(*internal.Session)
+		gameID, _  = uuid.Parse(r.URL.Query().Get("g"))
+
 		pdfCtx, pdfCancel = context.WithCancel(context.Background())
-		resChan = make(chan any)
+		resChan           = make(chan any)
 	)
 
 	if gameID != uuid.Nil {
@@ -105,7 +107,11 @@ func (h *handler) handleGameWebsocket(conn *websocket.Conn) {
 				}
 
 			case *internal.CreateRollRequest:
-				if err := h.svc.CreateRoll(ctx, payload.DiceTypes, payload.Modifiers); err != nil {
+				if gameID != uuid.Nil {
+					continue
+				}
+
+				if err := h.svc.CreateRoll(ctx, session, gameID, payload.DiceTypes, payload.Modifiers); err != nil {
 					resChan <- errors.Wrap(err, "cannot create roll")
 				}
 			}

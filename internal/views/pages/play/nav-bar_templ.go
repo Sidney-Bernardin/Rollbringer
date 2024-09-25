@@ -285,9 +285,9 @@ func HostedGameRow(game *internal.Game) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var11 string
-		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(S(len(game.Guests)))
+		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(S(len(game.Users)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/nav-bar.templ`, Line: 118, Col: 27}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/nav-bar.templ`, Line: 118, Col: 26}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
@@ -337,9 +337,9 @@ func JoinedGameRow(game *internal.Game) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var14 string
-		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(S(len(game.Guests)))
+		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(S(len(game.Users)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/nav-bar.templ`, Line: 144, Col: 27}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/nav-bar.templ`, Line: 144, Col: 26}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {

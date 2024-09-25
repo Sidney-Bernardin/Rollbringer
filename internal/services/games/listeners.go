@@ -35,8 +35,8 @@ func (svc *service) subToGames(ctx context.Context) error {
 			payload = &internal.GetGameRequest{}
 		case internal.EventGetGamesByHostRequest:
 			payload = &internal.GetGamesByHostRequest{}
-		case internal.EventGetGamesByGuestRequest:
-			payload = &internal.GetGamesByGuestRequest{}
+		case internal.EventGetGamesByUserRequest:
+			payload = &internal.GetGamesByUserRequest{}
 		default:
 			return &internal.EventWrapper[any]{
 				Event: internal.EventError,
@@ -91,8 +91,8 @@ func (svc *service) subToGames(ctx context.Context) error {
 				Payload: games,
 			}
 
-		case *internal.GetGamesByGuestRequest:
-			games, err := svc.getGamesByGuest(instanceCtx, payload.GuestID, payload.ViewQuery)
+		case *internal.GetGamesByUserRequest:
+			games, err := svc.getGamesByUser(instanceCtx, payload.UserID, payload.ViewQuery)
 			if err != nil {
 				return &internal.EventWrapper[any]{
 					Event:   internal.EventError,

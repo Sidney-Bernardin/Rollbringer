@@ -42,7 +42,8 @@ type UserView string
 const (
 	UserViewUserAll UserView = "all"
 
-	EventUser Event = "USER"
+	EventUser  Event = "USER"
+	EventUsers Event = "USERS"
 )
 
 type User struct {
@@ -62,6 +63,15 @@ const EventGetUserRequest Event = "GET_USER_REQUEST"
 
 type GetUserRequest struct {
 	UserID    uuid.UUID `json:"user_id,omitempty"`
+	ViewQuery string    `json:"view_query,omitempty"`
+}
+
+// =====
+
+const EventGetUsersByGameRequest Event = "GET_USERS_BY_GAME_REQUEST"
+
+type GetUsersByGameRequest struct {
+	GameID    uuid.UUID `json:"game_id,omitempty"`
 	ViewQuery string    `json:"view_query,omitempty"`
 }
 
@@ -121,9 +131,9 @@ type Game struct {
 
 	Name string `json:"name,omitempty"`
 
-	Guests []*User `json:"guests,omitempty"`
-	PDFs   []*PDF  `json:"pdfs,omitempty"`
-	Rolls  []*Roll `json:"rolls,omitempty"`
+	Users []*User `json:"users,omitempty"`
+	PDFs  []*PDF  `json:"pdfs,omitempty"`
+	Rolls []*Roll `json:"rolls,omitempty"`
 }
 
 // =====
@@ -146,10 +156,10 @@ type GetGamesByHostRequest struct {
 
 // =====
 
-const EventGetGamesByGuestRequest Event = "GET_GAMES_BY_GUEST_REQUEST"
+const EventGetGamesByUserRequest Event = "GET_GAMES_BY_USER_REQUEST"
 
-type GetGamesByGuestRequest struct {
-	GuestID   uuid.UUID `json:"guest_id,omitempty"`
+type GetGamesByUserRequest struct {
+	UserID    uuid.UUID `json:"user_id,omitempty"`
 	ViewQuery string    `json:"view_query,omitempty"`
 }
 

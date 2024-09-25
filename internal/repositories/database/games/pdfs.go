@@ -96,12 +96,12 @@ func (db *gamesSchema) PDFGet(ctx context.Context, pdfID uuid.UUID, view map[str
 	return pdf.Internalized(), nil
 }
 
-func (db *gamesSchema) PDFGetPage(ctx context.Context, pdfID uuid.UUID, pageIdx int) (map[string]string, error) {
+func (db *gamesSchema) PDFGetPage(ctx context.Context, pdfID uuid.UUID, pageNum int) (map[string]string, error) {
 
 	var page hstore.Hstore
 	err := db.TX.QueryRowxContext(ctx,
 		`SELECT pages[$1] FROM games.pdfs WHERE id = $2`,
-		pageIdx+1, pdfID,
+		pageNum, pdfID,
 	).Scan(&page)
 
 	if err != nil {

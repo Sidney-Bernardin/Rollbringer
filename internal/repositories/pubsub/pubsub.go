@@ -135,43 +135,45 @@ func (ps *PubSub) Request(ctx context.Context, subject string, res any, req *int
 }
 
 func (ps *PubSub) Subscribe(ctx context.Context, subject string, cb func(*internal.EventWrapper[[]byte]) *internal.EventWrapper[any]) error {
-	subscriptionCtx, cancel := context.WithCancel(ctx)
-	defer cancel()
 
-	sub, err := ps.natsConn.Subscribe(subject, func(reqMsg *nats.Msg) {
-		res := cb(&internal.EventWrapper[[]byte]{
-			Event:   internal.Event(reqMsg.Header.Get("event")),
-			Payload: reqMsg.Data,
-		})
-
-		if res == nil {
-			return
-		}
-
-		resBytes, err := json.Marshal(res.Payload)
-		if err != nil {
-			internal.HandleError(subscriptionCtx, ps.logger, errors.Wrap(err, "cannot JSON encode response"))
-			return
-		}
-
-		resMsg := nats.NewMsg("")
-		resMsg.Header.Add("event", string(res.Event))
-		resMsg.Data = resBytes
-
-		if err := reqMsg.RespondMsg(resMsg); err != nil {
-			internal.HandleError(subscriptionCtx, ps.logger, errors.Wrap(err, "cannot respond"))
-		}
-	})
-
+	var subChan = make(chan *nats.Msg, 1)
+	sub, err := ps.natsConn.ChanSubscribe(subject, subChan)
 	if err != nil {
 		return errors.Wrap(err, "cannot subscribe")
 	}
-
 	defer sub.Unsubscribe()
-	sub.SetClosedHandler(func(subject string) {
-		cancel()
-	})
 
-	<-subscriptionCtx.Done()
-	return subscriptionCtx.Err()
+	for {
+		select {
+		case <-ctx.Done():
+			return errors.Wrap(ctx.Err(), "context is done")
+
+		case reqMsg := <-subChan:
+			fmt.Println(reqMsg.Header.Get("event"))
+			go func() {
+				res := cb(&internal.EventWrapper[[]byte]{
+					Event:   internal.Event(reqMsg.Header.Get("event")),
+					Payload: reqMsg.Data,
+				})
+
+				if res == nil {
+					return
+				}
+
+				resBytes, err := json.Marshal(res.Payload)
+				if err != nil {
+					internal.HandleError(ctx, ps.logger, errors.Wrap(err, "cannot JSON encode response"))
+					return
+				}
+
+				resMsg := nats.NewMsg(reqMsg.Reply)
+				resMsg.Header.Add("event", string(res.Event))
+				resMsg.Data = resBytes
+
+				if err := reqMsg.RespondMsg(resMsg); err != nil {
+					internal.HandleError(ctx, ps.logger, errors.Wrap(err, "cannot respond"))
+				}
+			}()
+		}
+	}
 }

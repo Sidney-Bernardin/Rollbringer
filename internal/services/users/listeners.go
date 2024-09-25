@@ -31,6 +31,8 @@ func (svc *service) subToUsers(ctx context.Context) error {
 		switch req.Event {
 		case internal.EventGetUserRequest:
 			payload = &internal.GetUserRequest{}
+		case internal.EventGetUsersByGameRequest:
+			payload = &internal.GetUsersByGameRequest{}
 		case internal.EventAuthenticateUserRequest:
 			payload = &internal.AuthenticateUserRequest{}
 		default:
@@ -71,6 +73,20 @@ func (svc *service) subToUsers(ctx context.Context) error {
 			return &internal.EventWrapper[any]{
 				Event:   internal.EventUser,
 				Payload: user,
+			}
+
+		case *internal.GetUsersByGameRequest:
+			users, err := svc.getUsersByGame(instanceCtx, payload.GameID, payload.ViewQuery)
+			if err != nil {
+				return &internal.EventWrapper[any]{
+					Event:   internal.EventError,
+					Payload: internal.HandleError(instanceCtx, svc.Logger, errors.Wrap(err, "cannot get users by game")),
+				}
+			}
+
+			return &internal.EventWrapper[any]{
+				Event:   internal.EventUsers,
+				Payload: users,
 			}
 
 		case *internal.AuthenticateUserRequest:

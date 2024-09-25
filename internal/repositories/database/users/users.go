@@ -14,7 +14,12 @@ import (
 )
 
 func userColumns(views map[string]internal.UserView) (columns string) {
-	switch views["user"] {
+	userView, ok := views["user"]
+	if !ok {
+		userView = views["users"]
+	}
+
+	switch userView {
 	case internal.UserViewUserAll:
 		columns += `users.*`
 	default:
@@ -56,4 +61,27 @@ func (db *usersSchema) UserGet(ctx context.Context, userID uuid.UUID, views map[
 	}
 
 	return user.Internalized(), nil
+}
+
+func (db *usersSchema) UsersGetByGame(ctx context.Context, gameID uuid.UUID, views map[string]internal.UserView) ([]*internal.User, error) {
+	query := fmt.Sprintf(
+		`SELECT %s FROM users.users
+		WHERE EXISTS (
+			SELECT * FROM game_users WHERE game_users.game_id = $1 AND game_users.user_id = users.id
+		)`,
+		userColumns(views),
+	)
+
+	var users []*database.User
+	if err := sqlx.SelectContext(ctx, db.TX, &users, query, gameID); err != nil {
+		return nil, errors.Wrap(err, "cannot select users")
+	}
+
+	// Internalize each user.
+	ret := make([]*internal.User, len(users))
+	for i, m := range users {
+		ret[i] = m.Internalized()
+	}
+
+	return ret, nil
 }

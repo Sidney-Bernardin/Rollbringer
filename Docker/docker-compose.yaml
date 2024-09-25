@@ -1,23 +1,11 @@
 version: "3.7"
 
 services:
-  app:
-    container_name: app
-    build:
-      context: ../
-      dockerfile: Docker/app.dockerfile
-    environment:
-      APP_PORT: "3000"
-      APP_USERS_GOOGLE_CLIENT_ID: ${APP_USERS_GOOGLE_CLIENT_ID}
-      APP_USERS_GOOGLE_CLIENT_SECRET: ${APP_USERS_GOOGLE_CLIENT_SECRET}
-      APP_USERS_REDIRECT_URL: ${APP_USERS_REDIRECT_URL}
-      APP_USERS_SESSION_TIMEOUT: "15min"
-      APP_NATS_EMBEDDED_SERVER_STARTUP_TIMEOUT: "5sec"
-      APP_POSTGRES_ADDRESS: "postgresql://postgres:abc123@database:5432?sslmode=disable"
+  pubsub:
+    container_name: pubsub
+    image: nats
     ports:
-      - 3000:3000
-    depends_on:
-      - database
+      - 4222:4222
 
   database:
     container_name: database

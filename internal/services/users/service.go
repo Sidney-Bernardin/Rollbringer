@@ -105,11 +105,12 @@ func (svc *service) getUser(ctx context.Context, userID uuid.UUID, viewQuery str
 		errs.Go(func() error {
 			err := svc.PubSub.Request(errsCtx, "pdfs", &user.PDFs, &internal.EventWrapper[any]{
 				Event: internal.EventGetPDFsByOwnerRequest,
-				Payload: &internal.GetPDFsByOwnerRequest{
+				Payload: internal.GetPDFsByOwnerRequest{
 					OwnerID:   userID,
 					ViewQuery: fmt.Sprintf("pdfs-%s", pdfsView),
 				},
 			})
+			fmt.Println("done user pdfs")
 			return errors.Wrap(err, "cannot get PDFs by owner")
 		})
 	}
@@ -118,23 +119,25 @@ func (svc *service) getUser(ctx context.Context, userID uuid.UUID, viewQuery str
 		errs.Go(func() error {
 			err := svc.PubSub.Request(errsCtx, "games", &user.HostedGames, &internal.EventWrapper[any]{
 				Event: internal.EventGetGamesByHostRequest,
-				Payload: &internal.GetGamesByHostRequest{
+				Payload: internal.GetGamesByHostRequest{
 					HostID:    userID,
 					ViewQuery: fmt.Sprintf("games-%s", gamesView),
 				},
 			})
+			fmt.Println("done user hostedgames")
 			return errors.Wrap(err, "cannot get games by host")
 		})
 
 		errs.Go(func() error {
 			err := svc.PubSub.Request(errsCtx, "games", &user.JoinedGames, &internal.EventWrapper[any]{
-				Event: internal.EventGetGamesByGuestRequest,
-				Payload: &internal.GetGamesByGuestRequest{
-					GuestID:   userID,
+				Event: internal.EventGetGamesByUserRequest,
+				Payload: internal.GetGamesByUserRequest{
+					UserID:    userID,
 					ViewQuery: fmt.Sprintf("games-%s", gamesView),
 				},
 			})
-			return errors.Wrap(err, "cannot get games by guest")
+			fmt.Println("done user joinedgames")
+			return errors.Wrap(err, "cannot get games by user")
 		})
 	}
 
@@ -145,10 +148,20 @@ func (svc *service) getUser(ctx context.Context, userID uuid.UUID, viewQuery str
 	return user, nil
 }
 
+func (svc *service) getUsersByGame(ctx context.Context, gameID uuid.UUID, viewQuery string) ([]*internal.User, error) {
+	views, err := internal.ParseViewQuery[internal.UserView](ctx, viewQuery)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot parse user view query")
+	}
+
+	users, err := svc.schema.UsersGetByGame(ctx, gameID, views)
+	return users, errors.Wrap(err, "cannot get users by game")
+}
+
 func (svc *service) getSession(ctx context.Context, sessionID uuid.UUID, viewQuery string) (*internal.Session, error) {
 	views, err := internal.ParseViewQuery[internal.SessionView](ctx, viewQuery)
 	if err != nil {
-		return nil, errors.Wrap(err, "cannot parse user view query")
+		return nil, errors.Wrap(err, "cannot parse session view query")
 	}
 
 	session, err := svc.schema.SessionGet(ctx, sessionID, views)

@@ -19,9 +19,9 @@ type Config struct {
 
 	NATSHostname                     string        `required:"false" split_words:"true"`
 	NATSPort                         int           `required:"false" split_words:"true"`
-	NATSEmbeddedServer               bool          `required:"false" default:"true" split_words:"true"`
+	NATSEmbeddedServer               bool          `required:"false" split_words:"true"`
 	NATSEmbeddedServerListen         bool          `required:"false" split_words:"true"`
-	NATSEmbeddedServerStartupTimeout time.Duration `required:"true" split_words:"true"`
+	NATSEmbeddedServerStartupTimeout time.Duration `required:"false" default:"10s" split_words:"true"`
 
 	PostgresAddress string `required:"true" split_words:"true"`
 }

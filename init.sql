@@ -60,7 +60,7 @@ CREATE TABLE games.rolls (
 
 
 
-CREATE TABLE game_guests (
-    guest_id UUID NOT NULL REFERENCES users.users,
-    game_id UUID NOT NULL REFERENCES games.games
+CREATE TABLE game_users (
+    game_id UUID NOT NULL REFERENCES games.games,
+    user_id UUID NOT NULL REFERENCES users.users
 );
