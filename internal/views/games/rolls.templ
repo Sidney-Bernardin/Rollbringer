@@ -1,0 +1,14 @@
+package games
+
+import (
+	"rollbringer/internal"
+	. "rollbringer/internal/views"
+)
+
+templ Roll(roll *internal.Roll) {
+	<div class="roll" hx-swap-oob="beforeend:.nav-bar .rolls">
+		for _, result := range roll.DiceResults {
+			<p>{ S(result) }</p>
+		}
+	</div>
+}

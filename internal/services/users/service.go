@@ -110,7 +110,6 @@ func (svc *service) getUser(ctx context.Context, userID uuid.UUID, viewQuery str
 					ViewQuery: fmt.Sprintf("pdfs-%s", pdfsView),
 				},
 			})
-			fmt.Println("done user pdfs")
 			return errors.Wrap(err, "cannot get PDFs by owner")
 		})
 	}
@@ -124,7 +123,6 @@ func (svc *service) getUser(ctx context.Context, userID uuid.UUID, viewQuery str
 					ViewQuery: fmt.Sprintf("games-%s", gamesView),
 				},
 			})
-			fmt.Println("done user hostedgames")
 			return errors.Wrap(err, "cannot get games by host")
 		})
 
@@ -136,7 +134,6 @@ func (svc *service) getUser(ctx context.Context, userID uuid.UUID, viewQuery str
 					ViewQuery: fmt.Sprintf("games-%s", gamesView),
 				},
 			})
-			fmt.Println("done user joinedgames")
 			return errors.Wrap(err, "cannot get games by user")
 		})
 	}

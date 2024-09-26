@@ -149,7 +149,6 @@ func (ps *PubSub) Subscribe(ctx context.Context, subject string, cb func(*intern
 			return errors.Wrap(ctx.Err(), "context is done")
 
 		case reqMsg := <-subChan:
-			fmt.Println(reqMsg.Header.Get("event"))
 			go func() {
 				res := cb(&internal.EventWrapper[[]byte]{
 					Event:   internal.Event(reqMsg.Header.Get("event")),

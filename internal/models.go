@@ -169,8 +169,8 @@ type PDFView string
 
 const (
 	PDFViewPDFAll    PDFView = "all"
-	PDFViewOwnerInfo PDFView = "all"
-	PDFViewGameInfo  PDFView = "all"
+	PDFViewOwnerName PDFView = "all"
+	PDFViewGameName  PDFView = "all"
 
 	EventPDF  Event = "PDF"
 	EventPDFs Event = "PDFS"

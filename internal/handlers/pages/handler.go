@@ -1,58 +1,40 @@
 package pages
 
 import (
-	"context"
 	"log/slog"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
-	"github.com/pkg/errors"
 
-	"rollbringer/internal"
 	"rollbringer/internal/config"
 	"rollbringer/internal/handlers"
-	"rollbringer/internal/services/pages"
-	service "rollbringer/internal/services/pages"
 	"rollbringer/internal/views/pages/play"
 )
 
 type handler struct {
 	*handlers.BaseHandler
-
-	svc service.Service
 }
 
-func NewHandler(cfg *config.Config, logger *slog.Logger, svc service.Service) *handler {
+func NewHandler(cfg *config.Config, logger *slog.Logger) *handler {
 	h := &handler{
 		BaseHandler: &handlers.BaseHandler{
 			Config:      cfg,
 			Logger:      logger,
 			Router:      chi.NewRouter(),
-			BaseService: svc,
 		},
-		svc: svc,
 	}
 
-	h.Router.Use(h.Log, h.Instance, h.GetSession)
-	h.Router.Get("/", h.handlePlayPage)
+	h.Router.Use(h.Log, h.Instance)
+	h.Router.Get("/login", h.handleLogin)
+	h.Router.Get("/", h.handlePlay)
 
 	return h
 }
 
-func (h *handler) handlePlayPage(w http.ResponseWriter, r *http.Request) {
+func (h *handler) handleLogin(w http.ResponseWriter, r *http.Request) {
+	h.Render(w, r, http.StatusOK, play.Login())
+}
 
-	var (
-		session, _ = r.Context().Value(internal.CtxKeySession).(*internal.Session)
-		gameID, _  = uuid.Parse(r.URL.Query().Get("g"))
-	)
-
-	page, err := h.svc.PlayPage(r.Context(), session, gameID)
-	if err != nil {
-		h.Err(w, r, errors.Wrap(err, "cannot get play page"))
-		return
-	}
-	r = r.WithContext(context.WithValue(r.Context(), pages.CtxKeyPlayPage, page))
-
+func (h *handler) handlePlay(w http.ResponseWriter, r *http.Request) {
 	h.Render(w, r, http.StatusOK, play.Play())
 }

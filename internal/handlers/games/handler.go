@@ -95,9 +95,20 @@ func (h *handler) handleCreatePDF(w http.ResponseWriter, r *http.Request) {
 		pdf.GameID = &gameID
 	}
 
-	err := h.svc.CreatePDF(r.Context(), session, pdf, "pdf-all,owner-all,game-all")
+	err := h.svc.CreatePDF(r.Context(), session, pdf)
 	if err != nil {
 		h.Err(w, r, errors.Wrap(err, "cannot create pdf"))
+		return
+	}
+
+	viewQuery := "pdf-all,owner-all"
+	if view == "with-game-row" {
+		viewQuery += ",game-all"
+	}
+
+	pdf, err = h.svc.GetPDF(r.Context(), pdf.ID, viewQuery)
+	if err != nil {
+		h.Err(w, r, errors.Wrap(err, "cannot get pdf"))
 		return
 	}
 

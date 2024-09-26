@@ -23,7 +23,7 @@ type Service interface {
 	SubToGame(ctx context.Context, gameID uuid.UUID, resChan chan<- any) error
 	DeleteGame(ctx context.Context, session *internal.Session, gameID uuid.UUID) error
 
-	CreatePDF(ctx context.Context, session *internal.Session, pdf *internal.PDF, viewQuery string) error
+	CreatePDF(ctx context.Context, session *internal.Session, pdf *internal.PDF) error
 	SubToPDFPage(ctx context.Context, pdfID uuid.UUID, pageNum int, resChan chan<- any) error
 	GetPDF(ctx context.Context, pdfID uuid.UUID, viewQuery string) (*internal.PDF, error)
 	GetPDFPage(ctx context.Context, pdfID uuid.UUID, pageNum int) (map[string]string, error)
@@ -104,7 +104,6 @@ func (svc *service) getGame(ctx context.Context, gameID uuid.UUID, viewQuery str
 					ViewQuery: fmt.Sprintf("users-%s", usersView),
 				},
 			})
-			fmt.Println("done game users")
 			return errors.Wrap(err, "cannot get users by game")
 		})
 	}
@@ -112,7 +111,6 @@ func (svc *service) getGame(ctx context.Context, gameID uuid.UUID, viewQuery str
 	if pdfsView, ok := views["pdfs"]; ok {
 		errs.Go(func() (err error) {
 			game.PDFs, err = svc.schema.PDFsGetByGame(errsCtx, gameID, map[string]internal.PDFView{"pdfs": internal.PDFView(pdfsView)})
-			fmt.Println("done game pdfs")
 			return errors.Wrap(err, "cannot get PDFs by game")
 		})
 	}
@@ -120,7 +118,6 @@ func (svc *service) getGame(ctx context.Context, gameID uuid.UUID, viewQuery str
 	if _, ok := views["rolls"]; ok {
 		errs.Go(func() (err error) {
 			game.Rolls, err = svc.schema.RollsGetByGame(errsCtx, gameID)
-			fmt.Println("done game rolls")
 			return errors.Wrap(err, "cannot get rolls by game")
 		})
 	}
@@ -157,21 +154,12 @@ func (svc *service) DeleteGame(ctx context.Context, session *internal.Session, g
 	return errors.Wrap(err, "cannot delete game")
 }
 
-func (svc *service) CreatePDF(ctx context.Context, session *internal.Session, pdf *internal.PDF, viewQuery string) error {
+func (svc *service) CreatePDF(ctx context.Context, session *internal.Session, pdf *internal.PDF) error {
 	pdf.OwnerID = session.UserID
 	pdf.Pages = make([]map[string]string, len(internal.PDFSchemaPageNames[pdf.Schema]))
 
-	if err := svc.schema.PDFInsert(ctx, pdf); err != nil {
-		return errors.Wrap(err, "cannot insert PDF")
-	}
-
-	views, err := internal.ParseViewQuery[internal.PDFView](ctx, viewQuery)
-	if err != nil {
-		return errors.Wrap(err, "cannot parse PDF view query")
-	}
-
-	pdf, err = svc.schema.PDFGet(ctx, pdf.ID, views)
-	return errors.Wrap(err, "cannot get PDF")
+	err := svc.schema.PDFInsert(ctx, pdf)
+	return errors.Wrap(err, "cannot insert PDF")
 }
 
 func (svc *service) GetPDF(ctx context.Context, pdfID uuid.UUID, viewQuery string) (*internal.PDF, error) {

@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/a-h/templ"
+	"github.com/pkg/errors"
 
 	"rollbringer/internal"
 	"rollbringer/internal/views"
@@ -49,6 +50,6 @@ func (h *BaseHandler) Render(w io.Writer, r *http.Request, httpStatusCode int, d
 	}
 
 	if err := data.Render(r.Context(), w); err != nil {
-		h.Logger.Error("Cannot render component", "err", err.Error())
+		internal.HandleError(r.Context(), h.Logger, errors.Wrap(err, "cannot render component"))
 	}
 }

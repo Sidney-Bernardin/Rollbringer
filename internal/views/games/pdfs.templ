@@ -1,7 +1,6 @@
-package play
+package games
 
 import (
-	"github.com/google/uuid"
 	"rollbringer/internal"
 	. "rollbringer/internal/views"
 )
@@ -56,9 +55,4 @@ templ PDFTab(pdf *internal.PDF) {
 			@PDFViewer(pdf, []string{"main", "info", "spells"})
 		}
 	</div>
-}
-
-templ DeletePDF(pdfID uuid.UUID) {
-	<div hx-swap-oob={ F("outerHTML:.pdf-tab-container [data-tab-id='%s']", pdfID) }></div>
-	<div hx-swap-oob={ F("outerHTML:[data-pdf-id='%s']", pdfID) }></div>
 }

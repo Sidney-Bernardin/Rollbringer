@@ -1,32 +1,32 @@
-package play
+package pages
 
 import (
+	"github.com/google/uuid"
+	"rollbringer/internal"
 	. "rollbringer/internal/views"
-	. "rollbringer/internal/views/pages"
-	"slices"
+	"rollbringer/internal/views/pages/utils"
 )
 
-templ Play() {
-	@Page("Play", "play.js") {
+templ Play(session *internal.Session, gameID uuid.UUID) {
+	@utils.Page("Play", "play.js") {
 		<body
 			hx-ext="ws"
-			hx-headers={ F(`{"CSRF-Token": "%s" }`, GetSession(ctx).CSRFToken) }
-			if game := GetPlayPage(ctx).Game; game != nil {
-				data-game-id={ game.ID.String() }
-				ws-connect={ F("/games/ws?g=%s", game.ID) }
+			hx-headers={ F(`{"CSRF-Token": "%s" }`, session.CSRFToken) }
+			if gameID != uuid.Nil {
+				ws-connect={ F("/games/ws?g=%s", gameID) }
 			} else {
 				ws-connect="/games/ws"
 			}
 		>
 			<div class="play-layout">
-				@NavBar()
+				@utils.NavBar(gameID)
 				@DynamicTabContainer("pdf-tab-container", "show-pdf-tab-container")
 				@DynamicTabContainer("map-tab-container", "show-map-tab-container")
 				@StaticTabContainer("play-materials-tab-container", "Your PDFs", "Game PDFs", "Maps") {
 					@StaticTabContent("user-pdfs", "Your PDFs") {
 						@userPDFs()
 					}
-					if GetPlayPage(ctx).Game != nil {
+					if gameID != uuid.Nil {
 						@StaticTabContent("game-pdfs", "Game PDFs") {
 							@gamePDFs()
 						}
@@ -59,11 +59,7 @@ templ userPDFs() {
 				<iconify-icon icon="material-symbols:add"></iconify-icon>
 			</button>
 		</caption>
-		<tbody>
-			for _, pdf := range GetPlayPage(ctx).User.PDFs {
-				@PDFTableRow(pdf, false)
-			}
-		</tbody>
+		<tbody></tbody>
 	</table>
 	@Modal("create-pdf-modal", "Create PDF", "show-create-pdf-modal") {
 		<form
@@ -77,9 +73,6 @@ templ userPDFs() {
 				Game:
 				<select name="game_id" @change="view = ($event.target.value === $store.game?.id) ? 'with-game-row' : ''">
 					<option value="">None</option>
-					for _, game := range slices.Concat(GetPlayPage(ctx).User.HostedGames, GetPlayPage(ctx).User.JoinedGames) {
-						<option value={ game.ID.String() }>{ game.Name }</option>
-					}
 				</select>
 			</label>
 			//
@@ -101,10 +94,6 @@ templ gamePDFs() {
 				<iconify-icon icon="material-symbols:add"></iconify-icon>
 			</button>
 		</caption>
-		<tbody>
-			for _, pdf := range GetPlayPage(ctx).Game.PDFs {
-				@PDFTableRow(pdf, true)
-			}
-		</tbody>
+		<tbody></tbody>
 	</table>
 }

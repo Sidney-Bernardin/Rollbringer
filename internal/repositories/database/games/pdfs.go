@@ -29,12 +29,12 @@ func pdfColumns(views map[string]internal.PDFView) (columns string) {
 	}
 
 	switch views["owner"] {
-	case internal.PDFViewOwnerInfo:
+	case internal.PDFViewOwnerName:
 		columns += `, users.id AS "owner.id", COALESCE(users.username, '') AS "owner.username"`
 	}
 
 	switch views["game"] {
-	case internal.PDFViewGameInfo:
+	case internal.PDFViewGameName:
 		columns += `, games.id AS "game.id", COALESCE(games.name, '') AS "game.name"`
 	}
 
