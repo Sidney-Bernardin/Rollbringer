@@ -1,15 +1,20 @@
 package utils
 
 import (
-	"github.com/google/uuid"
+	"rollbringer/internal"
 	. "rollbringer/internal/views"
+	"rollbringer/internal/views/games"
 )
 
-templ NavBar(gameID uuid.UUID) {
+templ NavBar(page *internal.PlayPage) {
 	<div x-data class="nav-bar">
-		if gameID != uuid.Nil {
+		if page.Game != nil {
 			@rollCalculator()
-			<div class="rolls"></div>
+			<div class="rolls">
+				for _, roll := range page.Game.Rolls {
+					@games.Roll(roll)
+				}
+			</div>
 		}
 		<button class="games-btn icon-btn" @click="$dispatch('show-games-modal')">
 			<iconify-icon icon="ic:baseline-meeting-room"></iconify-icon>
@@ -22,13 +27,21 @@ templ NavBar(gameID uuid.UUID) {
 						<iconify-icon icon="material-symbols:add"></iconify-icon>
 					</button>
 				</caption>
-				<tbody></tbody>
+				<tbody>
+					for _, game := range page.Session.User.HostedGames {
+						@games.HostedGameRow(game)
+					}
+				</tbody>
 			</table>
 			<table>
 				<caption>
 					Joined Games 
 				</caption>
-				<tbody></tbody>
+				<tbody>
+					for _, game := range page.Session.User.JoinedGames {
+						@games.JoinedGameRow(game)
+					}
+				</tbody>
 			</table>
 		}
 		@Modal("create-game-modal", "Create Game", "show-create-game-modal") {

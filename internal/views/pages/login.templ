@@ -3,9 +3,10 @@ package pages
 import "rollbringer/internal/views/pages/utils"
 
 templ Login() {
-	@utils.Page("Login", "login.js") {
+	@utils.Page("Login", "") {
 		<body>
 			<h1>Login</h1>
+			<a href="/users/login-with-google">Log-In</a>
 		</body>
 	}
 }

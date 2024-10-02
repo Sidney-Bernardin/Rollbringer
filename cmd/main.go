@@ -50,10 +50,8 @@ func main() {
 		services = map[string]services.BaseServicer{}
 	)
 
-	for name, fn := range features {
-
-		// Create feature.
-		handler, service, err := fn(globalDependencies{
+	for name, initFeature := range features {
+		handler, service, err := initFeature(globalDependencies{
 			cfg:    cfg,
 			logger: logger,
 			dbRepo: dbRepo,
@@ -118,7 +116,8 @@ func shutdown(cfg *config.Config, logger *slog.Logger, services map[string]servi
 	logger.Info("Gracefully shutting down")
 	defer logger.Info("Goodbye, World!")
 
-	ctx, _ := context.WithTimeout(context.Background(), cfg.ShutdownTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), cfg.ShutdownTimeout)
+	defer cancel()
 
 	// Gracefully shutdown the HTTP server.
 	if err := svr.Shutdown(ctx); err != nil {

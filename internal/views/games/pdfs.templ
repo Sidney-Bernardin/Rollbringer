@@ -5,18 +5,18 @@ import (
 	. "rollbringer/internal/views"
 )
 
-templ NewPDFTableRow(pdf *internal.PDF, withGameRow bool) {
+templ NewPDFTableRow(pdf *internal.PDF) {
 	<tbody hx-swap-oob="beforeend:.user-pdfs tbody">
 		@PDFTableRow(pdf, false)
 	</tbody>
-	if withGameRow {
+	if pdf.Game != nil {
 		<tbody hx-swap-oob="beforeend:.game-pdfs tbody">
 			@PDFTableRow(pdf, true)
 		</tbody>
 	}
 }
 
-templ PDFTableRow(pdf *internal.PDF, asGameRow bool) {
+templ PDFTableRow(pdf *internal.PDF, showUsername bool) {
 	<tr x-data data-pdf-id={ pdf.ID.String() }>
 		<td>
 			<button
@@ -29,14 +29,18 @@ templ PDFTableRow(pdf *internal.PDF, asGameRow bool) {
 			</button>
 		</td>
 		<td>
-			if asGameRow {
+			if showUsername {
 				{ pdf.Owner.Username }
 			} else if pdf.Game != nil {
 				{ pdf.Game.Name }
 			}
 		</td>
 		<td>
-			<button class="icon-btn" :hx-delete="`/games/pdfs/${$root.dataset.pdfId}`">
+			<button
+				class="icon-btn"
+				:hx-delete="`/games/pdfs/${$root.dataset.pdfId}`"
+				hx-target="closest tr"
+			>
 				<iconify-icon icon="material-symbols:delete"></iconify-icon>
 			</button>
 			<button class="icon-btn">

@@ -1,11 +1,8 @@
+import "../main";
+
+import "htmx.org/dist/ext/ws.js";
 import Split from "split-grid";
 
-require.context("./assets", false, /\.(png|jpg|gif|pdf)$/);
-import "./styles/pages/play/index.scss";
-
-import "./window";
-import "./alpine";
-import "./htmx";
 
 Split({
     columnGutters: [

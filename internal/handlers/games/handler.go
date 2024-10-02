@@ -13,7 +13,7 @@ import (
 	"rollbringer/internal/config"
 	"rollbringer/internal/handlers"
 	service "rollbringer/internal/services/games"
-	"rollbringer/internal/views/pages/play"
+	"rollbringer/internal/views/games"
 )
 
 type handler struct {
@@ -34,16 +34,18 @@ func NewHandler(cfg *config.Config, logger *slog.Logger, svc service.Service) ht
 	}
 
 	h.Router.Use(h.Log, h.Instance)
-	h.Router.With(h.GetSession).Method("GET", "/ws", websocket.Handler(h.handleGameWebsocket))
+	h.Router.With(h.Authenticate("", false)).Method("GET", "/ws", websocket.Handler(h.handleGameWebsocket))
 
-	authRouter := h.Router.With(h.Authenticate)
+	h.Router.Route("/", func(r chi.Router) {
+		r.Use(h.Authenticate("", true))
 
-	authRouter.Post("/games", h.handleCreateGame)
-	authRouter.Delete("/games/{game_id}", h.handleDeleteGame)
+		r.Post("/games", h.handleCreateGame)
+		r.Delete("/games/{game_id}", h.handleDeleteGame)
 
-	authRouter.Post("/pdfs", h.handleCreatePDF)
-	authRouter.Get("/pdfs/{pdf_id}", h.handleGetPDF)
-	authRouter.Delete("/pdfs/{pdf_id}", h.handleDeletePDF)
+		r.Post("/pdfs", h.handleCreatePDF)
+		r.Get("/pdfs/{pdf_id}", h.handleGetPDF)
+		r.Delete("/pdfs/{pdf_id}", h.handleDeletePDF)
+	})
 
 	return h
 }
@@ -62,7 +64,7 @@ func (h *handler) handleCreateGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.Render(w, r, http.StatusCreated, play.HostedGameRow(game))
+	h.Render(w, r, http.StatusCreated, games.HostedGameRow(game))
 }
 
 func (h *handler) handleDeleteGame(w http.ResponseWriter, r *http.Request) {
@@ -84,16 +86,12 @@ func (h *handler) handleCreatePDF(w http.ResponseWriter, r *http.Request) {
 
 	var (
 		session, _ = r.Context().Value(internal.CtxKeySession).(*internal.Session)
-		view       = r.URL.Query().Get("view")
 		pdf        = &internal.PDF{
+			GameID: internal.OptionalUUID(r.FormValue("game_id")),
 			Name:   r.FormValue("name"),
 			Schema: r.FormValue("schema"),
 		}
 	)
-
-	if gameID, err := uuid.Parse(r.FormValue("game_id")); err == nil {
-		pdf.GameID = &gameID
-	}
 
 	err := h.svc.CreatePDF(r.Context(), session, pdf)
 	if err != nil {
@@ -101,18 +99,13 @@ func (h *handler) handleCreatePDF(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	viewQuery := "pdf-all,owner-all"
-	if view == "with-game-row" {
-		viewQuery += ",game-all"
-	}
-
-	pdf, err = h.svc.GetPDF(r.Context(), pdf.ID, viewQuery)
+	pdf, err = h.svc.GetPDF(r.Context(), pdf.ID, internal.PDFView(r.URL.Query().Get("view")))
 	if err != nil {
 		h.Err(w, r, errors.Wrap(err, "cannot get pdf"))
 		return
 	}
 
-	h.Render(w, r, http.StatusCreated, play.NewPDFTableRow(pdf, view == "with-game-row"))
+	h.Render(w, r, http.StatusCreated, games.NewPDFTableRow(pdf))
 }
 
 func (h *handler) handleGetPDF(w http.ResponseWriter, r *http.Request) {
@@ -124,7 +117,7 @@ func (h *handler) handleGetPDF(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.Render(w, r, http.StatusOK, play.PDFTab(pdf))
+	h.Render(w, r, http.StatusOK, games.PDFTab(pdf))
 }
 
 func (h *handler) handleDeletePDF(w http.ResponseWriter, r *http.Request) {

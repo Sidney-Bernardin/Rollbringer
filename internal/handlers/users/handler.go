@@ -15,31 +15,31 @@ import (
 	"github.com/pkg/errors"
 )
 
-type usersHandler struct {
+type handler struct {
 	*handlers.BaseHandler
 
 	svc users.Service
 }
 
-func NewHandler(cfg *config.Config, logger *slog.Logger, service users.Service) *usersHandler {
-	h := &usersHandler{
+func NewHandler(cfg *config.Config, logger *slog.Logger, svc users.Service) *handler {
+	h := &handler{
 		BaseHandler: &handlers.BaseHandler{
 			Config: cfg,
 			Logger: logger,
 			Router: chi.NewRouter(),
 		},
-		svc: service,
+		svc: svc,
 	}
 
 	h.Router.Use(h.Log, h.Instance)
-	h.Router.Get("/login", h.handleLogin)
-	h.Router.Get("/consent-callback", h.handleConsentCallback)
+	h.Router.Get("/login-with-google", h.handleLoginWithGoogle)
+	h.Router.Get("/consent-callback", h.handleGoogleConsentCallback)
 
 	return h
 }
 
-func (h *usersHandler) handleLogin(w http.ResponseWriter, r *http.Request) {
-	consentURL, state, codeVerifier := h.svc.StartLogin()
+func (h *handler) handleLoginWithGoogle(w http.ResponseWriter, r *http.Request) {
+	var consentURL, state, codeVerifier = h.svc.GoogleStartLogin()
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     "STATE_AND_VERIFIER",
@@ -51,7 +51,7 @@ func (h *usersHandler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, consentURL, http.StatusTemporaryRedirect)
 }
 
-func (h *usersHandler) handleConsentCallback(w http.ResponseWriter, r *http.Request) {
+func (h *handler) handleGoogleConsentCallback(w http.ResponseWriter, r *http.Request) {
 	var ctx = r.Context()
 
 	cookie, err := r.Cookie("STATE_AND_VERIFIER")
@@ -71,7 +71,7 @@ func (h *usersHandler) handleConsentCallback(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	session, err := h.svc.FinishLogin(ctx,
+	session, err := h.svc.GoogleFinishLogin(ctx,
 		state_and_verifier[0],
 		r.FormValue("state"),
 		r.FormValue("code"),
@@ -87,7 +87,7 @@ func (h *usersHandler) handleConsentCallback(w http.ResponseWriter, r *http.Requ
 		Name:     "SESSION_ID",
 		Value:    session.ID.String(),
 		Path:     h.Config.CookiePath,
-		Expires:  time.Now().Add(15 * time.Minute),
+		Expires:  time.Now().Add(h.Config.UsersSessionTimeout),
 		SameSite: http.SameSiteStrictMode,
 		HttpOnly: true,
 	})

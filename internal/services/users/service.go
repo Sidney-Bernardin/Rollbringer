@@ -2,12 +2,10 @@ package users
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	"golang.org/x/sync/errgroup"
 
 	"rollbringer/internal"
 	"rollbringer/internal/config"
@@ -18,8 +16,8 @@ import (
 type Service interface {
 	services.BaseServicer
 
-	StartLogin() (consentURL, state, codeVerifier string)
-	FinishLogin(ctx context.Context, stateA, stateB, code, codeVerifier string) (*internal.Session, error)
+	GoogleStartLogin() (consentURL, state, codeVerifier string)
+	GoogleFinishLogin(ctx context.Context, stateA, stateB, code, codeVerifier string) (*internal.Session, error)
 }
 
 type service struct {
@@ -55,13 +53,13 @@ func (svc *service) Shutdown() error {
 	return errors.Wrap(err, "cannot close database")
 }
 
-func (svc *service) StartLogin() (consentURL, state, codeVerifier string) {
+func (svc *service) GoogleStartLogin() (consentURL, state, codeVerifier string) {
 	state = oauth.NewOauthState()
 	codeVerifier = svc.oauth.GenerateCodeVerifier()
 	return svc.oauth.GetConsentURL(state, codeVerifier), state, codeVerifier
 }
 
-func (svc *service) FinishLogin(ctx context.Context, stateA, stateB, code, codeVerifier string) (*internal.Session, error) {
+func (svc *service) GoogleFinishLogin(ctx context.Context, stateA, stateB, code, codeVerifier string) (*internal.Session, error) {
 	userInfo, err := svc.oauth.AuthenticateConsent(ctx, stateA, stateB, code, codeVerifier)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot authenticate consent")
@@ -82,91 +80,19 @@ func (svc *service) FinishLogin(ctx context.Context, stateA, stateB, code, codeV
 	}
 
 	if err := svc.schema.SessionUpsert(ctx, session); err != nil {
-		return nil, errors.Wrap(err, "cannot insert session")
+		return nil, errors.Wrap(err, "cannot upsert session")
 	}
 
 	return session, nil
 }
 
-func (svc *service) getUser(ctx context.Context, userID uuid.UUID, viewQuery string) (*internal.User, error) {
-	views, err := internal.ParseViewQuery[internal.UserView](ctx, viewQuery)
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot parse user view query")
-	}
-
-	user, err := svc.schema.UserGet(ctx, userID, views)
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot get user")
-	}
-
-	errs, errsCtx := errgroup.WithContext(ctx)
-
-	if pdfsView, ok := views["pdfs"]; ok {
-		errs.Go(func() error {
-			err := svc.PubSub.Request(errsCtx, "pdfs", &user.PDFs, &internal.EventWrapper[any]{
-				Event: internal.EventGetPDFsByOwnerRequest,
-				Payload: internal.GetPDFsByOwnerRequest{
-					OwnerID:   userID,
-					ViewQuery: fmt.Sprintf("pdfs-%s", pdfsView),
-				},
-			})
-			return errors.Wrap(err, "cannot get PDFs by owner")
-		})
-	}
-
-	if gamesView, ok := views["games"]; ok {
-		errs.Go(func() error {
-			err := svc.PubSub.Request(errsCtx, "games", &user.HostedGames, &internal.EventWrapper[any]{
-				Event: internal.EventGetGamesByHostRequest,
-				Payload: internal.GetGamesByHostRequest{
-					HostID:    userID,
-					ViewQuery: fmt.Sprintf("games-%s", gamesView),
-				},
-			})
-			return errors.Wrap(err, "cannot get games by host")
-		})
-
-		errs.Go(func() error {
-			err := svc.PubSub.Request(errsCtx, "games", &user.JoinedGames, &internal.EventWrapper[any]{
-				Event: internal.EventGetGamesByUserRequest,
-				Payload: internal.GetGamesByUserRequest{
-					UserID:    userID,
-					ViewQuery: fmt.Sprintf("games-%s", gamesView),
-				},
-			})
-			return errors.Wrap(err, "cannot get games by user")
-		})
-	}
-
-	if err := errs.Wait(); err != nil {
-		return nil, err
-	}
-
-	return user, nil
-}
-
-func (svc *service) getUsersByGame(ctx context.Context, gameID uuid.UUID, viewQuery string) ([]*internal.User, error) {
-	views, err := internal.ParseViewQuery[internal.UserView](ctx, viewQuery)
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot parse user view query")
-	}
-
-	users, err := svc.schema.UsersGetByGame(ctx, gameID, views)
+func (svc *service) getUsersForGame(ctx context.Context, gameID uuid.UUID) ([]*internal.User, error) {
+	users, err := svc.schema.UsersGetByGame(ctx, gameID)
 	return users, errors.Wrap(err, "cannot get users by game")
 }
 
-func (svc *service) getSession(ctx context.Context, sessionID uuid.UUID, viewQuery string) (*internal.Session, error) {
-	views, err := internal.ParseViewQuery[internal.SessionView](ctx, viewQuery)
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot parse session view query")
-	}
-
-	session, err := svc.schema.SessionGet(ctx, sessionID, views)
-	return session, errors.Wrap(err, "cannot get session")
-}
-
-func (svc *service) authenticate(ctx context.Context, sessionID uuid.UUID, csrfToken string) (*internal.Session, error) {
-	session, err := svc.schema.SessionGet(ctx, sessionID, map[string]internal.SessionView{"session": "all"})
+func (svc *service) authenticate(ctx context.Context, sessionID uuid.UUID, sessionView internal.SessionView, checkCSRFToken bool, csrfToken string) (*internal.Session, error) {
+	session, err := svc.schema.SessionGet(ctx, sessionID, sessionView)
 	if err != nil {
 		if internal.IsDetailed(err, internal.PDTypeSessionNotFound) {
 			return nil, internal.NewProblemDetail(ctx, internal.PDOpts{
@@ -177,7 +103,7 @@ func (svc *service) authenticate(ctx context.Context, sessionID uuid.UUID, csrfT
 		return nil, errors.Wrap(err, "cannot get session")
 	}
 
-	if session.CSRFToken != csrfToken {
+	if checkCSRFToken && session.CSRFToken != csrfToken {
 		return nil, internal.NewProblemDetail(ctx, internal.PDOpts{
 			Type: internal.PDTypeUnauthorized,
 		})

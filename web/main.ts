@@ -1,8 +1,20 @@
-window.htmx = require("htmx.org");
-import "htmx.org/dist/ext/ws.js";
+require.context("./assets", false, /\.(png|jpg|gif|pdf)$/);
+import "./styles/pages/play/index.scss";
 
-// Prepare outgoing WebSocket messages.
-document.body.addEventListener("htmx:wsConfigSend", (e: CustomEvent) => {
+import { Alpine } from "alpinejs";
+import { HtmxExtension } from "htmx.org";
+
+declare global {
+    interface Window {
+        alpine: Alpine;
+        htmx: HtmxExtension;
+    }
+}
+
+import "./alpine";
+window.htmx = require('htmx.org');
+
+window.addEventListener("htmx:wsConfigSend", (e: CustomEvent) => {
     switch (e.detail.parameters["EVENT"]) {
         case "UPDATE_PDF_PAGE_REQUEST":
             e.detail.parameters["field_name"] = e.detail.headers["HX-Trigger"];

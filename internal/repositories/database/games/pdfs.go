@@ -15,42 +15,43 @@ import (
 	"rollbringer/internal/repositories/database"
 )
 
-func pdfColumns(views map[string]internal.PDFView) (columns string) {
-	pdfView, ok := views["pdf"]
-	if !ok {
-		pdfView = views["pdfs"]
-	}
+func pdfColumns(view internal.PDFView) string {
+	switch view {
+	case internal.PDFViewListItemWithGame:
+		return `pdfs.id, pdfs.owner_id, pdfs.game_id, pdfs.name, pdfs.schema,` +
+			`games.id AS "game.id",` +
+			`COALESCE(games.name, '') AS "game.name"`
 
-	switch pdfView {
-	case internal.PDFViewPDFAll:
-		columns += `pdfs.id, pdfs.owner_id, pdfs.game_id, pdfs.name, pdfs.schema`
+	case internal.PDFViewListItemWithOwner:
+		return `pdfs.id, pdfs.owner_id, pdfs.game_id, pdfs.name, pdfs.schema,` +
+			`users.id AS "owner.id",` +
+			`users.username AS "owner.username",` +
+			`users.google_id AS "owner.google_id"`
+
+	case internal.PDFViewListItemWithGameAndOwner:
+		return `pdfs.id, pdfs.owner_id, pdfs.game_id, pdfs.name, pdfs.schema,` +
+			`games.id AS "game.id",` +
+			`COALESCE(games.name, '') AS "game.name,"` +
+			`users.id AS "owner.id",` +
+			`users.username AS "owner.username",` +
+			`users.google_id AS "owner.google_id"`
+
 	default:
-		columns += `pdfs.id, pdfs.owner_id, pdfs.game_id, pdfs.name, pdfs.schema`
+		return `pdfs.id, pdfs.owner_id, pdfs.game_id, pdfs.name, pdfs.schema`
 	}
-
-	switch views["owner"] {
-	case internal.PDFViewOwnerName:
-		columns += `, users.id AS "owner.id", COALESCE(users.username, '') AS "owner.username"`
-	}
-
-	switch views["game"] {
-	case internal.PDFViewGameName:
-		columns += `, games.id AS "game.id", COALESCE(games.name, '') AS "game.name"`
-	}
-
-	return columns
 }
 
-func pdfJoins(views map[string]internal.PDFView) (joins string) {
-	if _, ok := views["owner"]; ok {
-		joins += `LEFT JOIN users.users ON users.id = pdfs.owner_id`
+func pdfJoins(view internal.PDFView) string {
+	switch view {
+	case internal.PDFViewListItemWithGame:
+		return `LEFT JOIN games.games ON games.id = pdfs.game_id`
+	case internal.PDFViewListItemWithOwner:
+		return `LEFT JOIN users.users ON users.id = pdfs.owner_id`
+	case internal.PDFViewListItemWithGameAndOwner:
+		return `LEFT JOIN games.games ON games.id = pdfs.game_id LEFT JOIN users.users ON users.id = pdfs.owner_id`
+	default:
+		return ``
 	}
-
-	if _, ok := views["game"]; ok {
-		joins += ` LEFT JOIN games.games ON games.id = pdfs.game_id`
-	}
-
-	return joins
 }
 
 func (db *gamesSchema) PDFInsert(ctx context.Context, pdf *internal.PDF) error {
@@ -75,7 +76,7 @@ func (db *gamesSchema) PDFInsert(ctx context.Context, pdf *internal.PDF) error {
 	return errors.Wrap(err, "cannot insert PDF")
 }
 
-func (db *gamesSchema) PDFGet(ctx context.Context, pdfID uuid.UUID, view map[string]internal.PDFView) (*internal.PDF, error) {
+func (db *gamesSchema) PDFGet(ctx context.Context, pdfID uuid.UUID, view internal.PDFView) (*internal.PDF, error) {
 
 	var pdf database.PDF
 	query := fmt.Sprintf(`SELECT %s FROM games.pdfs %s WHERE pdfs.id = $1`, pdfColumns(view), pdfJoins(view))
@@ -83,7 +84,7 @@ func (db *gamesSchema) PDFGet(ctx context.Context, pdfID uuid.UUID, view map[str
 		if err == sql.ErrNoRows {
 			return nil, internal.NewProblemDetail(ctx, internal.PDOpts{
 				Type:   internal.PDTypePDFNotFound,
-				Detail: "Can't find a PDF with the given pdf_id.",
+				Detail: "Cannot find a PDF with the given pdf_id.",
 				Extra: map[string]any{
 					"pdf_id": pdfID,
 				},
@@ -108,7 +109,7 @@ func (db *gamesSchema) PDFGetPage(ctx context.Context, pdfID uuid.UUID, pageNum 
 		if err == sql.ErrNoRows {
 			return nil, internal.NewProblemDetail(ctx, internal.PDOpts{
 				Type:   internal.PDTypePDFNotFound,
-				Detail: "Can't find a PDF with the given pdf_id.",
+				Detail: "Cannot find a PDF with the given pdf_id.",
 				Extra: map[string]any{
 					"pdf_id": pdfID,
 				},
@@ -127,10 +128,10 @@ func (db *gamesSchema) PDFGetPage(ctx context.Context, pdfID uuid.UUID, pageNum 
 	return ret, nil
 }
 
-func (db *gamesSchema) PDFsGetByOwner(ctx context.Context, ownerID uuid.UUID, views map[string]internal.PDFView) ([]*internal.PDF, error) {
+func (db *gamesSchema) PDFsGetByOwner(ctx context.Context, ownerID uuid.UUID, view internal.PDFView) ([]*internal.PDF, error) {
 
 	var pdfs []*database.PDF
-	query := fmt.Sprintf(`SELECT %s FROM games.pdfs %s WHERE pdfs.owner_id = $1`, pdfColumns(views), pdfJoins(views))
+	query := fmt.Sprintf(`SELECT %s FROM games.pdfs %s WHERE pdfs.owner_id = $1`, pdfColumns(view), pdfJoins(view))
 	if err := sqlx.SelectContext(ctx, db.TX, &pdfs, query, ownerID); err != nil {
 		return nil, errors.Wrap(err, "cannot select PDFs")
 	}
@@ -144,10 +145,10 @@ func (db *gamesSchema) PDFsGetByOwner(ctx context.Context, ownerID uuid.UUID, vi
 	return ret, nil
 }
 
-func (db *gamesSchema) PDFsGetByGame(ctx context.Context, gameID uuid.UUID, views map[string]internal.PDFView) ([]*internal.PDF, error) {
+func (db *gamesSchema) PDFsGetByGame(ctx context.Context, gameID uuid.UUID, view internal.PDFView) ([]*internal.PDF, error) {
 
 	var pdfs []*database.PDF
-	query := fmt.Sprintf(`SELECT %s FROM games.pdfs %s WHERE pdfs.game_id = $1`, pdfColumns(views), pdfJoins(views))
+	query := fmt.Sprintf(`SELECT %s FROM games.pdfs %s WHERE pdfs.game_id = $1`, pdfColumns(view), pdfJoins(view))
 	if err := sqlx.SelectContext(ctx, db.TX, &pdfs, query, gameID); err != nil {
 		return nil, errors.Wrap(err, "cannot select PDFs")
 	}
@@ -174,7 +175,7 @@ func (db *gamesSchema) PDFUpdatePage(ctx context.Context, pdfID uuid.UUID, pageN
 	if affected <= 0 {
 		return internal.NewProblemDetail(ctx, internal.PDOpts{
 			Type:   internal.PDTypePDFNotFound,
-			Detail: "Can't find a PDF with the given pdf_id.",
+			Detail: "Cannot find a PDF with the given pdf_id.",
 			Extra: map[string]any{
 				"pdf_id": pdfID,
 			},

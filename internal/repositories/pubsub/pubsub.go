@@ -134,7 +134,7 @@ func (ps *PubSub) Request(ctx context.Context, subject string, res any, req *int
 	return errors.Wrap(err, "cannot JSON decode response")
 }
 
-func (ps *PubSub) Subscribe(ctx context.Context, subject string, cb func(*internal.EventWrapper[[]byte]) *internal.EventWrapper[any]) error {
+func (ps *PubSub) Subscribe(ctx context.Context, subject string, cb func(*internal.EventWrapper[[]byte]) (*internal.EventWrapper[any], error)) error {
 
 	var subChan = make(chan *nats.Msg, 1)
 	sub, err := ps.natsConn.ChanSubscribe(subject, subChan)
@@ -150,10 +150,17 @@ func (ps *PubSub) Subscribe(ctx context.Context, subject string, cb func(*intern
 
 		case reqMsg := <-subChan:
 			go func() {
-				res := cb(&internal.EventWrapper[[]byte]{
+				res, err := cb(&internal.EventWrapper[[]byte]{
 					Event:   internal.Event(reqMsg.Header.Get("event")),
 					Payload: reqMsg.Data,
 				})
+
+				if err != nil {
+					res = &internal.EventWrapper[any]{
+						Event:   internal.EventError,
+						Payload: internal.HandleError(ctx, ps.logger, err),
+					}
+				}
 
 				if res == nil {
 					return

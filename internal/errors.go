@@ -7,10 +7,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-var (
-	SvrErrUnknownEvent = errors.New("unknown event")
-)
-
 type PDType string
 
 const CtxKeyInstance CtxKey = "instance"

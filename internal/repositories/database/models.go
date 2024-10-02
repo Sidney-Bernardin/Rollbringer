@@ -28,8 +28,10 @@ func (user *User) Internalized() *internal.User {
 type Session struct {
 	ID uuid.UUID `db:"id"`
 
-	UserID    uuid.UUID `db:"user_id"`
-	CSRFToken string    `db:"csrf_token"`
+	UserID uuid.UUID `db:"user_id"`
+	User   *User     `db:"user"`
+
+	CSRFToken string `db:"csrf_token"`
 }
 
 func (session *Session) Internalized() *internal.Session {
@@ -37,6 +39,7 @@ func (session *Session) Internalized() *internal.Session {
 		return &internal.Session{
 			ID:        session.ID,
 			UserID:    session.UserID,
+			User:      session.User.Internalized(),
 			CSRFToken: session.CSRFToken,
 		}
 	}
@@ -82,6 +85,7 @@ func (pdf *PDF) Internalized() *internal.PDF {
 		return &internal.PDF{
 			ID:      pdf.ID,
 			OwnerID: pdf.OwnerID,
+			Owner:   pdf.Owner.Internalized(),
 			GameID:  pdf.GameID,
 			Game:    pdf.Game.Internalized(),
 			Name:    pdf.Name,

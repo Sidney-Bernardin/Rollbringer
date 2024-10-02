@@ -25,7 +25,16 @@ type ProblemDetail struct {
 }
 
 func (pd *ProblemDetail) Error() string {
-	return fmt.Sprintf(`ProblemDetail("%s", "%s")`, pd.Type, pd.Detail)
+	return fmt.Sprintf(`%s: %s`, pd.Type, pd.Detail)
+}
+
+// =====
+
+const EventPlayPage Event = "PLAY_PAGE"
+
+type PlayPage struct {
+	Session *Session `json:"session"`
+	Game    *Game    `json:"game"`
 }
 
 // =====
@@ -37,11 +46,7 @@ type GoogleUserInfo struct {
 
 // =====
 
-type UserView string
-
 const (
-	UserViewUserAll UserView = "all"
-
 	EventUser  Event = "USER"
 	EventUsers Event = "USERS"
 )
@@ -59,29 +64,21 @@ type User struct {
 
 // =====
 
-const EventGetUserRequest Event = "GET_USER_REQUEST"
+const EventGetUsersForGameRequest Event = "GET_USERS_FOR_GAME_REQUEST"
 
-type GetUserRequest struct {
-	UserID    uuid.UUID `json:"user_id,omitempty"`
-	ViewQuery string    `json:"view_query,omitempty"`
-}
-
-// =====
-
-const EventGetUsersByGameRequest Event = "GET_USERS_BY_GAME_REQUEST"
-
-type GetUsersByGameRequest struct {
-	GameID    uuid.UUID `json:"game_id,omitempty"`
-	ViewQuery string    `json:"view_query,omitempty"`
+type GetUsersForGameRequest struct {
+	GameID uuid.UUID `json:"game_id,omitempty"`
 }
 
 // =====
 
 const EventAuthenticateUserRequest Event = "AUTHENTICATE_USER_REQUEST"
 
-type AuthenticateUserRequest struct {
-	SessionID uuid.UUID `json:"session_id,omitempty"`
-	CSRFToken string    `json:"csrf_token,omitempty"`
+type AuthenticateRequest struct {
+	SessionID      uuid.UUID   `json:"session_id,omitempty"`
+	SessionView    SessionView `json:"session_view,omitempty"`
+	CheckCSRFToken bool        `json:"check_csrf_token,omitempty"`
+	CSRFToken      string      `json:"csrf_token,omitempty"`
 }
 
 // =====
@@ -89,26 +86,18 @@ type AuthenticateUserRequest struct {
 type SessionView string
 
 const (
-	SessionViewSessionAll SessionView = "all"
-
-	CtxKeySession CtxKey = "session"
-	EventSession  Event  = "SESSION"
+	SessionViewPage SessionView = "page"
+	CtxKeySession   CtxKey      = "session"
+	EventSession    Event       = "SESSION"
 )
 
 type Session struct {
 	ID uuid.UUID `json:"id,omitempty"`
 
-	UserID    uuid.UUID `json:"user_id,omitempty"`
-	CSRFToken string    `json:"csrf_token,omitempty"`
-}
+	UserID uuid.UUID `json:"user_id,omitempty"`
+	User   *User     `json:"user,omitempty"`
 
-// =====
-
-const EventGetSessionRequest Event = "GET_SESSION_REQUEST"
-
-type GetSessionRequest struct {
-	SessionID uuid.UUID `json:"session_id,omitempty"`
-	ViewQuery string    `json:"view_query,omitempty"`
+	CSRFToken string `json:"csrf_token,omitempty"`
 }
 
 // =====
@@ -116,8 +105,7 @@ type GetSessionRequest struct {
 type GameView string
 
 const (
-	GameViewGameAll  GameView = "all"
-	GameViewHostInfo GameView = "info"
+	GameViewListItem GameView = "list_item"
 
 	EventGame  Event = "GAME"
 	EventGames Event = "GAMES"
@@ -138,39 +126,12 @@ type Game struct {
 
 // =====
 
-const EventGetGameRequest Event = "GET_GAME_REQUEST"
-
-type GetGameRequest struct {
-	GameID    uuid.UUID `json:"game_id,omitempty"`
-	ViewQuery string    `json:"view_query,omitempty"`
-}
-
-// =====
-
-const EventGetGamesByHostRequest Event = "GET_GAMES_BY_HOST_REQUEST"
-
-type GetGamesByHostRequest struct {
-	HostID    uuid.UUID `json:"host_id,omitempty"`
-	ViewQuery string    `json:"view_query,omitempty"`
-}
-
-// =====
-
-const EventGetGamesByUserRequest Event = "GET_GAMES_BY_USER_REQUEST"
-
-type GetGamesByUserRequest struct {
-	UserID    uuid.UUID `json:"user_id,omitempty"`
-	ViewQuery string    `json:"view_query,omitempty"`
-}
-
-// =====
-
 type PDFView string
 
 const (
-	PDFViewPDFAll    PDFView = "all"
-	PDFViewOwnerName PDFView = "all"
-	PDFViewGameName  PDFView = "all"
+	PDFViewListItemWithGame         PDFView = "list_item_with_game"
+	PDFViewListItemWithOwner        PDFView = "list_item_with_owner"
+	PDFViewListItemWithGameAndOwner PDFView = "list_item_with_game_owner"
 
 	EventPDF  Event = "PDF"
 	EventPDFs Event = "PDFS"
@@ -197,15 +158,6 @@ const EventSubToPDFRequest Event = "SUB_TO_PDF_REQUEST"
 type SubToPDFRequest struct {
 	PDFID   uuid.UUID `json:"pdf_id,omitempty"`
 	PageNum int       `json:"page_num,string,omitempty"`
-}
-
-// =====
-
-const EventGetPDFsByOwnerRequest Event = "GET_PDFS_BY_OWNER_REQUEST"
-
-type GetPDFsByOwnerRequest struct {
-	OwnerID   uuid.UUID `json:"owner_id,omitempty"`
-	ViewQuery string    `json:"view_query,omitempty"`
 }
 
 // =====

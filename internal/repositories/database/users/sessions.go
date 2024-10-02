@@ -13,15 +13,26 @@ import (
 	"rollbringer/internal/repositories/database"
 )
 
-func sessionColumns(views map[string]internal.SessionView) (columns string) {
-	switch views["session"] {
-	case internal.SessionViewSessionAll:
-		columns += `sessions.*`
-	default:
-		columns += `sessions.*`
-	}
+func sessionColumns(view internal.SessionView) string {
+	switch view {
+	case internal.SessionViewPage:
+		return `sessions.*,` +
+			`users.id AS "user.id",` +
+			`users.username AS "user.username",` +
+			`users.google_id AS "user.google_id"`
 
-	return columns
+	default:
+		return `sessions.*`
+	}
+}
+
+func sessionJoins(view internal.SessionView) string {
+	switch view {
+	case internal.SessionViewPage:
+		return `LEFT JOIN users.users ON users.id = sessions.user_id`
+	default:
+		return ``
+	}
 }
 
 func (db *usersSchema) SessionUpsert(ctx context.Context, session *internal.Session) error {
@@ -39,15 +50,15 @@ func (db *usersSchema) SessionUpsert(ctx context.Context, session *internal.Sess
 	return errors.Wrap(err, "cannot insert session")
 }
 
-func (db *usersSchema) SessionGet(ctx context.Context, sessionID uuid.UUID, views map[string]internal.SessionView) (*internal.Session, error) {
+func (db *usersSchema) SessionGet(ctx context.Context, sessionID uuid.UUID, view internal.SessionView) (*internal.Session, error) {
 
 	var session database.Session
-	query := fmt.Sprintf(`SELECT %s FROM users.sessions WHERE id = $1`, sessionColumns(views))
+	query := fmt.Sprintf(`SELECT %s FROM users.sessions %s WHERE sessions.id = $1`, sessionColumns(view), sessionJoins(view))
 	if err := sqlx.GetContext(ctx, db.TX, &session, query, sessionID); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, internal.NewProblemDetail(ctx, internal.PDOpts{
 				Type:   internal.PDTypeSessionNotFound,
-				Detail: "Can't find a session with the given session_id.",
+				Detail: "Cannot find a session with the given session_id.",
 				Extra: map[string]any{
 					"session_id": sessionID,
 				},

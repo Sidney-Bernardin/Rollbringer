@@ -9,7 +9,7 @@ type usersSchema struct {
 	*database.Database
 }
 
-func New(db *database.Database) (internal.UsersSchema) {
+func New(db *database.Database) internal.UsersSchema {
 	return &usersSchema{
 		Database: db,
 	}

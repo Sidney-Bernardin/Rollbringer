@@ -5,8 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"rollbringer/internal"
-	"rollbringer/internal/views"
-	"rollbringer/internal/views/pages/play"
+	"rollbringer/internal/views/games"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -123,9 +122,9 @@ func (h *handler) handleGameWebsocket(conn *websocket.Conn) {
 		case error:
 			h.Err(conn, r, res)
 		case *internal.PDFPage:
-			h.Render(conn, r, 0, views.PDFViewerFields(res.PDFID, res.Fields))
+			h.Render(conn, r, 0, games.PDFViewerFields(res.PDFID, res.Fields))
 		case *internal.Roll:
-			h.Render(conn, r, 0, play.Roll(res))
+			h.Render(conn, r, 0, games.Roll(res))
 		}
 	}
 }

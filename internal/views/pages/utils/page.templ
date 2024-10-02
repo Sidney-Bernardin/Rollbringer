@@ -12,6 +12,8 @@ templ Page(title, script string) {
 				<script src={ "/static/" + script } defer></script>
 			}
 		</head>
-		{ children... }
+		<body>
+			{ children... }
+		</body>
 	</html>
 }
