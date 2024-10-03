@@ -92,7 +92,7 @@ func PDFTableRow(pdf *internal.PDF, showUsername bool) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><td><button class=\"underline-btn\" @click=\"$dispatch(&#39;show-pdf-tab-container&#39;, { tabID: $root.dataset.pdfId })\" :hx-get=\"`/games/pdfs/${$root.dataset.pdfId}`\" hx-swap=\"none\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" @deleted-pdf.window=\"($event.detail.pdf_id == $el.dataset.pdfId) &amp;&amp; $el.remove()\"><td><button class=\"underline-btn\" @click=\"$dispatch(&#39;show-pdf-tab-container&#39;, { tabID: $root.dataset.pdfId })\" :hx-get=\"`/games/pdfs/${$root.dataset.pdfId}`\" hx-swap=\"none\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -130,7 +130,7 @@ func PDFTableRow(pdf *internal.PDF, showUsername bool) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</td><td><button class=\"icon-btn\" :hx-delete=\"`/games/pdfs/${$root.dataset.pdfId}`\" hx-target=\"closest tr\"><iconify-icon icon=\"material-symbols:delete\"></iconify-icon></button> <button class=\"icon-btn\"><iconify-icon icon=\"material-symbols:edit\"></iconify-icon></button></td></tr>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</td><td><button class=\"icon-btn\" :hx-delete=\"`/games/pdfs/${$root.dataset.pdfId}`\" hx-swap=\"none\"><iconify-icon icon=\"material-symbols:delete\"></iconify-icon></button> <button class=\"icon-btn\"><iconify-icon icon=\"material-symbols:edit\"></iconify-icon></button></td></tr>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

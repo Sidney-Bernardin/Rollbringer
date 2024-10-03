@@ -1,5 +1,6 @@
 @use "../../colors.scss" as *;
 @use "../../general/index.scss" as *;
+@use "../../mixins.scss" as *;
 
 @use "nav-bar.scss" as *;
 @use "social.scss" as *;
@@ -24,6 +25,10 @@ body {
   button {
     color: $txt1;
   }
+}
+
+.create-pdf-modal .wrapper form {
+  @include basic-form;
 }
 
 .play-layout {

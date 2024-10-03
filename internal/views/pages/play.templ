@@ -10,8 +10,7 @@ import (
 
 templ Play(page *internal.PlayPage) {
 	@utils.Page("Play", "play.js") {
-		<div
-			class="play-layout"
+		<body
 			hx-ext="ws"
 			hx-headers={ F(`
                 {
@@ -19,56 +18,77 @@ templ Play(page *internal.PlayPage) {
                 }
             `, page.Session.CSRFToken) }
 			if page.Game != nil {
+				data-game-id={ S(page.Game.ID) }
 				ws-connect={ F("/games/ws?g=%s", page.Game.ID) }
 			} else {
 				ws-connect={ F("/games/ws") }
 			}
 		>
-			@utils.NavBar(page)
-			@DynamicTabContainer("pdf-tab-container", "show-pdf-tab-container")
-			@DynamicTabContainer("map-tab-container", "show-map-tab-container")
-			@StaticTabContainer("play-materials-tab-container", "Your PDFs", "Game PDFs", "Maps") {
-				@StaticTabContent("user-pdfs", "Your PDFs") {
-					@userPDFs(page)
+			@createPDFModel(page)
+			<div class="play-layout">
+				@utils.NavBar(page)
+				@DynamicTabContainer("pdf-tab-container", "show-pdf-tab-container")
+				@DynamicTabContainer("map-tab-container", "show-map-tab-container")
+				@StaticTabContainer("play-materials-tab-container", "Your PDFs", "Game PDFs", "Maps") {
+					@StaticTabContent("user-pdfs", "Your PDFs") {
+						<table>
+							<caption>
+								Character Sheets
+								<button class="icon-btn" @click="$dispatch('show-create-pdf-modal')">
+									<iconify-icon icon="material-symbols:add"></iconify-icon>
+								</button>
+							</caption>
+							<tbody>
+								for _, pdf := range page.Session.User.PDFs {
+									@games.PDFTableRow(pdf, false)
+								}
+							</tbody>
+						</table>
+					}
+					@StaticTabContent("game-pdfs", "Game PDFs") {
+						if page.Game != nil {
+							<table>
+								<caption>
+									Character Sheets
+									<button class="icon-btn" @click="$dispatch('show-create-pdf-modal')">
+										<iconify-icon icon="material-symbols:add"></iconify-icon>
+									</button>
+								</caption>
+								<tbody>
+									for _, pdf := range page.Game.PDFs {
+										@games.PDFTableRow(pdf, true)
+									}
+								</tbody>
+							</table>
+						}
+					}
+					@StaticTabContent("maps", "Maps") {
+						<h1>Maps</h1>
+					}
 				}
-				@StaticTabContent("game-pdfs", "Game PDFs") {
-					@gamePDFs(page)
+				@StaticTabContainer("social-tab-container", "Chat", "Profile") {
+					@StaticTabContent("chat", "Chat") {
+						<h1>Chat</h1>
+					}
+					@StaticTabContent("profile", "Profile") {
+						<h1>Profile</h1>
+					}
 				}
-				@StaticTabContent("maps", "Maps") {
-					<h1>Maps</h1>
-				}
-			}
-			@StaticTabContainer("social-tab-container", "Chat", "Profile") {
-				@StaticTabContent("chat", "Chat") {
-					<h1>Chat</h1>
-				}
-				@StaticTabContent("profile", "Profile") {
-					<h1>Profile</h1>
-				}
-			}
-			<span class="gutter-2"></span>
-			<span class="gutter-3"></span>
-			<span class="gutter-4"></span>
-		</div>
+				<span class="gutter-2"></span>
+				<span class="gutter-3"></span>
+				<span class="gutter-4"></span>
+			</div>
+		</body>
 	}
 }
 
-templ userPDFs(page *internal.PlayPage) {
-	<table>
-		<caption>
-			Character Sheets
-			<button class="icon-btn" @click="$dispatch('show-create-pdf-modal')">
-				<iconify-icon icon="material-symbols:add"></iconify-icon>
-			</button>
-		</caption>
-		<tbody>
-			for _, pdf := range page.Session.User.PDFs {
-				@games.PDFTableRow(pdf, false)
-			}
-		</tbody>
-	</table>
+templ createPDFModel(page *internal.PlayPage) {
 	@Modal("create-pdf-modal", "Create PDF", "show-create-pdf-modal") {
-		<form x-data="{ view: 'list_item_with_game' }" hx-post="/games/pdfs" hx-swap="none">
+		<form
+			x-data="{ view: $store.game.id ? 'list_item_with_game_and_owner' : 'list_item_with_game' }"
+			hx-post="/games/pdfs"
+			hx-swap="none"
+		>
 			<input type="hidden" name="view" :value="view"/>
 			<input type="hidden" name="schema" value="DND_CHARACTER_SHEET"/>
 			//
@@ -76,11 +96,18 @@ templ userPDFs(page *internal.PlayPage) {
 				Game:
 				<select
 					name="game_id"
-					@change="view = ($event.target.value === $store.game?.id) ? 'list_item_with_game_and_owner' : 'list_item_with_game'"
+					@change="view = ($event.target.value === $store.game.id) ? 'list_item_with_game_and_owner' : 'list_item_with_game'"
 				>
 					<option value="">None</option>
 					for _, game := range slices.Concat(page.Session.User.HostedGames, page.Session.User.JoinedGames) {
-						<option value={ S(game.ID) }>{ game.Name }</option>
+						<option
+							value={ S(game.ID) }
+							if page.Game != nil && game.ID == page.Game.ID {
+								selected
+							}
+						>
+							{ game.Name }
+						</option>
 					}
 				</select>
 			</label>
@@ -93,22 +120,4 @@ templ userPDFs(page *internal.PlayPage) {
 			<input type="submit" value="Create"/>
 		</form>
 	}
-}
-
-templ gamePDFs(page *internal.PlayPage) {
-	if page.Game != nil {
-		<table>
-			<caption>
-				Character Sheets
-				<button class="icon-btn" @click="$dispatch('show-create-pdf-for-game-modal')">
-					<iconify-icon icon="material-symbols:add"></iconify-icon>
-				</button>
-			</caption>
-			<tbody>
-				for _, pdf := range page.Game.PDFs {
-					@games.PDFTableRow(pdf, true)
-				}
-			</tbody>
-		</table>
-    }
 }

@@ -1,6 +1,7 @@
 package games
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -99,7 +100,7 @@ func (h *handler) handleCreatePDF(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pdf, err = h.svc.GetPDF(r.Context(), pdf.ID, internal.PDFView(r.URL.Query().Get("view")))
+	pdf, err = h.svc.GetPDF(r.Context(), pdf.ID, internal.PDFView(r.FormValue("view")))
 	if err != nil {
 		h.Err(w, r, errors.Wrap(err, "cannot get pdf"))
 		return
@@ -132,5 +133,6 @@ func (h *handler) handleDeletePDF(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("HX-Trigger", fmt.Sprintf(`{"deleted-pdf": {"pdf_id": "%s"}}`, pdfID))
 	w.WriteHeader(http.StatusOK)
 }

@@ -1,14 +1,17 @@
-import { GlobalWorkerOptions, PDFDocumentProxy, PDFPageProxy, getDocument } from "pdfjs-dist"
-import { EventBus, PDFPageView } from "pdfjs-dist/web/pdf_viewer"
+import Alpine from "alpinejs";
 import panzoom from "panzoom"
 import htmx from "htmx.org";
+
+import { GlobalWorkerOptions, PDFDocumentProxy, PDFPageProxy, getDocument } from "pdfjs-dist"
+import { EventBus, PDFPageView } from "pdfjs-dist/web/pdf_viewer"
+
 
 GlobalWorkerOptions.workerSrc = "static/pdf.worker.js"
 
 const pdfDocuments = {}
 const pdfViews = {}
 
-window.alpine.data("pdfViewer", (pdfID: string, pdfSchema: string) => ({
+Alpine.data("pdfViewer", (pdfID: string, pdfSchema: string) => ({
     currentPage: 0,
 
     async init(): Promise<void> {

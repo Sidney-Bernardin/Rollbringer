@@ -31,7 +31,7 @@ func pdfColumns(view internal.PDFView) string {
 	case internal.PDFViewListItemWithGameAndOwner:
 		return `pdfs.id, pdfs.owner_id, pdfs.game_id, pdfs.name, pdfs.schema,` +
 			`games.id AS "game.id",` +
-			`COALESCE(games.name, '') AS "game.name,"` +
+			`COALESCE(games.name, '') AS "game.name",` +
 			`users.id AS "owner.id",` +
 			`users.username AS "owner.username",` +
 			`users.google_id AS "owner.google_id"`

@@ -17,7 +17,7 @@ templ NewPDFTableRow(pdf *internal.PDF) {
 }
 
 templ PDFTableRow(pdf *internal.PDF, showUsername bool) {
-	<tr x-data data-pdf-id={ pdf.ID.String() }>
+	<tr x-data data-pdf-id={ pdf.ID.String() } @deleted-pdf.window="($event.detail.pdf_id == $el.dataset.pdfId) && $el.remove()">
 		<td>
 			<button
 				class="underline-btn"
@@ -36,11 +36,7 @@ templ PDFTableRow(pdf *internal.PDF, showUsername bool) {
 			}
 		</td>
 		<td>
-			<button
-				class="icon-btn"
-				:hx-delete="`/games/pdfs/${$root.dataset.pdfId}`"
-				hx-target="closest tr"
-			>
+			<button class="icon-btn" :hx-delete="`/games/pdfs/${$root.dataset.pdfId}`" hx-swap="none">
 				<iconify-icon icon="material-symbols:delete"></iconify-icon>
 			</button>
 			<button class="icon-btn">
