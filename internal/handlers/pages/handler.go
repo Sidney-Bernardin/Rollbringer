@@ -43,16 +43,24 @@ func (h *handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) handlePlay(w http.ResponseWriter, r *http.Request) {
-	var session, _ = r.Context().Value(internal.CtxKeySession).(*internal.Session)
 
-	var game *internal.Game
-	if gameID := internal.OptionalUUID(r.URL.Query().Get("g")); gameID != nil {
-		game = &internal.Game{ID: *gameID}
-	}
+	var (
+		ctx        = r.Context()
+		session, _ = ctx.Value(internal.CtxKeySession).(*internal.Session)
+	)
 
 	page := &internal.PlayPage{
 		Session: session,
-		Game:    game,
+	}
+
+	gameID, err := internal.OptionalID(ctx, r.URL.Query().Get("g"))
+	if err != nil {
+		h.Err(w, r, errors.Wrap(err, "cannot parse game-id"))
+		return
+	}
+
+	if gameID != nil {
+		page.Game = &internal.Game{ID: *gameID}
 	}
 
 	if err := h.svc.PlayPage(r.Context(), page); err != nil {

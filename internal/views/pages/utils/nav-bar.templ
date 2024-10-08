@@ -23,9 +23,11 @@ templ NavBar(page *internal.PlayPage) {
 			<table>
 				<caption>
 					Your Games 
-					<button class="icon-btn" @click="$root.close(); $dispatch('show-create-game-modal')">
-						<iconify-icon icon="material-symbols:add"></iconify-icon>
-					</button>
+					<ul>
+						<button class="icon-btn" @click="$root.close(); $dispatch('show-create-game-modal')">
+							<iconify-icon icon="material-symbols:add"></iconify-icon>
+						</button>
+					</ul>
 				</caption>
 				<tbody>
 					for _, game := range page.Session.User.HostedGames {
@@ -45,7 +47,7 @@ templ NavBar(page *internal.PlayPage) {
 			</table>
 		}
 		@Modal("create-game-modal", "Create Game", "show-create-game-modal") {
-			<form hx-post="/games/games" hx-target=".games-modal tbody" hx-swap="beforeend">
+			<form class="nice-form" hx-post="/games/games" hx-target=".games-modal tbody" hx-swap="beforeend">
 				<label for="name">
 					Name:
 					<input type="text" name="name"/>

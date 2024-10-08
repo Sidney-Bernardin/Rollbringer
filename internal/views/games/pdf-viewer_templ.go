@@ -34,14 +34,14 @@ func PDFViewer(pdf *internal.PDF, pages []string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"pdf-viewer\" data-pdf-id=\"")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"pdf-viewer\" x-data=\"pdfViewer($el.dataset.pdfId, $el.dataset.pdfSchema)\" data-pdf-id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(pdf.ID.String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `games/pdf-viewer.templ`, Line: 14, Col: 31}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `games/pdf-viewer.templ`, Line: 15, Col: 31}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -54,13 +54,13 @@ func PDFViewer(pdf *internal.PDF, pages []string) templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(pdf.Schema)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `games/pdf-viewer.templ`, Line: 15, Col: 30}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `games/pdf-viewer.templ`, Line: 16, Col: 30}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" x-data=\"pdfViewer($el.dataset.pdfId, $el.dataset.pdfSchema)\"><div class=\"update-pdf-info\"><input type=\"hidden\" name=\"EVENT\" value=\"UPDATE_PDF_PAGE_REQUEST\"> <input type=\"hidden\" name=\"pdf_id\" :value=\"$root.dataset.pdfId\"> <input type=\"hidden\" name=\"page_num\" :value=\"currentPage\"></div><form ws-send x-ref=\"subscribe_form\"><input type=\"hidden\" name=\"EVENT\" value=\"SUB_TO_PDF_REQUEST\"> <input type=\"hidden\" name=\"pdf_id\" :value=\"$root.dataset.pdfId\"> <input type=\"hidden\" name=\"page_num\" :value=\"currentPage\"></form><div class=\"page-buttons\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" @deleted-pdf.window=\"($event.detail.pdf_id == $el.dataset.pdfId) &amp;&amp; $el.remove()\"><div class=\"update-pdf-info\"><input type=\"hidden\" name=\"EVENT\" value=\"UPDATE_PDF_PAGE_REQUEST\"> <input type=\"hidden\" name=\"pdf_id\" :value=\"$root.dataset.pdfId\"> <input type=\"hidden\" name=\"page_num\" :value=\"currentPage\"></div><form ws-send x-ref=\"subscribe_form\"><input type=\"hidden\" name=\"EVENT\" value=\"SUB_TO_PDF_REQUEST\"> <input type=\"hidden\" name=\"pdf_id\" :value=\"$root.dataset.pdfId\"> <input type=\"hidden\" name=\"page_num\" :value=\"currentPage\"></form><div class=\"page-buttons\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -72,7 +72,7 @@ func PDFViewer(pdf *internal.PDF, pages []string) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(i + 1))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `games/pdf-viewer.templ`, Line: 34, Col: 38}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `games/pdf-viewer.templ`, Line: 35, Col: 38}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -85,7 +85,7 @@ func PDFViewer(pdf *internal.PDF, pages []string) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(page)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `games/pdf-viewer.templ`, Line: 37, Col: 11}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `games/pdf-viewer.templ`, Line: 38, Col: 11}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -157,7 +157,7 @@ func pdfViewerField(pdfID uuid.UUID, name, value string) templ.Component {
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(F("outerHTML:.pdf-viewer[data-pdf-id='%s'] #%s", pdfID, name))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `games/pdf-viewer.templ`, Line: 55, Col: 81}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `games/pdf-viewer.templ`, Line: 56, Col: 81}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -175,7 +175,7 @@ func pdfViewerField(pdfID uuid.UUID, name, value string) templ.Component {
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `games/pdf-viewer.templ`, Line: 58, Col: 13}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `games/pdf-viewer.templ`, Line: 59, Col: 13}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -188,7 +188,7 @@ func pdfViewerField(pdfID uuid.UUID, name, value string) templ.Component {
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(value)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `games/pdf-viewer.templ`, Line: 60, Col: 17}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `games/pdf-viewer.templ`, Line: 61, Col: 17}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -201,7 +201,7 @@ func pdfViewerField(pdfID uuid.UUID, name, value string) templ.Component {
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(value)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `games/pdf-viewer.templ`, Line: 64, Col: 11}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `games/pdf-viewer.templ`, Line: 65, Col: 11}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
@@ -219,7 +219,7 @@ func pdfViewerField(pdfID uuid.UUID, name, value string) templ.Component {
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(fieldType)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `games/pdf-viewer.templ`, Line: 68, Col: 20}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `games/pdf-viewer.templ`, Line: 69, Col: 20}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
@@ -232,7 +232,7 @@ func pdfViewerField(pdfID uuid.UUID, name, value string) templ.Component {
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `games/pdf-viewer.templ`, Line: 69, Col: 13}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `games/pdf-viewer.templ`, Line: 70, Col: 13}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
@@ -245,7 +245,7 @@ func pdfViewerField(pdfID uuid.UUID, name, value string) templ.Component {
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(value)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `games/pdf-viewer.templ`, Line: 71, Col: 17}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `games/pdf-viewer.templ`, Line: 72, Col: 17}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {

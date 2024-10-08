@@ -45,6 +45,7 @@ func NewHandler(cfg *config.Config, logger *slog.Logger, svc service.Service) ht
 
 		r.Post("/pdfs", h.handleCreatePDF)
 		r.Get("/pdfs/{pdf_id}", h.handleGetPDF)
+		r.Put("/pdfs/{pdf_id}", h.handleUpdatePDF)
 		r.Delete("/pdfs/{pdf_id}", h.handleDeletePDF)
 	})
 
@@ -54,13 +55,15 @@ func NewHandler(cfg *config.Config, logger *slog.Logger, svc service.Service) ht
 func (h *handler) handleCreateGame(w http.ResponseWriter, r *http.Request) {
 
 	var (
-		session, _ = r.Context().Value(internal.CtxKeySession).(*internal.Session)
+		ctx = r.Context()
+
+		session, _ = ctx.Value(internal.CtxKeySession).(*internal.Session)
 		game       = &internal.Game{
 			Name: r.FormValue("name"),
 		}
 	)
 
-	if err := h.svc.CreateGame(r.Context(), session, game); err != nil {
+	if err := h.svc.CreateGame(ctx, session, game); err != nil {
 		h.Err(w, r, errors.Wrap(err, "cannot create game"))
 		return
 	}
@@ -71,11 +74,13 @@ func (h *handler) handleCreateGame(w http.ResponseWriter, r *http.Request) {
 func (h *handler) handleDeleteGame(w http.ResponseWriter, r *http.Request) {
 
 	var (
-		session, _ = r.Context().Value(internal.CtxKeySession).(*internal.Session)
+		ctx = r.Context()
+
+		session, _ = ctx.Value(internal.CtxKeySession).(*internal.Session)
 		gameID, _  = uuid.Parse(chi.URLParam(r, "game_id"))
 	)
 
-	if err := h.svc.DeleteGame(r.Context(), session, gameID); err != nil {
+	if err := h.svc.DeleteGame(ctx, session, gameID); err != nil {
 		h.Err(w, r, errors.Wrap(err, "cannot delete game"))
 		return
 	}
@@ -86,33 +91,40 @@ func (h *handler) handleDeleteGame(w http.ResponseWriter, r *http.Request) {
 func (h *handler) handleCreatePDF(w http.ResponseWriter, r *http.Request) {
 
 	var (
-		session, _ = r.Context().Value(internal.CtxKeySession).(*internal.Session)
-		pdf        = &internal.PDF{
-			GameID: internal.OptionalUUID(r.FormValue("game_id")),
-			Name:   r.FormValue("name"),
-			Schema: r.FormValue("schema"),
-		}
+		ctx        = r.Context()
+		session, _ = ctx.Value(internal.CtxKeySession).(*internal.Session)
 	)
 
-	err := h.svc.CreatePDF(r.Context(), session, pdf)
+	gameID, err := internal.OptionalID(ctx, r.FormValue("game_id"))
 	if err != nil {
+		h.Err(w, r, errors.Wrap(err, "cannot parse game-id"))
+		return
+	}
+
+	pdf := &internal.PDF{
+		GameID: gameID,
+		Name:   r.FormValue("name"),
+		Schema: r.FormValue("schema"),
+	}
+
+	if err = h.svc.CreatePDF(ctx, session, pdf); err != nil {
 		h.Err(w, r, errors.Wrap(err, "cannot create pdf"))
 		return
 	}
 
-	pdf, err = h.svc.GetPDF(r.Context(), pdf.ID, internal.PDFView(r.FormValue("view")))
+	pdf, err = h.svc.GetPDF(ctx, pdf.ID, internal.PDFView(r.URL.Query().Get("view")))
 	if err != nil {
 		h.Err(w, r, errors.Wrap(err, "cannot get pdf"))
 		return
 	}
 
-	h.Render(w, r, http.StatusCreated, games.NewPDFTableRow(pdf))
+	h.Render(w, r, http.StatusCreated, games.PDFTableRow(pdf, true))
 }
 
 func (h *handler) handleGetPDF(w http.ResponseWriter, r *http.Request) {
 	var pdfID, _ = uuid.Parse(chi.URLParam(r, "pdf_id"))
 
-	pdf, err := h.svc.GetPDF(r.Context(), pdfID, "pdf-all")
+	pdf, err := h.svc.GetPDF(r.Context(), pdfID, "")
 	if err != nil {
 		h.Err(w, r, errors.Wrap(err, "cannot get pdf"))
 		return
@@ -121,18 +133,49 @@ func (h *handler) handleGetPDF(w http.ResponseWriter, r *http.Request) {
 	h.Render(w, r, http.StatusOK, games.PDFTab(pdf))
 }
 
+func (h *handler) handleUpdatePDF(w http.ResponseWriter, r *http.Request) {
+
+	var (
+		ctx = r.Context()
+
+		session, _ = ctx.Value(internal.CtxKeySession).(*internal.Session)
+		pdfID, _   = uuid.Parse(chi.URLParam(r, "pdf_id"))
+		view       = internal.PDFView(r.URL.Query().Get("view"))
+	)
+
+	err := h.svc.UpdatePDF(ctx, session, &internal.PDF{
+		ID:   pdfID,
+		Name: r.FormValue("name"),
+	})
+
+	if err != nil {
+		h.Err(w, r, errors.Wrap(err, "cannot update pdf"))
+		return
+	}
+
+	pdf, err := h.svc.GetPDF(ctx, pdfID, view)
+	if err != nil {
+		h.Err(w, r, errors.Wrap(err, "cannot get pdf"))
+		return
+	}
+
+	h.Render(w, r, http.StatusOK, games.PDFTableRow(pdf, true))
+}
+
 func (h *handler) handleDeletePDF(w http.ResponseWriter, r *http.Request) {
 
 	var (
-		session, _ = r.Context().Value(internal.CtxKeySession).(*internal.Session)
+		ctx = r.Context()
+
+		session, _ = ctx.Value(internal.CtxKeySession).(*internal.Session)
 		pdfID, _   = uuid.Parse(chi.URLParam(r, "pdf_id"))
 	)
 
-	if err := h.svc.DeletePDF(r.Context(), session, pdfID); err != nil {
+	if err := h.svc.DeletePDF(ctx, session, pdfID); err != nil {
 		h.Err(w, r, errors.Wrap(err, "cannot delete pdf"))
 		return
 	}
 
-	w.Header().Set("HX-Trigger", fmt.Sprintf(`{"deleted-pdf": {"pdf_id": "%s"}}`, pdfID))
+	w.Header().Set("HX-Trigger", fmt.Sprintf(`remove-tab-%s, deleted-pdf-%s`, pdfID, pdfID))
 	w.WriteHeader(http.StatusOK)
 }

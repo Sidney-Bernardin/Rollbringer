@@ -129,9 +129,7 @@ type Game struct {
 type PDFView string
 
 const (
-	PDFViewListItemWithGame         PDFView = "list_item_with_game"
-	PDFViewListItemWithOwner        PDFView = "list_item_with_owner"
-	PDFViewListItemWithGameAndOwner PDFView = "list_item_with_game_and_owner"
+	PDFViewListItem PDFView = "list_item"
 
 	EventPDF  Event = "PDF"
 	EventPDFs Event = "PDFS"

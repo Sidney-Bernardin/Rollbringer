@@ -1,6 +1,6 @@
-@use "colors.scss" as *;
+@use "../colors.scss" as *;
 
-@mixin basic-form {
+.nice-form {
   display: flex;
   flex-direction: column;
   gap: 5px;

@@ -1,10 +1,8 @@
 @use "../../colors.scss" as *;
 @use "../../general/index.scss" as *;
-@use "../../mixins.scss" as *;
 
 @use "nav-bar.scss" as *;
 @use "social.scss" as *;
-@use "play-materials.scss" as *;
 
 * {
   box-sizing: border-box;
@@ -27,10 +25,6 @@ body {
   }
 }
 
-.create-pdf-modal .wrapper form {
-  @include basic-form;
-}
-
 .play-layout {
   position: relative;
   display: grid;
@@ -47,10 +41,10 @@ body {
     " pdfs     g2 play_materials g3    social";
   padding: 10px;
 
-  .pdfs,
+  .pdfs-tab-container,
   .maps,
   .social,
-  .play-materials {
+  .play-materials-tab-container {
     overflow: auto;
   }
 

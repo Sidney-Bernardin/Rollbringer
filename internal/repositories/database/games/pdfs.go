@@ -17,18 +17,7 @@ import (
 
 func pdfColumns(view internal.PDFView) string {
 	switch view {
-	case internal.PDFViewListItemWithGame:
-		return `pdfs.id, pdfs.owner_id, pdfs.game_id, pdfs.name, pdfs.schema,` +
-			`games.id AS "game.id",` +
-			`COALESCE(games.name, '') AS "game.name"`
-
-	case internal.PDFViewListItemWithOwner:
-		return `pdfs.id, pdfs.owner_id, pdfs.game_id, pdfs.name, pdfs.schema,` +
-			`users.id AS "owner.id",` +
-			`users.username AS "owner.username",` +
-			`users.google_id AS "owner.google_id"`
-
-	case internal.PDFViewListItemWithGameAndOwner:
+	case internal.PDFViewListItem:
 		return `pdfs.id, pdfs.owner_id, pdfs.game_id, pdfs.name, pdfs.schema,` +
 			`games.id AS "game.id",` +
 			`COALESCE(games.name, '') AS "game.name",` +
@@ -43,11 +32,7 @@ func pdfColumns(view internal.PDFView) string {
 
 func pdfJoins(view internal.PDFView) string {
 	switch view {
-	case internal.PDFViewListItemWithGame:
-		return `LEFT JOIN games.games ON games.id = pdfs.game_id`
-	case internal.PDFViewListItemWithOwner:
-		return `LEFT JOIN users.users ON users.id = pdfs.owner_id`
-	case internal.PDFViewListItemWithGameAndOwner:
+	case internal.PDFViewListItem:
 		return `LEFT JOIN games.games ON games.id = pdfs.game_id LEFT JOIN users.users ON users.id = pdfs.owner_id`
 	default:
 		return ``
@@ -162,10 +147,54 @@ func (db *gamesSchema) PDFsGetByGame(ctx context.Context, gameID uuid.UUID, view
 	return ret, nil
 }
 
+func (db *gamesSchema) PDFUpdate(ctx context.Context, session *internal.Session, pdf *internal.PDF) error {
+	var sets string
+
+	if pdf.Name != "" {
+		sets += `SET name = :name`
+	}
+
+	if sets == "" {
+		return nil
+	}
+
+	query := fmt.Sprintf(`UPDATE games.pdfs %s WHERE id = :id AND owner_id = :owner_id`, sets)
+	result, err := sqlx.NamedExecContext(ctx, db.TX, query, map[string]any{
+		"name":     pdf.Name,
+		"id":       pdf.ID,
+		"owner_id": session.UserID,
+	})
+
+	if err != nil {
+		return errors.Wrap(err, "cannot update PDF")
+	}
+
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "cannot check affected rows")
+	}
+
+	if affected <= 0 {
+		return internal.NewProblemDetail(ctx, internal.PDOpts{
+			Type:   internal.PDTypePDFNotFound,
+			Detail: "Cannot find a PDF with the given pdf_id.",
+			Extra: map[string]any{
+				"pdf_id": pdf.ID,
+			},
+		})
+	}
+
+	return nil
+}
+
 func (db *gamesSchema) PDFUpdatePage(ctx context.Context, pdfID uuid.UUID, pageNum int, fieldName, fieldValue string) error {
 	result, err := db.TX.ExecContext(ctx,
 		`UPDATE games.pdfs SET pages[$1] = pages[$1] || hstore($2, $3) WHERE id = $4`,
 		pageNum, fieldName, fieldValue, pdfID)
+
+	if err != nil {
+		return errors.Wrap(err, "cannot update PDF page")
+	}
 
 	affected, err := result.RowsAffected()
 	if err != nil {
@@ -182,7 +211,7 @@ func (db *gamesSchema) PDFUpdatePage(ctx context.Context, pdfID uuid.UUID, pageN
 		})
 	}
 
-	return errors.Wrap(err, "cannot update PDF page")
+	return nil
 }
 
 func (db *gamesSchema) PDFDelete(ctx context.Context, pdfID, ownerID uuid.UUID) error {

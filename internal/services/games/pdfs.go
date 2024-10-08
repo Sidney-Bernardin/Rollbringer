@@ -26,6 +26,11 @@ func (svc *service) GetPDFPage(ctx context.Context, pdfID uuid.UUID, pageNum int
 	return pageFields, errors.Wrap(err, "cannot get PDF page")
 }
 
+func (svc *service) UpdatePDF(ctx context.Context, session *internal.Session, pdf *internal.PDF) error {
+	err := svc.schema.PDFUpdate(ctx, session, pdf)
+	return errors.Wrap(err, "cannot update PDF")
+}
+
 func (svc *service) UpdatePDFPage(ctx context.Context, pdfID uuid.UUID, pageNum int, fieldName, fieldValue string) error {
 	err := svc.schema.PDFUpdatePage(ctx, pdfID, pageNum, fieldName, fieldValue)
 	return errors.Wrap(err, "cannot update PDF page")

@@ -14,6 +14,7 @@ import (
 var problemDetailStatusCodes = map[internal.PDType]int{
 	internal.PDTypeServerError:  http.StatusInternalServerError,
 	internal.PDTypeUnauthorized: http.StatusUnauthorized,
+	internal.PDTypeInvalidID:    http.StatusBadRequest,
 	internal.PDTypeInvalidView:  http.StatusBadRequest,
 	internal.PDTypeInvalidEvent: http.StatusBadRequest,
 	internal.PDTypeInvalidJSON:  http.StatusBadRequest,

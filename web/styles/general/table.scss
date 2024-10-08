@@ -12,12 +12,25 @@ table {
     font-weight: bolder;
     text-align: left;
 
-    button {
+    ul {
       position: absolute;
-      top: 50%;
+      display: flex;
+      top: 0;
       right: 0;
-      font-size: 1.5rem;
-      transform: translateY(-50%);
+      gap: 5px;
+      height: 100%;
+      align-items: center;
+
+      button {
+        height: calc(1.5rem + 4px);
+        font-size: 1.5rem;
+
+        &.toggled {
+          border: 2px solid $green2;
+          color: $bg2;
+          background: $green1;
+        }
+      }
     }
   }
 
@@ -47,5 +60,9 @@ table {
         }
       }
     }
+  }
+
+  tr.is-owner td:nth-child(2) {
+    color: $green1;
   }
 }

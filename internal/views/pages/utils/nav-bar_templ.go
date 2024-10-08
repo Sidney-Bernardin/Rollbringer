@@ -72,7 +72,7 @@ func NavBar(page *internal.PlayPage) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<table><caption>Your Games  <button class=\"icon-btn\" @click=\"$root.close(); $dispatch(&#39;show-create-game-modal&#39;)\"><iconify-icon icon=\"material-symbols:add\"></iconify-icon></button></caption> <tbody>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<table><caption>Your Games <ul><button class=\"icon-btn\" @click=\"$root.close(); $dispatch(&#39;show-create-game-modal&#39;)\"><iconify-icon icon=\"material-symbols:add\"></iconify-icon></button></ul></caption> <tbody>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -114,7 +114,7 @@ func NavBar(page *internal.PlayPage) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form hx-post=\"/games/games\" hx-target=\".games-modal tbody\" hx-swap=\"beforeend\"><label for=\"name\">Name: <input type=\"text\" name=\"name\"></label><input type=\"submit\" value=\"Create\"></form>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form class=\"nice-form\" hx-post=\"/games/games\" hx-target=\".games-modal tbody\" hx-swap=\"beforeend\"><label for=\"name\">Name: <input type=\"text\" name=\"name\"></label><input type=\"submit\" value=\"Create\"></form>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

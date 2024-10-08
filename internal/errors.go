@@ -14,6 +14,8 @@ const CtxKeyInstance CtxKey = "instance"
 const (
 	PDTypeServerError  PDType = "server_error"
 	PDTypeUnauthorized PDType = "unauthorized"
+
+	PDTypeInvalidID    PDType = "invalid_id"
 	PDTypeInvalidView  PDType = "invalid_view"
 	PDTypeInvalidEvent PDType = "invalid_event"
 	PDTypeInvalidJSON  PDType = "invalid_json"

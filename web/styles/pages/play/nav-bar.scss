@@ -1,5 +1,4 @@
 @use "../../colors.scss" as *;
-@use "../../mixins.scss" as *;
 
 .nav-bar {
   position: relative;
@@ -36,10 +35,6 @@
       border: none;
       margin-top: 0;
     }
-  }
-
-  .create-game-modal .wrapper form {
-    @include basic-form;
   }
 
   .roll-calculator {

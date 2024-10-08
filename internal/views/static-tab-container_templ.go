@@ -44,32 +44,32 @@ func StaticTabContainer(class string, tabNames ...string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" data-default-tab=\"")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" x-data=\"{ currentStaticTab: $el.dataset.defaultTab }\" data-default-tab=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(tabNames[0])
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `static-tab-container.templ`, Line: 6, Col: 32}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `static-tab-container.templ`, Line: 7, Col: 32}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" x-data=\"{\n            currentStaticTab: $el.dataset.defaultTab,\n        }\"><div class=\"buttons\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><div class=\"buttons\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		for _, name := range tabNames {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<button :class=\"(currentStaticTab === $el.innerText) &amp;&amp; &#39;active&#39;\" @click=\"currentStaticTab = $el.innerText\">")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<button :class=\"(currentStaticTab === $el.innerText) &amp;&amp; &#39;active&#39;\" x-init=\"!document.querySelector(`[data-tab-name=&#39;${$el.innerText}&#39;]`) &amp;&amp; $el.remove()\" @click=\"currentStaticTab = $el.innerText\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `static-tab-container.templ`, Line: 17, Col: 11}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `static-tab-container.templ`, Line: 16, Col: 11}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -139,7 +139,7 @@ func StaticTabContent(class, tabName string) templ.Component {
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(tabName)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `static-tab-container.templ`, Line: 30, Col: 25}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `static-tab-container.templ`, Line: 29, Col: 25}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {

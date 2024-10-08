@@ -93,20 +93,30 @@ func DynamicTabButton(name, tabID string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" :class=\"(currentDynamicTab === $el.dataset.tabId) &amp;&amp; &#39;active&#39;\" @click=\"currentDynamicTab = $el.dataset.tabId\" @remove-tab=\"$el.remove()\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" :class=\"(currentDynamicTab === $el.dataset.tabId) &amp;&amp; &#39;active&#39;\" @click=\"currentDynamicTab = $el.dataset.tabId\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templ.RenderAttributes(ctx, templ_7745c5c3_Buffer, templ.Attributes{
+			"@remove-tab-" + tabID + ".window": "$el.remove()",
+		})
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `dynamic-tab-container.templ`, Line: 27, Col: 8}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `dynamic-tab-container.templ`, Line: 29, Col: 8}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<p @click=\"$dispatch(&#39;remove-tab&#39;, { tabID: $el.parentElement.dataset.tabId })\"><iconify-icon icon=\"material-symbols:close\"></iconify-icon></p></button>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<p @click=\"$dispatch(`remove-tab-${$el.parentElement.dataset.tabId}`)\"><iconify-icon icon=\"material-symbols:close\"></iconify-icon></p></button>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -139,13 +149,23 @@ func DynamicTabContent(tabID string) templ.Component {
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(tabID)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `dynamic-tab-container.templ`, Line: 37, Col: 21}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `dynamic-tab-container.templ`, Line: 39, Col: 21}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" x-show=\"currentDynamicTab === $el.dataset.tabId\" @remove-tab.window=\"($event.detail.tabID === $el.dataset.tabId) &amp;&amp; $el.remove()\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" x-show=\"currentDynamicTab === $el.dataset.tabId\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templ.RenderAttributes(ctx, templ_7745c5c3_Buffer, templ.Attributes{
+			"@remove-tab-" + tabID + ".window": "$el.remove()",
+		})
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

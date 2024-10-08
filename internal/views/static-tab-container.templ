@@ -3,15 +3,14 @@ package views
 templ StaticTabContainer(class string, tabNames ...string) {
 	<div
 		class={ "static-tab-container", class }
+		x-data="{ currentStaticTab: $el.dataset.defaultTab }"
 		data-default-tab={ tabNames[0] }
-		x-data="{
-            currentStaticTab: $el.dataset.defaultTab,
-        }"
 	>
 		<div class="buttons">
 			for _, name := range tabNames {
 				<button
 					:class="(currentStaticTab === $el.innerText) && 'active'"
+                    x-init="!document.querySelector(`[data-tab-name='${$el.innerText}']`) && $el.remove()"
 					@click="currentStaticTab = $el.innerText"
 				>
 					{ name }

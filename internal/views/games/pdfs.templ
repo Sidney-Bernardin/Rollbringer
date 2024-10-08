@@ -5,19 +5,23 @@ import (
 	. "rollbringer/internal/views"
 )
 
-templ NewPDFTableRow(pdf *internal.PDF) {
-	<tbody hx-swap-oob="beforeend:.user-pdfs tbody">
-		@PDFTableRow(pdf, false)
-	</tbody>
-	if pdf.Game != nil {
-		<tbody hx-swap-oob="beforeend:.game-pdfs tbody">
-			@PDFTableRow(pdf, true)
-		</tbody>
-	}
-}
-
-templ PDFTableRow(pdf *internal.PDF, showUsername bool) {
-	<tr x-data data-pdf-id={ pdf.ID.String() } @deleted-pdf.window="($event.detail.pdf_id == $el.dataset.pdfId) && $el.remove()">
+templ PDFTableRow(pdf *internal.PDF, isOwner bool) {
+	<tr
+		x-data
+		data-pdf-id={ pdf.ID.String() }
+		if pdf.GameID != nil {
+			data-pdf-game-id={ pdf.GameID.String() }
+		}
+		{ templ.Attributes{
+            "@deleted-pdf-"+pdf.ID.String()+".window": "$el.remove()",
+        } ... }
+		if isOwner {
+            class="is-owner"
+			:style="$el.dataset.pdfGameId != $store.game.id && !showLibrary && { display: 'none' }"
+		} else {
+			:style="showLibrary && { display: 'none' }"
+		}
+	>
 		<td>
 			<button
 				class="underline-btn"
@@ -29,19 +33,25 @@ templ PDFTableRow(pdf *internal.PDF, showUsername bool) {
 			</button>
 		</td>
 		<td>
-			if showUsername {
-				{ pdf.Owner.Username }
-			} else if pdf.Game != nil {
-				{ pdf.Game.Name }
-			}
+			{ pdf.Owner.Username }
 		</td>
 		<td>
 			<button class="icon-btn" :hx-delete="`/games/pdfs/${$root.dataset.pdfId}`" hx-swap="none">
 				<iconify-icon icon="material-symbols:delete"></iconify-icon>
 			</button>
-			<button class="icon-btn">
+			<button class="icon-btn" @click="$dispatch(`show-edit-pdf-modal-${$root.dataset.pdfId}`)">
 				<iconify-icon icon="material-symbols:edit"></iconify-icon>
 			</button>
+			@Modal("edit-pdf-modal", "Edit PDF", "show-edit-pdf-modal-"+pdf.ID.String()) {
+				<form class="nice-form" hx-put={ F("/games/pdfs/%s", pdf.ID) }>
+					<label for="name">
+						Name:
+						<input type="text" name="name" placeholder={ pdf.Name }/>
+					</label>
+					//
+					<input type="submit" value="Save"/>
+				</form>
+			}
 		</td>
 	</tr>
 }

@@ -11,9 +11,10 @@ import (
 templ PDFViewer(pdf *internal.PDF, pages []string) {
 	<div
 		class="pdf-viewer"
+		x-data="pdfViewer($el.dataset.pdfId, $el.dataset.pdfSchema)"
 		data-pdf-id={ pdf.ID.String() }
 		data-pdf-schema={ pdf.Schema }
-		x-data="pdfViewer($el.dataset.pdfId, $el.dataset.pdfSchema)"
+		@deleted-pdf.window="($event.detail.pdf_id == $el.dataset.pdfId) && $el.remove()"
 	>
 		<div class="update-pdf-info">
 			<input type="hidden" name="EVENT" value="UPDATE_PDF_PAGE_REQUEST"/>

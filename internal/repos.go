@@ -42,6 +42,7 @@ type GamesSchema interface {
 	PDFGetPage(ctx context.Context, pdfID uuid.UUID, pageNum int) (map[string]string, error)
 	PDFsGetByOwner(ctx context.Context, ownerID uuid.UUID, view PDFView) ([]*PDF, error)
 	PDFsGetByGame(ctx context.Context, gameID uuid.UUID, view PDFView) ([]*PDF, error)
+	PDFUpdate(ctx context.Context, session *Session, pdf *PDF) error
 	PDFUpdatePage(ctx context.Context, pdfID uuid.UUID, pageNum int, fieldName, fieldValue string) error
 	PDFDelete(ctx context.Context, pdfID, ownerID uuid.UUID) error
 

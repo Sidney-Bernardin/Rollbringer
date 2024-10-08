@@ -22,10 +22,12 @@ templ DynamicTabButton(name, tabID string) {
 		data-tab-id={ tabID }
 		:class="(currentDynamicTab === $el.dataset.tabId) && 'active'"
 		@click="currentDynamicTab = $el.dataset.tabId"
-		@remove-tab="$el.remove()"
+		{ templ.Attributes{
+            "@remove-tab-"+tabID+".window": "$el.remove()",
+        } ... }
 	>
 		{ name }
-		<p @click="$dispatch('remove-tab', { tabID: $el.parentElement.dataset.tabId })">
+		<p @click="$dispatch(`remove-tab-${$el.parentElement.dataset.tabId}`)">
 			<iconify-icon icon="material-symbols:close"></iconify-icon>
 		</p>
 	</button>
@@ -36,7 +38,9 @@ templ DynamicTabContent(tabID string) {
 		class="dynamic-tab-content"
 		data-tab-id={ tabID }
 		x-show="currentDynamicTab === $el.dataset.tabId"
-		@remove-tab.window="($event.detail.tabID === $el.dataset.tabId) && $el.remove()"
+		{ templ.Attributes{
+            "@remove-tab-"+tabID+".window": "$el.remove()",
+        } ... }
 	>
 		{ children... }
 	</div>
