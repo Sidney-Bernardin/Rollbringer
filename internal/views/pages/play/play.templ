@@ -37,7 +37,7 @@ templ Play(page *internal.PlayPage) {
 								<ul>
 									if page.Game != nil {
 										<button :class="{ 'icon-btn': true, 'show-library': showLibrary }" @click="showLibrary = !showLibrary">
-											<iconify-icon icon="ph:swap"></iconify-icon>
+											<iconify-icon icon="mdi:library"></iconify-icon>
 										</button>
 									}
 									<button class="icon-btn" @click="$dispatch('show-create-pdf-modal')">
@@ -46,6 +46,12 @@ templ Play(page *internal.PlayPage) {
 								</ul>
 							</caption>
 							<tbody>
+								<tr>
+									<th></th>
+									<th>owner</th>
+									<th x-show="showLibrary">game</th>
+									<th x-show="!showLibrary">visibility</th>
+								</tr>
 								for _, pdf := range page.Session.User.PDFs {
 									@games.PDFTableRow(pdf, true)
 								}

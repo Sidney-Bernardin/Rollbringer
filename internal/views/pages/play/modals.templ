@@ -56,6 +56,10 @@ templ gamesModal(page *internal.PlayPage) {
 				</ul>
 			</caption>
 			<tbody>
+				<tr>
+					<th></th>
+					<th>players</th>
+				</tr>
 				for _, game := range page.Session.User.HostedGames {
 					@games.HostedGameRow(game)
 				}

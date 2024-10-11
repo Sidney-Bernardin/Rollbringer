@@ -14,7 +14,7 @@ import (
 
 func (db *gamesSchema) RollInsert(ctx context.Context, roll *internal.Roll) error {
 	err := db.TX.QueryRowxContext(ctx,
-		`INSERT INTO games.rolls (id, owner_id, game_id, dice_names, dice_results, modifiers)
+		`INSERT INTO games.rolls (id, owner_id, game_id, dice_types, dice_results, modifiers)
 			VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING id`,
 		uuid.New(), roll.OwnerID, roll.GameID, pq.Array(roll.DiceTypes), pq.Array(roll.DiceResults), roll.Modifiers,

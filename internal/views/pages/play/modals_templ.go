@@ -135,7 +135,7 @@ func gamesModal(page *internal.PlayPage) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<table><caption>Your Games <ul><button class=\"icon-btn\" @click=\"$root.close(); $dispatch(&#39;show-create-game-modal&#39;)\"><iconify-icon icon=\"material-symbols:add\"></iconify-icon></button></ul></caption> <tbody>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<table><caption>Your Games <ul><button class=\"icon-btn\" @click=\"$root.close(); $dispatch(&#39;show-create-game-modal&#39;)\"><iconify-icon icon=\"material-symbols:add\"></iconify-icon></button></ul></caption> <tbody><tr><th></th><th>players</th></tr>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

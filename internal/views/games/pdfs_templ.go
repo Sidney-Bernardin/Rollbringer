@@ -147,7 +147,7 @@ func PDFTableRow(pdf *internal.PDF, isOwner bool) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</td><td :class=\"{ &#39;in-current-game&#39;: ($root.dataset.pdfGameId === document.body.dataset.gameId) }\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</td><td x-show=\"showLibrary\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -167,7 +167,7 @@ func PDFTableRow(pdf *internal.PDF, isOwner bool) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</td><td><button class=\"icon-btn\" :hx-delete=\"`/games/pdfs/${$root.dataset.pdfId}`\" hx-swap=\"none\"><iconify-icon icon=\"material-symbols:delete\"></iconify-icon></button> <button class=\"icon-btn\" @click=\"$dispatch(`show-edit-pdf-modal`, { id: $root.dataset.pdfId, name: $root.dataset.pdfName })\"><iconify-icon icon=\"material-symbols:edit\"></iconify-icon></button></td></tr>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</td><td x-show=\"!showLibrary\">public</td><td><button class=\"icon-btn\" :hx-delete=\"`/games/pdfs/${$root.dataset.pdfId}`\" hx-swap=\"none\"><iconify-icon icon=\"material-symbols:delete\"></iconify-icon></button> <button class=\"icon-btn\" @click=\"$dispatch(`show-edit-pdf-modal`, { id: $root.dataset.pdfId, name: $root.dataset.pdfName })\"><iconify-icon icon=\"material-symbols:edit\"></iconify-icon></button></td></tr>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

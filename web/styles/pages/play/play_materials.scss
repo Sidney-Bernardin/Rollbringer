@@ -17,14 +17,6 @@
           color: $green1;
         }
 
-        &:nth-child(3) {
-          color: $txt4;
-
-          &.in-current-game {
-            color: $txt1;
-          }
-        }
-
         &:last-child {
           button {
             iconify-icon {

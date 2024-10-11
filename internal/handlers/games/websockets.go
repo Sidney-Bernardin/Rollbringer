@@ -7,7 +7,6 @@ import (
 	"rollbringer/internal"
 	"rollbringer/internal/views/games"
 
-	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"golang.org/x/net/websocket"
 )
@@ -19,15 +18,20 @@ func (h *handler) handleGameWebsocket(conn *websocket.Conn) {
 		ctx = r.Context()
 
 		session, _ = ctx.Value(internal.CtxKeySession).(*internal.Session)
-		gameID, _  = uuid.Parse(r.URL.Query().Get("g"))
 
 		pdfCtx, pdfCancel = context.WithCancel(context.Background())
 		resChan           = make(chan any)
 	)
 
-	if gameID != uuid.Nil {
+	gameID, err := internal.OptionalID(ctx, r.URL.Query().Get("g"))
+	if err != nil {
+		h.Err(conn, r, errors.Wrap(err, "cannot parse game-ID"))
+		return
+	}
+
+	if gameID != nil {
 		go func() {
-			err := h.svc.SubToGame(ctx, gameID, resChan)
+			err := h.svc.SubToGame(ctx, *gameID, resChan)
 			resChan <- errors.Wrap(err, "cannot subscribe to game")
 		}()
 	}
@@ -106,11 +110,11 @@ func (h *handler) handleGameWebsocket(conn *websocket.Conn) {
 				}
 
 			case *internal.CreateRollRequest:
-				if gameID != uuid.Nil {
+				if gameID == nil {
 					continue
 				}
 
-				if err := h.svc.CreateRoll(ctx, session, gameID, payload.DiceTypes, payload.Modifiers); err != nil {
+				if err := h.svc.CreateRoll(ctx, session, *gameID, payload.DiceTypes, payload.Modifiers); err != nil {
 					resChan <- errors.Wrap(err, "cannot create roll")
 				}
 			}

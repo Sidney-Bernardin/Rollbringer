@@ -35,13 +35,14 @@ templ PDFTableRow(pdf *internal.PDF, isOwner bool) {
 		<td class={ templ.KV("is-owner", isOwner) }>
 			{ pdf.Owner.Username }
 		</td>
-		<td :class="{ 'in-current-game': ($root.dataset.pdfGameId === document.body.dataset.gameId) }">
+		<td x-show="showLibrary">
 			if pdf.Game.Name == "" {
 				---
 			} else {
 				{ pdf.Game.Name }
 			}
 		</td>
+		<td x-show="!showLibrary">public</td>
 		<td>
 			<button class="icon-btn" :hx-delete="`/games/pdfs/${$root.dataset.pdfId}`" hx-swap="none">
 				<iconify-icon icon="material-symbols:delete"></iconify-icon>

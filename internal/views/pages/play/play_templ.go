@@ -175,12 +175,12 @@ func Play(page *internal.PlayPage) templ.Component {
 						return templ_7745c5c3_Err
 					}
 					if page.Game != nil {
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<button :class=\"{ &#39;icon-btn&#39;: true, &#39;show-library&#39;: showLibrary }\" @click=\"showLibrary = !showLibrary\"><iconify-icon icon=\"ph:swap\"></iconify-icon></button> ")
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<button :class=\"{ &#39;icon-btn&#39;: true, &#39;show-library&#39;: showLibrary }\" @click=\"showLibrary = !showLibrary\"><iconify-icon icon=\"mdi:library\"></iconify-icon></button> ")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<button class=\"icon-btn\" @click=\"$dispatch(&#39;show-create-pdf-modal&#39;)\"><iconify-icon icon=\"material-symbols:add\"></iconify-icon></button></ul></caption> <tbody>")
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<button class=\"icon-btn\" @click=\"$dispatch(&#39;show-create-pdf-modal&#39;)\"><iconify-icon icon=\"material-symbols:add\"></iconify-icon></button></ul></caption> <tbody><tr><th></th><th>owner</th><th x-show=\"showLibrary\">game</th><th x-show=\"!showLibrary\">visibility</th></tr>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
