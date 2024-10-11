@@ -1,7 +1,17 @@
 @use "../../colors.scss" as *;
-@use "../../general/index.scss" as *;
+
+@use "../../general/buttons.scss" as *;
+@use "../../general/modal.scss" as *;
+@use "../../general/table.scss" as *;
+@use "../../general/forms.scss" as *;
+@use "../../general/pdf-viewer.scss" as *;
+@use "../../general/dynamic-tab-container.scss" as *;
+@use "../../general/static-tab-container.scss" as *;
 
 @use "nav-bar.scss" as *;
+@use "pdfs.scss" as *;
+@use "maps.scss" as *;
+@use "play_materials.scss" as *;
 @use "social.scss" as *;
 
 * {
@@ -41,31 +51,15 @@ body {
     " pdfs     g2 play_materials g3    social";
   padding: 10px;
 
-  .pdfs-tab-container,
+  .pdfs,
   .maps,
   .social,
-  .play-materials-tab-container {
+  .play-materials {
     overflow: auto;
   }
 
   .nav-bar {
     grid-area: nav_bar;
-  }
-
-  .pdf-tab-container {
-    grid-area: pdfs;
-  }
-
-  .map-tab-container {
-    grid-area: maps;
-  }
-
-  .social-tab-container {
-    grid-area: social;
-  }
-
-  .play-materials-tab-container {
-    grid-area: play_materials;
   }
 
   .gutter-1 {

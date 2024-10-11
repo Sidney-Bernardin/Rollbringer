@@ -1,18 +1,5 @@
-require.context("./assets", false, /\.(png|jpg|gif|pdf)$/);
-import "./styles/pages/play/index.scss";
-
-import { Alpine } from "alpinejs";
-import { HtmxExtension } from "htmx.org";
-
-declare global {
-    interface Window {
-        alpine: Alpine;
-        htmx: HtmxExtension;
-    }
-}
-
-import "./alpine";
 window.htmx = require('htmx.org');
+import "htmx.org/dist/ext/ws.js";
 
 window.addEventListener("htmx:wsConfigSend", (e: CustomEvent) => {
     switch (e.detail.parameters["EVENT"]) {

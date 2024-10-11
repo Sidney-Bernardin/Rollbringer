@@ -22,14 +22,8 @@ table {
       align-items: center;
 
       button {
-        height: calc(1.5rem + 4px);
+        height: 1.5rem;
         font-size: 1.5rem;
-
-        &.toggled {
-          border: 2px solid $green2;
-          color: $bg2;
-          background: $green1;
-        }
       }
     }
   }
@@ -38,7 +32,7 @@ table {
     &:hover {
       background: $bg3;
 
-      td:nth-child(3) button {
+      td:last-child {
         opacity: 1;
       }
     }
@@ -46,23 +40,12 @@ table {
     td {
       border: 5px solid transparent;
 
-      &:nth-child(2) {
-        color: $txt4;
-      }
-
-      &:nth-child(3) {
+      &:last-child {
         display: flex;
         gap: 5px;
+        opacity: 0;
         flex-direction: row-reverse;
-
-        button {
-          opacity: 0;
-        }
       }
     }
-  }
-
-  tr.is-owner td:nth-child(2) {
-    color: $green1;
   }
 }

@@ -1,8 +1,17 @@
-import "../main";
+require.context("../assets", false, /\.(png|jpg|gif|pdf)$/);
+import "../styles/pages/play/play.scss";
 
-import "htmx.org/dist/ext/ws.js";
+import "../window";
+import "../htmx";
+import "../alpine/modal";
+import "../alpine/pdf-viewer";
+
+import Alpine from "alpinejs";
 import Split from "split-grid";
 
+
+window.alpine = Alpine
+Alpine.start()
 
 Split({
     columnGutters: [

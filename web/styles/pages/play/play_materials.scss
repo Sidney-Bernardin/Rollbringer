@@ -1,0 +1,44 @@
+@use "../../colors.scss" as *;
+
+.play-materials {
+  grid-area: play_materials;
+
+  table {
+    caption button {
+      &.show-library {
+        color: $bg2;
+        background: $green1;
+      }
+    }
+
+    tr {
+      td {
+        &:nth-child(2).is-owner {
+          color: $green1;
+        }
+
+        &:nth-child(3) {
+          color: $txt4;
+
+          &.in-current-game {
+            color: $txt1;
+          }
+        }
+
+        &:last-child {
+          button {
+            iconify-icon {
+              &[icon="material-symbols:delete"] {
+                color: $red2;
+              }
+
+              &[icon="material-symbols:edit"] {
+                color: $blue;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

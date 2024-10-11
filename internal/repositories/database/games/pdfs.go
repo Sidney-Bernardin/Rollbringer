@@ -148,10 +148,20 @@ func (db *gamesSchema) PDFsGetByGame(ctx context.Context, gameID uuid.UUID, view
 }
 
 func (db *gamesSchema) PDFUpdate(ctx context.Context, session *internal.Session, pdf *internal.PDF) error {
-	var sets string
+	sets := ""
+	args := map[string]any{
+		"id":       pdf.ID,
+		"owner_id": session.UserID,
+	}
+
+	if pdf.GameID != nil {
+		sets += `SET game_id = :game_id`
+		args["game_id"] = *pdf.GameID
+	}
 
 	if pdf.Name != "" {
-		sets += `SET name = :name`
+		sets += ` SET name = :name`
+		args["name"] = pdf.Name
 	}
 
 	if sets == "" {
@@ -159,12 +169,7 @@ func (db *gamesSchema) PDFUpdate(ctx context.Context, session *internal.Session,
 	}
 
 	query := fmt.Sprintf(`UPDATE games.pdfs %s WHERE id = :id AND owner_id = :owner_id`, sets)
-	result, err := sqlx.NamedExecContext(ctx, db.TX, query, map[string]any{
-		"name":     pdf.Name,
-		"id":       pdf.ID,
-		"owner_id": session.UserID,
-	})
-
+	result, err := sqlx.NamedExecContext(ctx, db.TX, query, args)
 	if err != nil {
 		return errors.Wrap(err, "cannot update PDF")
 	}

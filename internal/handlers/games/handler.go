@@ -112,7 +112,7 @@ func (h *handler) handleCreatePDF(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pdf, err = h.svc.GetPDF(ctx, pdf.ID, internal.PDFView(r.URL.Query().Get("view")))
+	pdf, err = h.svc.GetPDF(ctx, pdf.ID, internal.PDFViewListItem)
 	if err != nil {
 		h.Err(w, r, errors.Wrap(err, "cannot get pdf"))
 		return
@@ -140,12 +140,18 @@ func (h *handler) handleUpdatePDF(w http.ResponseWriter, r *http.Request) {
 
 		session, _ = ctx.Value(internal.CtxKeySession).(*internal.Session)
 		pdfID, _   = uuid.Parse(chi.URLParam(r, "pdf_id"))
-		view       = internal.PDFView(r.URL.Query().Get("view"))
 	)
 
-	err := h.svc.UpdatePDF(ctx, session, &internal.PDF{
-		ID:   pdfID,
-		Name: r.FormValue("name"),
+	gameID, err := internal.OptionalID(ctx, r.FormValue("game_id"))
+	if err != nil {
+		h.Err(w, r, errors.Wrap(err, "cannot parse game-id"))
+		return
+	}
+
+	err = h.svc.UpdatePDF(ctx, session, &internal.PDF{
+		ID:     pdfID,
+		GameID: gameID,
+		Name:   r.FormValue("name"),
 	})
 
 	if err != nil {
@@ -153,7 +159,7 @@ func (h *handler) handleUpdatePDF(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pdf, err := h.svc.GetPDF(ctx, pdfID, view)
+	pdf, err := h.svc.GetPDF(ctx, pdfID, internal.PDFViewListItem)
 	if err != nil {
 		h.Err(w, r, errors.Wrap(err, "cannot get pdf"))
 		return
@@ -176,6 +182,6 @@ func (h *handler) handleDeletePDF(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("HX-Trigger", fmt.Sprintf(`remove-tab-%s, deleted-pdf-%s`, pdfID, pdfID))
+	w.Header().Set("HX-Trigger", fmt.Sprintf(`{"remove-tab": "%s", "deleted-pdf": "%s"}`, pdfID, pdfID))
 	w.WriteHeader(http.StatusOK)
 }

@@ -1,14 +1,11 @@
 package views
 
-templ DynamicTabContainer(class, openTabEvent string) {
+templ DynamicTabContainer(id, class string) {
 	<div
+		x-data="{ currentDynamicTab: '' }"
+		id={ id }
 		class={ "dynamic-tab-container", class }
-		x-data="{
-            currentDynamicTab: '',
-        }"
-		{ templ.Attributes{
-            "@"+openTabEvent+".window": "currentDynamicTab = $event.detail.tabID",
-        } ... }
+		@show-dynamic-tab.window="$event.detail.containerID === $el.id && (currentDynamicTab = $event.detail.tabID)"
 	>
 		<div class="buttons"></div>
 		<div class="wrapper">
@@ -22,9 +19,7 @@ templ DynamicTabButton(name, tabID string) {
 		data-tab-id={ tabID }
 		:class="(currentDynamicTab === $el.dataset.tabId) && 'active'"
 		@click="currentDynamicTab = $el.dataset.tabId"
-		{ templ.Attributes{
-            "@remove-tab-"+tabID+".window": "$el.remove()",
-        } ... }
+		@remove-tab.window="($event.detail.value === $el.dataset.tabId) && $el.remove()"
 	>
 		{ name }
 		<p @click="$dispatch(`remove-tab-${$el.parentElement.dataset.tabId}`)">
@@ -38,9 +33,7 @@ templ DynamicTabContent(tabID string) {
 		class="dynamic-tab-content"
 		data-tab-id={ tabID }
 		x-show="currentDynamicTab === $el.dataset.tabId"
-		{ templ.Attributes{
-            "@remove-tab-"+tabID+".window": "$el.remove()",
-        } ... }
+		@remove-tab.window="($event.detail.value === $el.dataset.tabId) && $el.remove()"
 	>
 		{ children... }
 	</div>

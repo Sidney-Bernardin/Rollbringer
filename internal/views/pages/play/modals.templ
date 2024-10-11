@@ -1,0 +1,88 @@
+package play
+
+import (
+	"rollbringer/internal"
+	. "rollbringer/internal/views"
+	"rollbringer/internal/views/games"
+	"slices"
+)
+
+templ createPDFModal(page *internal.PlayPage) {
+	@Modal("create-pdf-modal", "Create PDF", "show-create-pdf-modal") {
+		<form
+			class="nice-form"
+			hx-post="/games/pdfs?view=list_item"
+			hx-target=".pdfs tbody"
+			hx-swap="beforeend"
+		>
+			<input type="hidden" name="schema" value="DND_CHARACTER_SHEET"/>
+			//
+			<label for="game_id">
+				Game:
+				<select name="game_id">
+					<option value="">None</option>
+					for _, game := range slices.Concat(page.Session.User.HostedGames, page.Session.User.JoinedGames) {
+						<option
+							value={ S(game.ID) }
+							if page.Game != nil && game.ID == page.Game.ID {
+								selected
+							}
+						>
+							{ game.Name }
+						</option>
+					}
+				</select>
+			</label>
+			//
+			<label for="name">
+				Name:
+				<input type="text" name="name"/>
+			</label>
+			//
+			<input type="submit" value="Create"/>
+		</form>
+	}
+}
+
+templ gamesModal(page *internal.PlayPage) {
+	@Modal("games-modal", "Games", "show-games-modal") {
+		<table>
+			<caption>
+				Your Games 
+				<ul>
+					<button class="icon-btn" @click="$root.close(); $dispatch('show-create-game-modal')">
+						<iconify-icon icon="material-symbols:add"></iconify-icon>
+					</button>
+				</ul>
+			</caption>
+			<tbody>
+				for _, game := range page.Session.User.HostedGames {
+					@games.HostedGameRow(game)
+				}
+			</tbody>
+		</table>
+		<table>
+			<caption>
+				Joined Games 
+			</caption>
+			<tbody>
+				for _, game := range page.Session.User.JoinedGames {
+					@games.JoinedGameRow(game)
+				}
+			</tbody>
+		</table>
+	}
+}
+
+templ createGameModal() {
+	@Modal("create-game-modal", "Create Game", "show-create-game-modal") {
+		<form class="nice-form" hx-post="/games/games" hx-target=".games-modal tbody" hx-swap="beforeend">
+			<label for="name">
+				Name:
+				<input type="text" name="name"/>
+			</label>
+			//
+			<input type="submit" value="Create"/>
+		</form>
+	}
+}

@@ -11,7 +11,8 @@ import (
 	"rollbringer/internal/config"
 	"rollbringer/internal/handlers"
 	"rollbringer/internal/services/pages"
-	html "rollbringer/internal/views/pages"
+	"rollbringer/internal/views/pages/login"
+	"rollbringer/internal/views/pages/play"
 )
 
 type handler struct {
@@ -39,7 +40,7 @@ func NewHandler(cfg *config.Config, logger *slog.Logger, svc pages.Service) *han
 }
 
 func (h *handler) handleLogin(w http.ResponseWriter, r *http.Request) {
-	h.Render(w, r, http.StatusOK, html.Login())
+	h.Render(w, r, http.StatusOK, login.Login())
 }
 
 func (h *handler) handlePlay(w http.ResponseWriter, r *http.Request) {
@@ -68,5 +69,5 @@ func (h *handler) handlePlay(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.Render(w, r, http.StatusOK, html.Play(page))
+	h.Render(w, r, http.StatusOK, play.Play(page))
 }
