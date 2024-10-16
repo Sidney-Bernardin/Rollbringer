@@ -30,7 +30,7 @@ type Service interface {
 	DeletePDF(ctx context.Context, session *internal.Session, pdfID uuid.UUID) error
 	SubToPDFPage(ctx context.Context, pdfID uuid.UUID, pageNum int, resChan chan<- any) error
 
-	CreateRoll(ctx context.Context, session *internal.Session, gameID uuid.UUID, dice []int, modifiers string) error
+	CreateRoll(ctx context.Context, session *internal.Session, gameID uuid.UUID, dice []int, modifiers string) (*internal.Roll, error)
 }
 
 type service struct {

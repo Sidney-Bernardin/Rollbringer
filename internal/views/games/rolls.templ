@@ -7,8 +7,15 @@ import (
 
 templ Roll(roll *internal.Roll) {
 	<div class="roll" hx-swap-oob="beforeend:.nav-bar .rolls">
-		for _, result := range roll.DiceResults {
-			<p>{ S(result) }</p>
+		for i, result := range roll.DiceResults {
+			<math display="block">
+				<msub>
+					<mi>{ S(result) }</mi>
+					<mn>
+						<iconify-icon icon={ F("mdi:dice-d%v", roll.DiceTypes[i]) }></iconify-icon>
+					</mn>
+				</msub>
+			</math>
 		}
 	</div>
 }

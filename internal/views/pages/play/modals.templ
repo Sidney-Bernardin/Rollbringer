@@ -9,12 +9,7 @@ import (
 
 templ createPDFModal(page *internal.PlayPage) {
 	@Modal("create-pdf-modal", "Create PDF", "show-create-pdf-modal") {
-		<form
-			class="nice-form"
-			hx-post="/games/pdfs?view=list_item"
-			hx-target=".pdfs tbody"
-			hx-swap="beforeend"
-		>
+		<form hx-post="/games/pdfs?view=list_item" hx-target=".pdfs tbody" hx-swap="beforeend">
 			<input type="hidden" name="schema" value="DND_CHARACTER_SHEET"/>
 			//
 			<label for="game_id">
@@ -80,7 +75,7 @@ templ gamesModal(page *internal.PlayPage) {
 
 templ createGameModal() {
 	@Modal("create-game-modal", "Create Game", "show-create-game-modal") {
-		<form class="nice-form" hx-post="/games/games" hx-target=".games-modal tbody" hx-swap="beforeend">
+		<form hx-post="/games/games" hx-target=".games-modal tbody" hx-swap="beforeend">
 			<label for="name">
 				Name:
 				<input type="text" name="name"/>

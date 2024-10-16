@@ -45,7 +45,7 @@ func createPDFModal(page *internal.PlayPage) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form class=\"nice-form\" hx-post=\"/games/pdfs?view=list_item\" hx-target=\".pdfs tbody\" hx-swap=\"beforeend\"><input type=\"hidden\" name=\"schema\" value=\"DND_CHARACTER_SHEET\"><label for=\"game_id\">Game: <select name=\"game_id\"><option value=\"\">None</option> ")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form hx-post=\"/games/pdfs?view=list_item\" hx-target=\".pdfs tbody\" hx-swap=\"beforeend\"><input type=\"hidden\" name=\"schema\" value=\"DND_CHARACTER_SHEET\"><label for=\"game_id\">Game: <select name=\"game_id\"><option value=\"\">None</option> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -57,7 +57,7 @@ func createPDFModal(page *internal.PlayPage) templ.Component {
 				var templ_7745c5c3_Var3 string
 				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(S(game.ID))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/modals.templ`, Line: 26, Col: 25}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/modals.templ`, Line: 21, Col: 25}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {
@@ -80,7 +80,7 @@ func createPDFModal(page *internal.PlayPage) templ.Component {
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(game.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/modals.templ`, Line: 31, Col: 18}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/modals.templ`, Line: 26, Col: 18}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
@@ -199,7 +199,7 @@ func createGameModal() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form class=\"nice-form\" hx-post=\"/games/games\" hx-target=\".games-modal tbody\" hx-swap=\"beforeend\"><label for=\"name\">Name: <input type=\"text\" name=\"name\"></label><input type=\"submit\" value=\"Create\"></form>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form hx-post=\"/games/games\" hx-target=\".games-modal tbody\" hx-swap=\"beforeend\"><label for=\"name\">Name: <input type=\"text\" name=\"name\"></label><input type=\"submit\" value=\"Create\"></form>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

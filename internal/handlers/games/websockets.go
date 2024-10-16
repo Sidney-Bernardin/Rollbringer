@@ -114,9 +114,13 @@ func (h *handler) handleGameWebsocket(conn *websocket.Conn) {
 					continue
 				}
 
-				if err := h.svc.CreateRoll(ctx, session, *gameID, payload.DiceTypes, payload.Modifiers); err != nil {
+				roll, err := h.svc.CreateRoll(ctx, session, *gameID, payload.DiceTypes, payload.Modifiers)
+				if err != nil {
 					resChan <- errors.Wrap(err, "cannot create roll")
+					continue
 				}
+
+				resChan <- roll
 			}
 		}
 	}()
