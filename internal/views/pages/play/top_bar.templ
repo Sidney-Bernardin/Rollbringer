@@ -1,0 +1,11 @@
+package play
+
+import "rollbringer/internal"
+
+templ topBar(page *internal.PlayPage) {
+	<div x-data class="top-bar">
+		<button class="games-btn icon-btn" @click="$dispatch('show-games-modal')">
+			<iconify-icon icon="material-symbols:meeting-room"></iconify-icon>
+		</button>
+	</div>
+}

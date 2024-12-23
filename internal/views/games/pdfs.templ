@@ -11,12 +11,6 @@ templ PDFTableRow(pdf *internal.PDF, isOwner bool) {
 		data-pdf-id={ S(pdf.ID) }
 		data-pdf-name={ pdf.Name }
 		data-pdf-game-id={ S(pdf.GameID) }
-		if isOwner {
-			x-show="(document.body.dataset.gameId === undefined) || ($el.dataset.pdfGameId === document.body.dataset.gameId) || showLibrary"
-		}
-		if !isOwner {
-			x-show="!showLibrary"
-		}
 		@deleted-pdf.window="($event.detail.value === $el.dataset.pdfId) && $el.remove()"
 	>
 		<td>
@@ -32,17 +26,7 @@ templ PDFTableRow(pdf *internal.PDF, isOwner bool) {
 				{ pdf.Name }
 			</button>
 		</td>
-		<td class={ templ.KV("is-owner", isOwner) }>
-			{ pdf.Owner.Username }
-		</td>
-		<td x-show="showLibrary">
-			if pdf.Game.Name == "" {
-				---
-			} else {
-				{ pdf.Game.Name }
-			}
-		</td>
-		<td x-show="!showLibrary">public</td>
+		<td>{ pdf.Owner.Username } </td>
 		<td>
 			<button class="icon-btn" :hx-delete="`/games/pdfs/${$root.dataset.pdfId}`" hx-swap="none">
 				<iconify-icon icon="material-symbols:delete"></iconify-icon>

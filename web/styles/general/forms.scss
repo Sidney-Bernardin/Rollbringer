@@ -3,23 +3,15 @@
 form {
   display: flex;
   flex-direction: column;
-  gap: 5px;
 
   label {
     display: flex;
-    color: $txt1;
     justify-content: space-between;
   }
 
-  input {
-    border: 2px solid $bg0;
-    color: $txt1;
-    background: $bg1;
-  }
+  input {}
 
   input[type="submit"] {
     cursor: pointer;
-    width: 100%;
-    padding: 2px 0;
   }
 }

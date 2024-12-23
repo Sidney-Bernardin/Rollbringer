@@ -1,0 +1,7 @@
+@use "../../colors.scss" as *;
+
+.top-bar {
+  position: relative;
+  display: flex;
+  grid-area: top_bar;
+}

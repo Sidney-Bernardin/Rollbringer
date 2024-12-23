@@ -1,5 +1,3 @@
-version: "3.7"
-
 services:
   pubsub:
     container_name: pubsub

@@ -5,6 +5,7 @@
   display: flex;
   position: relative;
   height: 100%;
+  padding: 10px;
   flex-direction: column;
 
   form {
@@ -14,26 +15,19 @@
   .page-buttons {
     display: flex;
     width: 100%;
-    background: $bg3;
-    padding-bottom: 5px;
-    justify-content: space-around;
 
     button {
       cursor: pointer;
-      border: none;
-      color: $txt4;
-      background: transparent;
-      font-weight: bolder;
 
-      &.active {
-        color: $yellow;
-      }
+      &.active {}
     }
   }
 
   .wrapper {
     position: relative;
-    background: $bg0;
+    height: 100%;
+    border-radius: 5px;
+    background: $primary0;
     overflow: hidden;
 
     .viewer {
@@ -54,10 +48,6 @@
 
           &:hover {
             border: 2px solid #000;
-          }
-
-          &.rolling {
-            cursor: crosshair;
           }
         }
 

@@ -2,35 +2,34 @@
 
 .static-tab-container {
   display: flex;
-  outline: 2px solid $bg0;
-  border: 5px solid $bg3;
   flex-direction: column;
 
   .buttons {
     display: flex;
-    gap: 10px;
-    background: $bg3;
-    padding-bottom: 5px;
+    gap: 5px;
 
     button {
       cursor: pointer;
-      border: none;
-      color: $txt4;
+      border-style: none;
+      border-top-left-radius: 5px;
+      border-top-right-radius: 5px;
+      font-size: 1.5rem;
       background: transparent;
-      font-weight: bolder;
+      padding: 5px;
 
       &.active {
-        color: $yellow;
+        background: $secondary1;
       }
     }
   }
 
   .contents {
     height: 100%;
-    border: 2px solid $bg0;
-    background: $bg2;
+    border-radius: 5px;
+    border-top-left-radius: 0;
+    background: $secondary1;
     padding: 5px;
-    overflow: scroll;
+    overflow: hidden;
 
     .static-tab-content {
       height: 100%;

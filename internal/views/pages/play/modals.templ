@@ -61,9 +61,7 @@ templ gamesModal(page *internal.PlayPage) {
 			</tbody>
 		</table>
 		<table>
-			<caption>
-				Joined Games 
-			</caption>
+			<caption>Joined Games</caption>
 			<tbody>
 				for _, game := range page.Session.User.JoinedGames {
 					@games.JoinedGameRow(game)

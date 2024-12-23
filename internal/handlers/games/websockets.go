@@ -25,6 +25,7 @@ func (h *handler) handleGameWebsocket(conn *websocket.Conn) {
 
 	gameID, err := internal.OptionalID(ctx, r.URL.Query().Get("g"))
 	if err != nil {
+		pdfCancel()
 		h.Err(conn, r, errors.Wrap(err, "cannot parse game-ID"))
 		return
 	}
@@ -131,8 +132,8 @@ func (h *handler) handleGameWebsocket(conn *websocket.Conn) {
 			h.Err(conn, r, res)
 		case *internal.PDFPage:
 			h.Render(conn, r, 0, games.PDFViewerFields(res.PDFID, res.Fields))
-		case *internal.Roll:
-			h.Render(conn, r, 0, games.Roll(res))
+			// case *internal.Roll:
+			// 	h.Render(conn, r, 0, games.Roll(res))
 		}
 	}
 }

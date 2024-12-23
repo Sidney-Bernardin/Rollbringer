@@ -26,32 +26,21 @@ templ Play(page *internal.PlayPage) {
 			@gamesModal(page)
 			//
 			<div class="play-layout">
-				@navBar(page)
+				@topBar(page)
 				@DynamicTabContainer("pdfs-tab-container", "pdfs")
 				@DynamicTabContainer("maps-tab-container", "maps")
 				@StaticTabContainer("play-materials", "PDFs", "Maps") {
 					@StaticTabContent("pdfs", "PDFs") {
-						<table x-data="{ showLibrary: false }">
+						<table>
 							<caption>
 								Character Sheets
 								<ul>
-									if page.Game != nil {
-										<button :class="{ 'icon-btn': true, 'show-library': showLibrary }" @click="showLibrary = !showLibrary">
-											<iconify-icon icon="mdi:library"></iconify-icon>
-										</button>
-									}
 									<button class="icon-btn" @click="$dispatch('show-create-pdf-modal')">
 										<iconify-icon icon="material-symbols:add"></iconify-icon>
 									</button>
 								</ul>
 							</caption>
 							<tbody>
-								<tr>
-									<th></th>
-									<th>owner</th>
-									<th x-show="showLibrary">game</th>
-									<th x-show="!showLibrary">visibility</th>
-								</tr>
 								for _, pdf := range page.Session.User.PDFs {
 									@games.PDFTableRow(pdf, true)
 								}
@@ -79,9 +68,15 @@ templ Play(page *internal.PlayPage) {
 						<h1>Profile</h1>
 					}
 				}
-				<span class="gutter-2"></span>
-				<span class="gutter-3"></span>
-				<span class="gutter-4"></span>
+				<span class="gutter gutter-2">
+					<iconify-icon icon="material-symbols:drag-indicator"></iconify-icon>
+				</span>
+				<span class="gutter gutter-3">
+					<iconify-icon icon="material-symbols:drag-indicator"></iconify-icon>
+				</span>
+				<span class="gutter gutter-4">
+					<iconify-icon icon="material-symbols:drag-indicator"></iconify-icon>
+				</span>
 			</div>
 		</body>
 	}

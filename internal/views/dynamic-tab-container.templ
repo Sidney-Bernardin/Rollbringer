@@ -8,9 +8,7 @@ templ DynamicTabContainer(id, class string) {
 		@show-dynamic-tab.window="$event.detail.containerID === $el.id && (currentDynamicTab = $event.detail.tabID)"
 	>
 		<div class="buttons"></div>
-		<div class="wrapper">
-			<div class="contents"></div>
-		</div>
+		<div class="contents"></div>
 	</div>
 }
 
