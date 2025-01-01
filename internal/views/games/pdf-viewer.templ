@@ -31,6 +31,7 @@ templ PDFViewer(pdf *internal.PDF, pages []string) {
 		<div class="page-buttons">
 			for i, page := range pages {
 				<button
+                    class="bg-btn"
 					:class="(currentPage === +$el.dataset.pageNum) && 'active'"
 					data-page-num={ fmt.Sprint(i + 1) }
 					@click="openPage(+$el.dataset.pageNum)"

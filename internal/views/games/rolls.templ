@@ -1,0 +1,24 @@
+package games
+
+import (
+	"rollbringer/internal"
+	. "rollbringer/internal/views"
+)
+
+templ Roll(roll *internal.Roll) {
+	<div hx-swap-oob="beforeend:.top-bar .roll-results .inner">
+		<div class="roll">
+			<img src={ *roll.Owner.GooglePicture } alt={ roll.Owner.Username } referrerpolicy="no-referrer"/>
+			for i, result := range roll.DiceResults {
+				<math>
+					<msub>
+						<mi>{ S(result) }</mi>
+						<mn>
+							<iconify-icon icon={ F("mdi:dice-d%v", roll.DiceTypes[i]) }></iconify-icon>
+						</mn>
+					</msub>
+				</math>
+			}
+		</div>
+	</div>
+}

@@ -173,7 +173,7 @@ func Play(page *internal.PlayPage) templ.Component {
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<table><caption>Character Sheets<ul><button class=\"icon-btn\" @click=\"$dispatch(&#39;show-create-pdf-modal&#39;)\"><iconify-icon icon=\"material-symbols:add\"></iconify-icon></button></ul></caption> <tbody>")
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<table><caption>Character Sheets<ul><button class=\"bg-btn\" @click=\"$dispatch(&#39;show-create-pdf-modal&#39;)\"><iconify-icon icon=\"material-symbols:add\"></iconify-icon></button></ul></caption> <tbody>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

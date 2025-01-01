@@ -18,8 +18,7 @@ func gameColumns(view internal.GameView) string {
 	case internal.GameViewListItem:
 		return `games.*,` +
 			`users.id AS "host.id",` +
-			`users.username AS "host.username",` +
-			`users.google_id AS "host.google_id"`
+			`users.username AS "host.username"`
 
 	default:
 		return `games.*`

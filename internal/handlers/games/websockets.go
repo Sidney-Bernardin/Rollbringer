@@ -132,8 +132,8 @@ func (h *handler) handleGameWebsocket(conn *websocket.Conn) {
 			h.Err(conn, r, res)
 		case *internal.PDFPage:
 			h.Render(conn, r, 0, games.PDFViewerFields(res.PDFID, res.Fields))
-			// case *internal.Roll:
-			// 	h.Render(conn, r, 0, games.Roll(res))
+		case *internal.Roll:
+			h.Render(conn, r, 0, games.Roll(res))
 		}
 	}
 }

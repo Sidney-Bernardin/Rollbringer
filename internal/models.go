@@ -42,6 +42,7 @@ type PlayPage struct {
 type GoogleUserInfo struct {
 	GoogleID  string
 	GivenName string
+	Picture   string
 }
 
 // =====
@@ -52,10 +53,11 @@ const (
 )
 
 type User struct {
-	ID uuid.UUID `json:"id,omitempty"`
+	ID       uuid.UUID `json:"id,omitempty"`
+	Username string    `json:"username,omitempty"`
 
-	GoogleID *string `json:"google_id,omitempty"`
-	Username string  `json:"username,omitempty"`
+	GoogleID      *string `json:"google_id,omitempty"`
+	GooglePicture *string `json:"google_picture,omitempty"`
 
 	PDFs        []*PDF  `json:"pdfs,omitempty"`
 	HostedGames []*Game `json:"hosted_games,omitempty"`
@@ -181,7 +183,13 @@ type UpdatePDFPageRequest struct {
 
 // =====
 
-const EventRoll Event = "ROLL"
+type RollView string
+
+const (
+	RollViewListItem RollView = "list_item"
+
+	EventRoll Event = "ROLL"
+)
 
 type Roll struct {
 	ID uuid.UUID `json:"id,omitempty"`

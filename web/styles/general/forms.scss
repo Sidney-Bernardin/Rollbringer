@@ -4,14 +4,42 @@ form {
   display: flex;
   flex-direction: column;
 
-  label {
-    display: flex;
-    justify-content: space-between;
+  h1 {
+    padding: 8px;
   }
 
-  input {}
+  label {
+    display: flex;
+    border-radius: 5px;
+    font-size: 1.25rem;
+    padding: 8px;
+    justify-content: space-between;
+    align-items: center;
+
+    &:hover {
+      backdrop-filter: brightness(1.25);
+    }
+  }
+
+  input {
+    border: none;
+    border-radius: 5px;
+    color: $text1;
+    background: $primary1;
+    padding: 4px;
+  }
+
+  select {
+    border: none;
+    border-radius: 5px;
+    color: $text1;
+    background: $primary1;
+    padding: 4px;
+  }
 
   input[type="submit"] {
     cursor: pointer;
+    margin: 8px;
+    font-size: 1.5rem;
   }
 }

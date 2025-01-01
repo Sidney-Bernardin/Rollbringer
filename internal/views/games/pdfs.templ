@@ -11,28 +11,19 @@ templ PDFTableRow(pdf *internal.PDF, isOwner bool) {
 		data-pdf-id={ S(pdf.ID) }
 		data-pdf-name={ pdf.Name }
 		data-pdf-game-id={ S(pdf.GameID) }
+		hx-get={ F("/games/pdfs/%s", pdf.ID) }
+		hx-swap="none"
+		@click="$dispatch('show-dynamic-tab', {
+            containerID: 'pdfs-tab-container',
+            tabID: $root.dataset.pdfId,
+        })"
 		@deleted-pdf.window="($event.detail.value === $el.dataset.pdfId) && $el.remove()"
 	>
-		<td>
-			<button
-				class="underline-btn"
-				hx-get={ F("/games/pdfs/%s", pdf.ID) }
-				hx-swap="none"
-				@click="$dispatch('show-dynamic-tab', {
-                    containerID: 'pdfs-tab-container',
-                    tabID: $root.dataset.pdfId,
-                })"
-			>
-				{ pdf.Name }
-			</button>
-		</td>
+		<td>{ pdf.Name } </td>
 		<td>{ pdf.Owner.Username } </td>
 		<td>
-			<button class="icon-btn" :hx-delete="`/games/pdfs/${$root.dataset.pdfId}`" hx-swap="none">
-				<iconify-icon icon="material-symbols:delete"></iconify-icon>
-			</button>
-			<button class="icon-btn" @click="$dispatch(`show-edit-pdf-modal`, { id: $root.dataset.pdfId, name: $root.dataset.pdfName })">
-				<iconify-icon icon="material-symbols:edit"></iconify-icon>
+			<button class="fg-btn" @click.stop :hx-delete="`/games/pdfs/${$root.dataset.pdfId}`" hx-swap="none">
+				<iconify-icon icon="material-symbols:delete-outline-rounded"></iconify-icon>
 			</button>
 		</td>
 	</tr>

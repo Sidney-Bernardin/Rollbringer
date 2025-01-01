@@ -3,5 +3,105 @@
 .top-bar {
   position: relative;
   display: flex;
+  gap: 16px;
   grid-area: top_bar;
+
+  .menu-btn {
+    font-size: 3rem;
+  }
+
+  .roll-selections {
+    display: flex;
+    gap: 8px;
+    border-radius: 5px;
+    background: $primary2;
+    padding: 8px;
+    align-items: center;
+
+    &:hover {
+      .roll-dropdown {
+        display: flex;
+      }
+    }
+
+    .die {
+      color: $text2;
+      font-size: 3rem;
+    }
+
+    .roll-dropdown {
+      z-index: 1000;
+      position: absolute;
+      display: none;
+      top: 100%;
+      border: 2px solid $primary0;
+      border-radius: 5px;
+      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      background: $primary2;
+      padding: 8px;
+      flex-direction: column;
+      align-items: center;
+
+      .dice {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        padding: 8px;
+      }
+
+      .buttons {
+        display: flex;
+
+        button {
+          font-size: 1.5rem;
+          padding: 8px;
+        }
+      }
+    }
+  }
+
+  .roll-results {
+    overflow-x: scroll;
+    flex: 2;
+
+    .inner {
+      display: flex;
+      gap: 8px;
+      height: 100%;
+      text-wrap: nowrap;
+      flex-direction: row-reverse;
+      justify-content: flex-end;
+
+      .roll {
+        display: flex;
+        gap: 8px;
+        height: 100%;
+        border-radius: 5px;
+        padding: 8px;
+        align-items: center;
+        transition: 0.25s;
+
+        &:hover {
+          backdrop-filter: brightness(1.25);
+        }
+
+        img {
+          border-radius: 50%;
+          width: 3rem;
+          height: 3rem;
+        }
+
+        mi {
+          font-size: 2rem;
+          text-transform: normal;
+        }
+
+        mn {
+          color: $text2;
+          font-size: 1.5rem;
+        }
+      }
+    }
+  }
 }

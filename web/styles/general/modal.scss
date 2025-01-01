@@ -1,7 +1,14 @@
 @use "../colors.scss" as *;
 
 .modal {
+  outline: 2px solid $primary0;
+  width: 25%;
+  border: none;
+  border-radius: 5px;
+  color: $text1;
   margin: auto;
+  padding: 8px;
+  background: $primary2;
 
   &::backdrop {
     background: rgba(0, 0, 0, 0.25);

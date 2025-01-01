@@ -66,8 +66,9 @@ func (svc *service) GoogleFinishLogin(ctx context.Context, stateA, stateB, code,
 	}
 
 	user := &internal.User{
-		GoogleID: &userInfo.GoogleID,
-		Username: userInfo.GivenName,
+		Username:      userInfo.GivenName,
+		GoogleID:      &userInfo.GoogleID,
+		GooglePicture: &userInfo.Picture,
 	}
 
 	if err := svc.schema.UserInsert(ctx, user); err != nil {

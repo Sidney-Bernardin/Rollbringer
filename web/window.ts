@@ -3,7 +3,7 @@ import { HtmxExtension } from "htmx.org";
 
 declare global {
     interface Window {
-        pageData: any;
+        utils: any;
         alpine: Alpine;
         htmx: HtmxExtension;
     }

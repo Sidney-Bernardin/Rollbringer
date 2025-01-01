@@ -1,11 +1,61 @@
 package play
 
-import "rollbringer/internal"
+import (
+	"rollbringer/internal"
+	"rollbringer/internal/views/games"
+)
 
 templ topBar(page *internal.PlayPage) {
-	<div x-data class="top-bar">
-		<button class="games-btn icon-btn" @click="$dispatch('show-games-modal')">
-			<iconify-icon icon="material-symbols:meeting-room"></iconify-icon>
+	<div
+		class="top-bar"
+		x-data="{ selectedDiceTypes: [] }"
+	>
+		<button class="menu-btn fg-btn" @click="$dispatch('show-games-modal')">
+			<iconify-icon icon="material-symbols:menu-rounded"></iconify-icon>
 		</button>
+		//
+		<div class="roll-selections">
+			<div class="roll-dropdown">
+				<div class="dice">
+					<template x-for="dieType in [4, 6, 8, 10, 12, 20]">
+						<button class="die fg-btn" @click.prevent="selectedDiceTypes.push(Number(dieType))">
+							<iconify-icon :icon="`mdi:dice-d${dieType}`"></iconify-icon>
+						</button>
+					</template>
+				</div>
+				//
+				<div class="buttons">
+					<button
+						class="public bg-btn"
+						:hx-vals='`{
+                        "EVENT": "CREATE_ROLL_REQUEST",
+                        "dice_types": [${selectedDiceTypes}]
+                    }`'
+						ws-send
+					>PUBLIC</button>
+					<button class="bg-btn" @click="window.utils.privateRoll(selectedDiceTypes)">PRIVATE</button>
+				</div>
+			</div>
+			//
+			<template x-if="selectedDiceTypes.length == 0">
+				<iconify-icon class="die placeholder" icon="game-icons:rolling-dices"></iconify-icon>
+			</template>
+			//
+			<template x-for="(dieType, idx) in selectedDiceTypes">
+				<button x-data class="die fg-btn" @click.prevent="selectedDiceTypes.splice(idx, 1)">
+					<iconify-icon :icon="`mdi:dice-d${dieType}`"></iconify-icon>
+				</button>
+			</template>
+		</div>
+		//
+		<div class="roll-results">
+			<div class="inner">
+				if page.Game != nil {
+					for _, roll := range page.Game.Rolls {
+						@games.Roll(roll)
+					}
+				}
+			</div>
+		</div>
 	</div>
 }

@@ -13,12 +13,12 @@ import (
 
 func (db *usersSchema) UserInsert(ctx context.Context, user *internal.User) error {
 	err := db.TX.QueryRowxContext(ctx,
-		`INSERT INTO users.users (id, google_id, username)
-			VALUES ($1, $2, $3)
+		`INSERT INTO users.users (id, username, google_id, google_picture)
+			VALUES ($1, $2, $3, $4)
 		ON CONFLICT (google_id)
 			DO UPDATE SET google_id = EXCLUDED.google_id
 		RETURNING id`,
-		uuid.New(), user.GoogleID, user.Username,
+		uuid.New(), user.Username, user.GoogleID, user.GooglePicture,
 	).Scan(&user.ID)
 
 	return errors.Wrap(err, "cannot insert user")

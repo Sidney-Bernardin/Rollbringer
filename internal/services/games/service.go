@@ -88,7 +88,7 @@ func (svc *service) playPage(ctx context.Context, page *internal.PlayPage) (err 
 		})
 
 		errs.Go(func() error {
-			page.Game.Rolls, err = svc.schema.RollsGetByGame(errsCtx, page.Game.ID)
+			page.Game.Rolls, err = svc.schema.RollsGetByGame(errsCtx, page.Game.ID, internal.RollViewListItem)
 			return errors.Wrap(err, "cannot get rolls by game")
 		})
 	}

@@ -6,9 +6,10 @@ CREATE SCHEMA users;
 
 CREATE TABLE users.users (
     id UUID PRIMARY KEY,
+    username text NOT NULL,
 
     google_id text,
-    username text NOT NULL,
+    google_picture text,
 
     UNIQUE(google_id),
     UNIQUE(username)

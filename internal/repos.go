@@ -47,7 +47,7 @@ type GamesSchema interface {
 	PDFDelete(ctx context.Context, pdfID, ownerID uuid.UUID) error
 
 	RollInsert(ctx context.Context, roll *Roll) error
-	RollsGetByGame(ctx context.Context, gameID uuid.UUID) ([]*Roll, error)
+	RollsGetByGame(ctx context.Context, gameID uuid.UUID, view RollView) ([]*Roll, error)
 }
 
 type OAuth interface {

@@ -31,3 +31,10 @@ Split({
         },
     ],
 });
+
+window.utils = {
+    privateRoll(dice: any[]): void {
+        let results = dice.map((v) => `d${v}=${Math.floor(Math.random() * (v)) + 1}`)
+        alert(results)
+    }
+}

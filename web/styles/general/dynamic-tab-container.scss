@@ -9,9 +9,15 @@
 
     button {
       cursor: pointer;
-      display: flex;
+      gap: 15px;
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+      font-size: 1.5rem;
+      padding: 8px;
 
-      &.active {}
+      &.active {
+        background: $primary2;
+      }
 
       p {}
     }
@@ -21,7 +27,7 @@
     height: 100%;
     border-radius: 5px;
     border-top-left-radius: 0;
-    background: $secondary1;
+    background: $primary2;
     overflow: hidden;
 
     .dynamic-tab-content {

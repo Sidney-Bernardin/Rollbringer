@@ -1,6 +1,6 @@
 package views
 
-templ Modal(class, title, openEvent string) {
+templ Modal(class, openEvent string) {
 	<dialog
 		class={ "modal", class }
 		x-data="modal"
@@ -10,7 +10,6 @@ templ Modal(class, title, openEvent string) {
             "@"+openEvent+".window": "$el.showModal()",
         } ... }
 	>
-		<h2>{ title }</h2>
 		{ children... }
 	</dialog>
 }

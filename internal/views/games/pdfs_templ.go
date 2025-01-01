@@ -73,46 +73,46 @@ func PDFTableRow(pdf *internal.PDF, isOwner bool) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" @deleted-pdf.window=\"($event.detail.value === $el.dataset.pdfId) &amp;&amp; $el.remove()\"><td><button class=\"underline-btn\" hx-get=\"")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" hx-get=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(F("/games/pdfs/%s", pdf.ID))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `games/pdfs.templ`, Line: 19, Col: 40}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `games/pdfs.templ`, Line: 14, Col: 38}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" hx-swap=\"none\" @click=\"$dispatch(&#39;show-dynamic-tab&#39;, {\n                    containerID: &#39;pdfs-tab-container&#39;,\n                    tabID: $root.dataset.pdfId,\n                })\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" hx-swap=\"none\" @click=\"$dispatch(&#39;show-dynamic-tab&#39;, {\n            containerID: &#39;pdfs-tab-container&#39;,\n            tabID: $root.dataset.pdfId,\n        })\" @deleted-pdf.window=\"($event.detail.value === $el.dataset.pdfId) &amp;&amp; $el.remove()\"><td>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(pdf.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `games/pdfs.templ`, Line: 26, Col: 14}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `games/pdfs.templ`, Line: 22, Col: 16}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</button></td><td>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</td><td>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(pdf.Owner.Username)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `games/pdfs.templ`, Line: 29, Col: 26}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `games/pdfs.templ`, Line: 23, Col: 26}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</td><td><button class=\"icon-btn\" :hx-delete=\"`/games/pdfs/${$root.dataset.pdfId}`\" hx-swap=\"none\"><iconify-icon icon=\"material-symbols:delete\"></iconify-icon></button> <button class=\"icon-btn\" @click=\"$dispatch(`show-edit-pdf-modal`, { id: $root.dataset.pdfId, name: $root.dataset.pdfName })\"><iconify-icon icon=\"material-symbols:edit\"></iconify-icon></button></td></tr>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</td><td><button class=\"fg-btn\" @click.stop :hx-delete=\"`/games/pdfs/${$root.dataset.pdfId}`\" hx-swap=\"none\"><iconify-icon icon=\"material-symbols:delete-outline-rounded\"></iconify-icon></button></td></tr>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

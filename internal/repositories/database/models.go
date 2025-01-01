@@ -8,18 +8,20 @@ import (
 )
 
 type User struct {
-	ID uuid.UUID `db:"id"`
+	ID       uuid.UUID `db:"id"`
+	Username string    `db:"username"`
 
-	GoogleID *string `db:"google_id"`
-	Username string  `db:"username"`
+	GoogleID      *string `db:"google_id"`
+	GooglePicture *string `db:"google_picture"`
 }
 
 func (user *User) Internalized() *internal.User {
 	if user != nil {
 		return &internal.User{
-			ID:       user.ID,
-			GoogleID: user.GoogleID,
-			Username: user.Username,
+			ID:            user.ID,
+			Username:      user.Username,
+			GoogleID:      user.GoogleID,
+			GooglePicture: user.GooglePicture,
 		}
 	}
 	return nil
@@ -114,6 +116,7 @@ func (roll *Roll) Internalized() *internal.Roll {
 		return &internal.Roll{
 			ID:          roll.ID,
 			OwnerID:     roll.OwnerID,
+			Owner:       roll.Owner.Internalized(),
 			GameID:      roll.GameID,
 			Game:        roll.Game.Internalized(),
 			DiceTypes:   roll.DiceTypes,

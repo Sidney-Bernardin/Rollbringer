@@ -6,42 +6,22 @@ import (
 )
 
 templ HostedGameRow(game *internal.Game) {
-	<tr x-data data-game-id={ game.ID.String() }>
-		<td>
-			<button class="underline-btn" @click="window.location.href = `/pages?g=${$root.dataset.gameId}`">
-				{ game.Name }
-			</button>
-		</td>
+	<tr
+		x-data
+		data-game-id={ game.ID.String() }
+		@click="window.location.href = `/pages?g=${$root.dataset.gameId}`"
+	>
+		<td>{ game.Name } </td>
 		<td>{ S(len(game.Users)) } players</td>
 		<td>
 			<button
-				class="icon-btn"
+				class="bg-btn"
 				:hx-delete="`/games/games/${$root.dataset.gameId}`"
 				hx-target="closest tr"
 				hx-swap="outerHTML"
+				@click.stop
 			>
-				<iconify-icon icon="material-symbols:delete"></iconify-icon>
-			</button>
-			<button class="icon-btn">
-				<iconify-icon icon="material-symbols:edit"></iconify-icon>
-			</button>
-		</td>
-	</tr>
-}
-
-templ JoinedGameRow(game *internal.Game) {
-	<tr>
-		<td>
-			<a href="/abc">
-				<button class="underline-btn">
-					{ game.Name }
-				</button>
-			</a>
-		</td>
-		<td>{ S(len(game.Users)) } players</td>
-		<td>
-			<button class="icon-btn">
-				<iconify-icon icon="material-symbols:exit-to-app"></iconify-icon>
+				<iconify-icon icon="material-symbols:delete-outline-rounded"></iconify-icon>
 			</button>
 		</td>
 	</tr>

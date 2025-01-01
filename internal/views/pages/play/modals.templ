@@ -8,8 +8,10 @@ import (
 )
 
 templ createPDFModal(page *internal.PlayPage) {
-	@Modal("create-pdf-modal", "Create PDF", "show-create-pdf-modal") {
+	@Modal("create-pdf-modal", "show-create-pdf-modal") {
 		<form hx-post="/games/pdfs?view=list_item" hx-target=".pdfs tbody" hx-swap="beforeend">
+			<h1>Create Character Sheet</h1>
+			//
 			<input type="hidden" name="schema" value="DND_CHARACTER_SHEET"/>
 			//
 			<label for="game_id">
@@ -31,7 +33,7 @@ templ createPDFModal(page *internal.PlayPage) {
 			//
 			<label for="name">
 				Name:
-				<input type="text" name="name"/>
+				<input type="text" name="name" placeholder="Character Name"/>
 			</label>
 			//
 			<input type="submit" value="Create"/>
@@ -40,31 +42,19 @@ templ createPDFModal(page *internal.PlayPage) {
 }
 
 templ gamesModal(page *internal.PlayPage) {
-	@Modal("games-modal", "Games", "show-games-modal") {
+	@Modal("games-modal", "show-games-modal") {
 		<table>
 			<caption>
 				Your Games 
 				<ul>
-					<button class="icon-btn" @click="$root.close(); $dispatch('show-create-game-modal')">
+					<button class="bg-btn" @click="$root.close(); $dispatch('show-create-game-modal')">
 						<iconify-icon icon="material-symbols:add"></iconify-icon>
 					</button>
 				</ul>
 			</caption>
 			<tbody>
-				<tr>
-					<th></th>
-					<th>players</th>
-				</tr>
 				for _, game := range page.Session.User.HostedGames {
 					@games.HostedGameRow(game)
-				}
-			</tbody>
-		</table>
-		<table>
-			<caption>Joined Games</caption>
-			<tbody>
-				for _, game := range page.Session.User.JoinedGames {
-					@games.JoinedGameRow(game)
 				}
 			</tbody>
 		</table>
@@ -72,8 +62,10 @@ templ gamesModal(page *internal.PlayPage) {
 }
 
 templ createGameModal() {
-	@Modal("create-game-modal", "Create Game", "show-create-game-modal") {
+	@Modal("create-game-modal", "show-create-game-modal") {
 		<form hx-post="/games/games" hx-target=".games-modal tbody" hx-swap="beforeend">
+			<h1>Create Game</h1>
+			//
 			<label for="name">
 				Name:
 				<input type="text" name="name"/>

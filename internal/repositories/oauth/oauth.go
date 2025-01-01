@@ -19,6 +19,7 @@ type openIDConnectClaims struct {
 	*jwt.RegisteredClaims
 
 	GivenName string `json:"given_name"`
+	Picture   string `json:"picture"`
 }
 
 func NewOauthState() string {
@@ -86,5 +87,6 @@ func (oa *OAuth) AuthenticateConsent(ctx context.Context, stateA, stateB, code, 
 	return &internal.GoogleUserInfo{
 		GoogleID:  claims.Subject,
 		GivenName: claims.GivenName,
+		Picture:   claims.Picture,
 	}, nil
 }

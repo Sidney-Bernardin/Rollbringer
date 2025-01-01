@@ -6,19 +6,16 @@
 
   .buttons {
     display: flex;
-    gap: 5px;
+    gap: 6px;
 
     button {
-      cursor: pointer;
-      border-style: none;
-      border-top-left-radius: 5px;
-      border-top-right-radius: 5px;
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
       font-size: 1.5rem;
-      background: transparent;
-      padding: 5px;
+      padding: 8px;
 
       &.active {
-        background: $secondary1;
+        background: $primary2;
       }
     }
   }
@@ -27,8 +24,8 @@
     height: 100%;
     border-radius: 5px;
     border-top-left-radius: 0;
-    background: $secondary1;
-    padding: 5px;
+    background: $primary2;
+    padding: 8px;
     overflow: hidden;
 
     .static-tab-content {

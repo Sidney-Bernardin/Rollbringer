@@ -1,13 +1,35 @@
 @use "../colors.scss" as *;
 
-.icon-btn {
+.bg-btn {
+  display: flex;
   cursor: pointer;
+  gap: 5px;
   border: none;
+  border-radius: 5px;
   background: transparent;
+  padding: 0;
+  transition: 0.25s;
+  justify-content: center;
+  align-items: center;
+
+  &:hover {
+    backdrop-filter: brightness(1.25);
+  }
 }
 
-.underline-btn {
+.fg-btn {
+  display: flex;
   cursor: pointer;
+  gap: 5px;
   border: none;
+  border-radius: 5px;
   background: transparent;
+  padding: 0;
+  transition: 0.25s;
+  justify-content: center;
+  align-items: center;
+
+  &:hover {
+    filter: brightness(1.25);
+  }
 }

@@ -9,6 +9,7 @@ templ StaticTabContainer(class string, tabNames ...string) {
 		<div class="buttons">
 			for _, name := range tabNames {
 				<button
+                    class="bg-btn"
 					:class="(currentStaticTab === $el.innerText) && 'active'"
                     x-init="!document.querySelector(`[data-tab-name='${$el.innerText}']`) && $el.remove()"
 					@click="currentStaticTab = $el.innerText"

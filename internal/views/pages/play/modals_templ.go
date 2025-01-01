@@ -48,7 +48,7 @@ func createPDFModal(page *internal.PlayPage) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form hx-post=\"/games/pdfs?view=list_item\" hx-target=\".pdfs tbody\" hx-swap=\"beforeend\"><input type=\"hidden\" name=\"schema\" value=\"DND_CHARACTER_SHEET\"><label for=\"game_id\">Game: <select name=\"game_id\"><option value=\"\">None</option> ")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form hx-post=\"/games/pdfs?view=list_item\" hx-target=\".pdfs tbody\" hx-swap=\"beforeend\"><h1>Create Character Sheet</h1><input type=\"hidden\" name=\"schema\" value=\"DND_CHARACTER_SHEET\"><label for=\"game_id\">Game: <select name=\"game_id\"><option value=\"\">None</option> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -60,7 +60,7 @@ func createPDFModal(page *internal.PlayPage) templ.Component {
 				var templ_7745c5c3_Var3 string
 				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(S(game.ID))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/modals.templ`, Line: 21, Col: 25}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/modals.templ`, Line: 23, Col: 25}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {
@@ -83,7 +83,7 @@ func createPDFModal(page *internal.PlayPage) templ.Component {
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(game.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/modals.templ`, Line: 26, Col: 18}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/modals.templ`, Line: 28, Col: 18}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
@@ -94,13 +94,13 @@ func createPDFModal(page *internal.PlayPage) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</select></label><label for=\"name\">Name: <input type=\"text\" name=\"name\"></label><input type=\"submit\" value=\"Create\"></form>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</select></label><label for=\"name\">Name: <input type=\"text\" name=\"name\" placeholder=\"Character Name\"></label><input type=\"submit\" value=\"Create\"></form>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			return templ_7745c5c3_Err
 		})
-		templ_7745c5c3_Err = Modal("create-pdf-modal", "Create PDF", "show-create-pdf-modal").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Modal("create-pdf-modal", "show-create-pdf-modal").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -141,22 +141,12 @@ func gamesModal(page *internal.PlayPage) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<table><caption>Your Games <ul><button class=\"icon-btn\" @click=\"$root.close(); $dispatch(&#39;show-create-game-modal&#39;)\"><iconify-icon icon=\"material-symbols:add\"></iconify-icon></button></ul></caption> <tbody><tr><th></th><th>players</th></tr>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<table><caption>Your Games <ul><button class=\"bg-btn\" @click=\"$root.close(); $dispatch(&#39;show-create-game-modal&#39;)\"><iconify-icon icon=\"material-symbols:add\"></iconify-icon></button></ul></caption> <tbody>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for _, game := range page.Session.User.HostedGames {
 				templ_7745c5c3_Err = games.HostedGameRow(game).Render(ctx, templ_7745c5c3_Buffer)
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</tbody></table><table><caption>Joined Games</caption> <tbody>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			for _, game := range page.Session.User.JoinedGames {
-				templ_7745c5c3_Err = games.JoinedGameRow(game).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -167,7 +157,7 @@ func gamesModal(page *internal.PlayPage) templ.Component {
 			}
 			return templ_7745c5c3_Err
 		})
-		templ_7745c5c3_Err = Modal("games-modal", "Games", "show-games-modal").Render(templ.WithChildren(ctx, templ_7745c5c3_Var6), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Modal("games-modal", "show-games-modal").Render(templ.WithChildren(ctx, templ_7745c5c3_Var6), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -208,13 +198,13 @@ func createGameModal() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form hx-post=\"/games/games\" hx-target=\".games-modal tbody\" hx-swap=\"beforeend\"><label for=\"name\">Name: <input type=\"text\" name=\"name\"></label><input type=\"submit\" value=\"Create\"></form>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form hx-post=\"/games/games\" hx-target=\".games-modal tbody\" hx-swap=\"beforeend\"><h1>Create Game</h1><label for=\"name\">Name: <input type=\"text\" name=\"name\"></label><input type=\"submit\" value=\"Create\"></form>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			return templ_7745c5c3_Err
 		})
-		templ_7745c5c3_Err = Modal("create-game-modal", "Create Game", "show-create-game-modal").Render(templ.WithChildren(ctx, templ_7745c5c3_Var8), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Modal("create-game-modal", "show-create-game-modal").Render(templ.WithChildren(ctx, templ_7745c5c3_Var8), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

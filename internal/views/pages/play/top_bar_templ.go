@@ -8,7 +8,10 @@ package play
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "rollbringer/internal"
+import (
+	"rollbringer/internal"
+	"rollbringer/internal/views/games"
+)
 
 func topBar(page *internal.PlayPage) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -31,7 +34,19 @@ func topBar(page *internal.PlayPage) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div x-data class=\"top-bar\"><button class=\"games-btn icon-btn\" @click=\"$dispatch(&#39;show-games-modal&#39;)\"><iconify-icon icon=\"material-symbols:meeting-room\"></iconify-icon></button></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"top-bar\" x-data=\"{ selectedDiceTypes: [] }\"><button class=\"menu-btn fg-btn\" @click=\"$dispatch(&#39;show-games-modal&#39;)\"><iconify-icon icon=\"material-symbols:menu-rounded\"></iconify-icon></button><div class=\"roll-selections\"><div class=\"roll-dropdown\"><div class=\"dice\"><template x-for=\"dieType in [4, 6, 8, 10, 12, 20]\"><button class=\"die fg-btn\" @click.prevent=\"selectedDiceTypes.push(Number(dieType))\"><iconify-icon :icon=\"`mdi:dice-d${dieType}`\"></iconify-icon></button></template></div><div class=\"buttons\"><button class=\"public bg-btn\" :hx-vals=\"`{\n                        &#34;EVENT&#34;: &#34;CREATE_ROLL_REQUEST&#34;,\n                        &#34;dice_types&#34;: [${selectedDiceTypes}]\n                    }`\" ws-send>PUBLIC</button> <button class=\"bg-btn\" @click=\"window.utils.privateRoll(selectedDiceTypes)\">PRIVATE</button></div></div><template x-if=\"selectedDiceTypes.length == 0\"><iconify-icon class=\"die placeholder\" icon=\"game-icons:rolling-dices\"></iconify-icon></template><template x-for=\"(dieType, idx) in selectedDiceTypes\"><button x-data class=\"die fg-btn\" @click.prevent=\"selectedDiceTypes.splice(idx, 1)\"><iconify-icon :icon=\"`mdi:dice-d${dieType}`\"></iconify-icon></button></template></div><div class=\"roll-results\"><div class=\"inner\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if page.Game != nil {
+			for _, roll := range page.Game.Rolls {
+				templ_7745c5c3_Err = games.Roll(roll).Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
