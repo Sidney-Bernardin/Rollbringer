@@ -4,27 +4,30 @@ import (
 	"rollbringer/internal"
 	. "rollbringer/internal/views"
 	"rollbringer/internal/views/games"
-	"slices"
 )
 
 templ createPDFModal(page *internal.PlayPage) {
 	@Modal("create-pdf-modal", "show-create-pdf-modal") {
-		<form hx-post="/games/pdfs?view=list_item" hx-target=".pdfs tbody" hx-swap="beforeend">
+		<form
+			x-data="{ gameID: '' }"
+			:data-minimized-response-game-id="gameID"
+			:hx-post="`/games/pdfs?view=list_item`"
+			hx-target=".pdfs tbody"
+			hx-swap="beforeend"
+		>
 			<h1>Create Character Sheet</h1>
 			//
 			<input type="hidden" name="schema" value="DND_CHARACTER_SHEET"/>
 			//
 			<label for="game_id">
 				Game:
-				<select name="game_id">
+				<select name="game_id" x-model="gameID">
 					<option value="">None</option>
-					for _, game := range slices.Concat(page.Session.User.HostedGames, page.Session.User.JoinedGames) {
-						<option
-							value={ S(game.ID) }
-							if page.Game != nil && game.ID == page.Game.ID {
-								selected
-							}
-						>
+					if page.Game != nil {
+						<option value={ S(page.Game.ID) }>Current Game</option>
+					}
+					for _, game := range page.Session.User.HostedGames {
+						<option value={ S(game.ID) }>
 							{ game.Name }
 						</option>
 					}

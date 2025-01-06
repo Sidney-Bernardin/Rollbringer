@@ -112,9 +112,8 @@ func (h *handler) handleCreatePDF(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pdf, err = h.svc.GetPDF(ctx, pdf.ID, internal.PDFViewListItem)
-	if err != nil {
-		h.Err(w, r, errors.Wrap(err, "cannot get pdf"))
+	if _, ok := r.Header["Minimal-Response"]; ok {
+		w.WriteHeader(http.StatusCreated)
 		return
 	}
 
@@ -175,13 +174,17 @@ func (h *handler) handleDeletePDF(w http.ResponseWriter, r *http.Request) {
 
 		session, _ = ctx.Value(internal.CtxKeySession).(*internal.Session)
 		pdfID, _   = uuid.Parse(chi.URLParam(r, "pdf_id"))
+		gameID, _  = internal.OptionalID(ctx, r.URL.Query().Get("game-id"))
 	)
 
-	if err := h.svc.DeletePDF(ctx, session, pdfID); err != nil {
+	if err := h.svc.DeletePDF(ctx, session, pdfID, gameID); err != nil {
 		h.Err(w, r, errors.Wrap(err, "cannot delete pdf"))
 		return
 	}
 
-	w.Header().Set("HX-Trigger", fmt.Sprintf(`{"remove-tab": "%s", "deleted-pdf": "%s"}`, pdfID, pdfID))
+	if _, ok := r.Header["Minimal-Response"]; !ok {
+		w.Header().Set("HX-Trigger", fmt.Sprintf(`{"deleted-pdf": { "pdfID": "%s" }, "remove-tab": { "tabID": "%s" }}`, pdfID, pdfID))
+	}
+
 	w.WriteHeader(http.StatusOK)
 }

@@ -20,17 +20,18 @@ type Service interface {
 
 	CreateGame(ctx context.Context, session *internal.Session, game *internal.Game) error
 	DeleteGame(ctx context.Context, session *internal.Session, gameID uuid.UUID) error
-	SubToGame(ctx context.Context, gameID uuid.UUID, resChan chan<- any) error
+	SubToGame(ctx context.Context, gameID uuid.UUID, resChan chan<- *internal.EventWrapper[any]) error
 
 	CreatePDF(ctx context.Context, session *internal.Session, pdf *internal.PDF) error
 	GetPDF(ctx context.Context, pdfID uuid.UUID, view internal.PDFView) (*internal.PDF, error)
 	GetPDFPage(ctx context.Context, pdfID uuid.UUID, pageNum int) (map[string]string, error)
 	UpdatePDF(ctx context.Context, session *internal.Session, pdf *internal.PDF) error
-	UpdatePDFPage(ctx context.Context, pdfID uuid.UUID, pageNum int, fieldName, fieldValue string) error
-	DeletePDF(ctx context.Context, session *internal.Session, pdfID uuid.UUID) error
-	SubToPDFPage(ctx context.Context, pdfID uuid.UUID, pageNum int, resChan chan<- any) error
+	UpdatePDFPage(ctx context.Context, pdfID uuid.UUID, pageNum int, fieldName, fieldValue string, broadcast bool) error
+	DeletePDF(ctx context.Context, session *internal.Session, pdfID uuid.UUID, gameID *uuid.UUID) error
+	SubToPDFPage(ctx context.Context, pdfID uuid.UUID, pageNum int, resChan chan<- *internal.EventWrapper[any]) error
 
 	CreateRoll(ctx context.Context, session *internal.Session, gameID uuid.UUID, dice []int, modifiers string) (*internal.Roll, error)
+	CreateChatMessage(ctx context.Context, session *internal.Session, gameID uuid.UUID, message string) (*internal.ChatMessage, error)
 }
 
 type service struct {
@@ -88,8 +89,13 @@ func (svc *service) playPage(ctx context.Context, page *internal.PlayPage) (err 
 		})
 
 		errs.Go(func() error {
-			page.Game.Rolls, err = svc.schema.RollsGetByGame(errsCtx, page.Game.ID, internal.RollViewListItem)
+			page.Game.Rolls, err = svc.schema.RollsGetByGame(errsCtx, page.Game.ID)
 			return errors.Wrap(err, "cannot get rolls by game")
+		})
+
+		errs.Go(func() error {
+			page.Game.ChatMessages, err = svc.schema.ChatMessagesGetByGame(errsCtx, page.Game.ID)
+			return errors.Wrap(err, "cannot get chat-messages by game")
 		})
 	}
 

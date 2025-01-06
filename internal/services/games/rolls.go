@@ -2,6 +2,7 @@ package games
 
 import (
 	"context"
+	"fmt"
 	"rollbringer/internal"
 
 	"github.com/google/uuid"
@@ -27,5 +28,11 @@ func (svc *service) CreateRoll(ctx context.Context, session *internal.Session, g
 		return nil, errors.Wrap(err, "cannot insert roll")
 	}
 
-	return roll, nil
+	subject := fmt.Sprintf("games.%s", gameID)
+	err := svc.PubSub.Publish(ctx, subject, &internal.EventWrapper[any]{
+		Event:   internal.EventRoll,
+		Payload: roll,
+	})
+
+	return roll, errors.Wrap(err, "cannot publish ROLL event")
 }

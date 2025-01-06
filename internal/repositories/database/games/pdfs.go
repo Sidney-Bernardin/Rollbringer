@@ -51,14 +51,31 @@ func (db *gamesSchema) PDFInsert(ctx context.Context, pdf *internal.PDF) error {
 		hstorePages[i].Map = hstorePage
 	}
 
-	err := db.TX.QueryRowxContext(ctx,
-		`INSERT INTO games.pdfs (id, owner_id, game_id, name, schema, pages)
-			VALUES ($1, $2, $3, $4, $5, $6)
-		RETURNING id`,
-		uuid.New(), pdf.OwnerID, pdf.GameID, pdf.Name, pdf.Schema, pq.Array(hstorePages),
-	).Scan(&pdf.ID)
+	query := ` 
+		WITH inserted_pdf AS (
+			INSERT INTO games.pdfs (id, owner_id, game_id, name, schema, pages)
+				VALUES ($1, $2, $3, $4, $5, $6)
+				RETURNING *
+		)
+		SELECT 
+			inserted_pdf.id, inserted_pdf.owner_id, inserted_pdf.game_id, inserted_pdf.name, inserted_pdf.schema,
+			games.id AS "game.id", COALESCE(games.name, '') AS "game.name",
+			users.id AS "owner.id", users.username AS "owner.username", users.google_id AS "owner.google_id"
+		FROM inserted_pdf
+			LEFT JOIN games.games ON games.id = inserted_pdf.game_id
+			LEFT JOIN users.users ON users.id = inserted_pdf.owner_id
+	`
 
-	return errors.Wrap(err, "cannot insert PDF")
+	var dbPDF database.PDF
+	err := sqlx.GetContext(ctx, db.TX, &dbPDF, query,
+		uuid.New(), pdf.OwnerID, pdf.GameID, pdf.Name, pdf.Schema, pq.Array(hstorePages))
+
+	if err != nil {
+		return errors.Wrap(err, "cannot insert PDF")
+	}
+
+	*pdf = *dbPDF.Internalized()
+	return nil
 }
 
 func (db *gamesSchema) PDFGet(ctx context.Context, pdfID uuid.UUID, view internal.PDFView) (*internal.PDF, error) {

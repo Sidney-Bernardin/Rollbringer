@@ -18,7 +18,7 @@ templ DynamicTabButton(name, tabID string) {
 		data-tab-id={ tabID }
 		:class="(currentDynamicTab === $el.dataset.tabId) && 'active'"
 		@click="currentDynamicTab = $el.dataset.tabId"
-		@remove-tab.window="($event.detail.value === $el.dataset.tabId) && $el.remove()"
+		@remove-tab.window="($event.detail.tabID === $el.dataset.tabId) && $el.remove()"
 	>
 		{ name }
 		<p class="fg-btn" @click.stop="$dispatch(`remove-tab`, { value: $el.parentElement.dataset.tabId })">
@@ -32,7 +32,7 @@ templ DynamicTabContent(tabID string) {
 		class="dynamic-tab-content"
 		data-tab-id={ tabID }
 		x-show="currentDynamicTab === $el.dataset.tabId"
-		@remove-tab.window="($event.detail.value === $el.dataset.tabId) && $el.remove()"
+		@remove-tab.window="($event.detail.tabID === $el.dataset.tabId) && $el.remove()"
 	>
 		{ children... }
 	</div>

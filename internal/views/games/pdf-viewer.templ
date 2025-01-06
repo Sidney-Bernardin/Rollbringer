@@ -1,7 +1,6 @@
 package games
 
 import (
-	"fmt"
 	"github.com/google/uuid"
 	"rollbringer/internal"
 	. "rollbringer/internal/views"
@@ -14,7 +13,7 @@ templ PDFViewer(pdf *internal.PDF, pages []string) {
 		x-data="pdfViewer($el.dataset.pdfId, $el.dataset.pdfSchema)"
 		data-pdf-id={ pdf.ID.String() }
 		data-pdf-schema={ pdf.Schema }
-		@deleted-pdf.window="($event.detail.pdf_id == $el.dataset.pdfId) && $el.remove()"
+		@deleted-pdf.window="($event.detail.pdfID == $el.dataset.pdfId) && $el.remove()"
 	>
 		<div class="update-pdf-info">
 			<input type="hidden" name="EVENT" value="UPDATE_PDF_PAGE_REQUEST"/>
@@ -31,9 +30,9 @@ templ PDFViewer(pdf *internal.PDF, pages []string) {
 		<div class="page-buttons">
 			for i, page := range pages {
 				<button
-                    class="bg-btn"
+					class="bg-btn"
 					:class="(currentPage === +$el.dataset.pageNum) && 'active'"
-					data-page-num={ fmt.Sprint(i + 1) }
+					data-page-num={ S(i + 1) }
 					@click="openPage(+$el.dataset.pageNum)"
 				>
 					{ page }
@@ -70,7 +69,6 @@ templ pdfViewerField(pdfID uuid.UUID, name, value string) {
 				type={ fieldType }
 				id={ name }
 				name="field_value"
-				value={ value }
 				if fieldType == "checkbox" && value == "on" {
 					checked
 				}

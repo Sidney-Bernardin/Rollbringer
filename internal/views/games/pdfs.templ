@@ -8,25 +8,41 @@ import (
 templ PDFTableRow(pdf *internal.PDF, isOwner bool) {
 	<tr
 		x-data
+        x-init="htmx.process($el)"
 		data-pdf-id={ S(pdf.ID) }
 		data-pdf-name={ pdf.Name }
 		data-pdf-game-id={ S(pdf.GameID) }
-		hx-get={ F("/games/pdfs/%s", pdf.ID) }
+		is-owner?={ isOwner }
+		:hx-get="`/games/pdfs/${$el.dataset.pdfId}`"
 		hx-swap="none"
 		@click="$dispatch('show-dynamic-tab', {
             containerID: 'pdfs-tab-container',
             tabID: $root.dataset.pdfId,
         })"
-		@deleted-pdf.window="($event.detail.value === $el.dataset.pdfId) && $el.remove()"
+		@deleted-pdf.window="($event.detail.pdfID === $el.dataset.pdfId) && $el.remove()"
 	>
 		<td>{ pdf.Name } </td>
 		<td>{ pdf.Owner.Username } </td>
 		<td>
-			<button class="fg-btn" @click.stop :hx-delete="`/games/pdfs/${$root.dataset.pdfId}`" hx-swap="none">
-				<iconify-icon icon="material-symbols:delete-outline-rounded"></iconify-icon>
-			</button>
+			if isOwner {
+				<button
+					class="fg-btn"
+					:data-minimized-response-game-id="$root.dataset.pdfGameId"
+					:hx-delete="`/games/pdfs/${$root.dataset.pdfId}?&game-id=${$root.dataset.pdfGameId}`"
+					hx-swap="none"
+					@click.stop
+				>
+					<iconify-icon icon="material-symbols:delete-outline-rounded"></iconify-icon>
+				</button>
+			}
 		</td>
 	</tr>
+}
+
+templ PDFTableRowOOB(pdf *internal.PDF, isOwner bool) {
+	<tbody hx-swap-oob="beforeend:.pdfs tbody">
+		@PDFTableRow(pdf, isOwner)
+	</tbody>
 }
 
 templ PDFTab(pdf *internal.PDF) {

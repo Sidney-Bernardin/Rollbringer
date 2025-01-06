@@ -59,6 +59,15 @@ CREATE TABLE games.rolls (
     modifiers text NOT NULL
 );
 
+CREATE TABLE games.chat_messages (
+    id UUID PRIMARY KEY,
+
+    owner_id UUID NOT NULL REFERENCES users.users ON DELETE CASCADE,
+    game_id UUID NOT NULL REFERENCES games.games ON DELETE CASCADE,
+
+    message text NOT NULL
+);
+
 
 
 CREATE TABLE game_users (

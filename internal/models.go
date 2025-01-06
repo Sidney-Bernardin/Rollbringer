@@ -10,7 +10,7 @@ type Event string
 
 type EventWrapper[T any] struct {
 	Event   Event `json:"event"`
-	Payload T
+	Payload T     `json:"payload"`
 }
 
 // =====
@@ -121,9 +121,10 @@ type Game struct {
 
 	Name string `json:"name,omitempty"`
 
-	Users []*User `json:"users,omitempty"`
-	PDFs  []*PDF  `json:"pdfs,omitempty"`
-	Rolls []*Roll `json:"rolls,omitempty"`
+	Users        []*User        `json:"users,omitempty"`
+	PDFs         []*PDF         `json:"pdfs,omitempty"`
+	Rolls        []*Roll        `json:"rolls,omitempty"`
+	ChatMessages []*ChatMessage `json:"chat_messages,omitempty"`
 }
 
 // =====
@@ -133,8 +134,9 @@ type PDFView string
 const (
 	PDFViewListItem PDFView = "list_item"
 
-	EventPDF  Event = "PDF"
-	EventPDFs Event = "PDFS"
+	EventPDF        Event = "PDF"
+	EventPDFs       Event = "PDFS"
+	EventDeletedPDF Event = "DELETED_PDF"
 )
 
 type PDF struct {
@@ -183,13 +185,7 @@ type UpdatePDFPageRequest struct {
 
 // =====
 
-type RollView string
-
-const (
-	RollViewListItem RollView = "list_item"
-
-	EventRoll Event = "ROLL"
-)
+const EventRoll Event = "ROLL"
 
 type Roll struct {
 	ID uuid.UUID `json:"id,omitempty"`
@@ -212,4 +208,28 @@ const EventCreateRollRequest Event = "CREATE_ROLL_REQUEST"
 type CreateRollRequest struct {
 	DiceTypes []int  `json:"dice_types,omitempty"`
 	Modifiers string `json:"modifiers,omitempty"`
+}
+
+// =====
+
+const EventChatMessage Event = "CHAT_MESSAGE"
+
+type ChatMessage struct {
+	ID uuid.UUID `json:"id,omitempty"`
+
+	OwnerID uuid.UUID `json:"owner_id,omitempty"`
+	Owner   *User     `json:"owner,omitempty"`
+
+	GameID uuid.UUID `json:"game_id,omitempty"`
+	Game   *Game     `json:"game,omitempty"`
+
+	Message string `json:"message,omitempty"`
+}
+
+// =====
+
+const EventCreateChatMessageRequest Event = "CREATE_CHAT_MESSAGE_REQUEST"
+
+type CreateChatMessageRequest struct {
+	Message string `json:"message,omitempty"`
 }

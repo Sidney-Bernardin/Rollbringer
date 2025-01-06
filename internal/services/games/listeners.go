@@ -64,12 +64,16 @@ func (svc *service) subToPages(ctx context.Context) error {
 	return errors.Wrap(err, "cannot subscribe to games.pages")
 }
 
-func (svc *service) SubToGame(ctx context.Context, gameID uuid.UUID, resChan chan<- any) error {
+func (svc *service) SubToGame(ctx context.Context, gameID uuid.UUID, resChan chan<- *internal.EventWrapper[any]) error {
 	subject := fmt.Sprintf("games.%s", gameID)
 	err := svc.PubSub.Subscribe(ctx, subject, func(req *internal.EventWrapper[[]byte]) (*internal.EventWrapper[any], error) {
 
 		var payload any
 		switch req.Event {
+		case internal.EventPDF:
+			payload = &internal.PDF{}
+		case internal.EventDeletedPDF:
+			payload = &internal.PDF{}
 		case internal.EventPDFPage:
 			payload = &internal.PDFPage{}
 		case internal.EventRoll:
@@ -85,14 +89,18 @@ func (svc *service) SubToGame(ctx context.Context, gameID uuid.UUID, resChan cha
 			})
 		}
 
-		resChan <- payload
+		resChan <- &internal.EventWrapper[any]{
+			Event:   req.Event,
+			Payload: payload,
+		}
+
 		return nil, nil
 	})
 
 	return errors.Wrapf(err, "cannot subscribe to games.%s", gameID)
 }
 
-func (svc *service) SubToPDFPage(ctx context.Context, pdfID uuid.UUID, pageNum int, resChan chan<- any) error {
+func (svc *service) SubToPDFPage(ctx context.Context, pdfID uuid.UUID, pageNum int, resChan chan<- *internal.EventWrapper[any]) error {
 	subject := fmt.Sprintf("pdfs.%s.pages.%v", pdfID, pageNum)
 	err := svc.PubSub.Subscribe(ctx, subject, func(req *internal.EventWrapper[[]byte]) (*internal.EventWrapper[any], error) {
 
@@ -111,7 +119,11 @@ func (svc *service) SubToPDFPage(ctx context.Context, pdfID uuid.UUID, pageNum i
 			})
 		}
 
-		resChan <- payload
+		resChan <- &internal.EventWrapper[any]{
+			Event:   req.Event,
+			Payload: payload,
+		}
+
 		return nil, nil
 	})
 

@@ -126,3 +126,29 @@ func (roll *Roll) Internalized() *internal.Roll {
 	}
 	return nil
 }
+
+type ChatMessage struct {
+	ID uuid.UUID `db:"id"`
+
+	OwnerID uuid.UUID `db:"owner_id"`
+	Owner   *User     `db:"owner"`
+
+	GameID uuid.UUID `db:"game_id"`
+	Game   *Game     `db:"game"`
+
+	Message string `db:"message"`
+}
+
+func (chatMessage *ChatMessage) Internalized() *internal.ChatMessage {
+	if chatMessage != nil {
+		return &internal.ChatMessage{
+			ID:      chatMessage.ID,
+			OwnerID: chatMessage.OwnerID,
+			Owner:   chatMessage.Owner.Internalized(),
+			GameID:  chatMessage.GameID,
+			Game:    chatMessage.Game.Internalized(),
+			Message: chatMessage.Message,
+		}
+	}
+	return nil
+}

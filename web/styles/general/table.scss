@@ -38,6 +38,12 @@ table {
       backdrop-filter: brightness(1.25);
     }
 
+    &[is-owner] {
+      td:nth-child(2) {
+        color: $green;
+      }
+    }
+
     td {
       border: 8px solid transparent;
 

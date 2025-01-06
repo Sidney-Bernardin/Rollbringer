@@ -20,7 +20,9 @@ func (h *handler) handleGameWebsocket(conn *websocket.Conn) {
 		session, _ = ctx.Value(internal.CtxKeySession).(*internal.Session)
 
 		pdfCtx, pdfCancel = context.WithCancel(context.Background())
-		resChan           = make(chan any)
+
+		resChan = make(chan *internal.EventWrapper[any])
+		errChan = make(chan error)
 	)
 
 	gameID, err := internal.OptionalID(ctx, r.URL.Query().Get("g"))
@@ -33,7 +35,7 @@ func (h *handler) handleGameWebsocket(conn *websocket.Conn) {
 	if gameID != nil {
 		go func() {
 			err := h.svc.SubToGame(ctx, *gameID, resChan)
-			resChan <- errors.Wrap(err, "cannot subscribe to game")
+			errChan <- errors.Wrap(err, "cannot subscribe to game")
 		}()
 	}
 
@@ -45,13 +47,13 @@ func (h *handler) handleGameWebsocket(conn *websocket.Conn) {
 					return
 				}
 
-				resChan <- errors.Wrap(err, "cannot receive WebSocket message")
+				errChan <- errors.Wrap(err, "cannot receive WebSocket message")
 				continue
 			}
 
 			var req internal.EventWrapper[any]
 			if err := json.Unmarshal(bytes, &req); err != nil {
-				resChan <- internal.NewProblemDetail(ctx, internal.PDOpts{
+				errChan <- internal.NewProblemDetail(ctx, internal.PDOpts{
 					Type:   internal.PDTypeInvalidJSON,
 					Detail: err.Error(),
 				})
@@ -66,12 +68,14 @@ func (h *handler) handleGameWebsocket(conn *websocket.Conn) {
 				payload = &internal.UpdatePDFPageRequest{}
 			case internal.EventCreateRollRequest:
 				payload = &internal.CreateRollRequest{}
+			case internal.EventCreateChatMessageRequest:
+				payload = &internal.CreateChatMessageRequest{}
 			default:
 				continue
 			}
 
 			if err := json.Unmarshal(bytes, &payload); err != nil {
-				resChan <- internal.NewProblemDetail(ctx, internal.PDOpts{
+				errChan <- internal.NewProblemDetail(ctx, internal.PDOpts{
 					Type:   internal.PDTypeInvalidJSON,
 					Detail: err.Error(),
 				})
@@ -85,7 +89,7 @@ func (h *handler) handleGameWebsocket(conn *websocket.Conn) {
 
 				pageFields, err := h.svc.GetPDFPage(instanceCtx, payload.PDFID, payload.PageNum)
 				if err != nil {
-					resChan <- errors.Wrap(err, "cannot get PDF page")
+					errChan <- errors.Wrap(err, "cannot get PDF page")
 					continue
 				}
 
@@ -94,20 +98,23 @@ func (h *handler) handleGameWebsocket(conn *websocket.Conn) {
 				go func() {
 					err := h.svc.SubToPDFPage(pdfCtx, payload.PDFID, payload.PageNum, resChan)
 					if errors.Cause(err) != context.Canceled {
-						resChan <- errors.Wrap(err, "cannot subscribe to PDF page")
+						errChan <- errors.Wrap(err, "cannot subscribe to PDF page")
 					}
 					pdfCancel()
 				}()
 
-				resChan <- &internal.PDFPage{
-					PDFID:   payload.PDFID,
-					PageNum: payload.PageNum,
-					Fields:  pageFields,
+				resChan <- &internal.EventWrapper[any]{
+					Event: internal.EventPDFPage,
+					Payload: &internal.PDFPage{
+						PDFID:   payload.PDFID,
+						PageNum: payload.PageNum,
+						Fields:  pageFields,
+					},
 				}
 
 			case *internal.UpdatePDFPageRequest:
-				if err := h.svc.UpdatePDFPage(ctx, payload.PDFID, payload.PageNum, payload.FieldName, payload.FieldValue); err != nil {
-					resChan <- errors.Wrap(err, "cannot update PDF page")
+				if err := h.svc.UpdatePDFPage(ctx, payload.PDFID, payload.PageNum, payload.FieldName, payload.FieldValue, true); err != nil {
+					errChan <- errors.Wrap(err, "cannot update PDF page")
 				}
 
 			case *internal.CreateRollRequest:
@@ -117,23 +124,57 @@ func (h *handler) handleGameWebsocket(conn *websocket.Conn) {
 
 				roll, err := h.svc.CreateRoll(ctx, session, *gameID, payload.DiceTypes, payload.Modifiers)
 				if err != nil {
-					resChan <- errors.Wrap(err, "cannot create roll")
+					errChan <- errors.Wrap(err, "cannot create roll")
 					continue
 				}
 
-				resChan <- roll
+				resChan <- &internal.EventWrapper[any]{
+					Event:   internal.EventRoll,
+					Payload: roll,
+				}
+
+			case *internal.CreateChatMessageRequest:
+				if gameID == nil {
+					continue
+				}
+
+				chatMsg, err := h.svc.CreateChatMessage(ctx, session, *gameID, payload.Message)
+				if err != nil {
+					errChan <- errors.Wrap(err, "cannot create chat-message")
+					continue
+				}
+
+				resChan <- &internal.EventWrapper[any]{
+					Event:   internal.EventRoll,
+					Payload: chatMsg,
+				}
 			}
 		}
 	}()
 
 	for {
-		switch res := (<-resChan).(type) {
-		case error:
-			h.Err(conn, r, res)
-		case *internal.PDFPage:
-			h.Render(conn, r, 0, games.PDFViewerFields(res.PDFID, res.Fields))
-		case *internal.Roll:
-			h.Render(conn, r, 0, games.Roll(res))
+		select {
+		case err := <-errChan:
+			h.Err(conn, r, err)
+
+		case event := <-resChan:
+			switch payload := event.Payload.(type) {
+			case *internal.PDF:
+
+				switch event.Event {
+				case internal.EventDeletedPDF:
+					h.Render(conn, r, 0, event)
+				default:
+					h.Render(conn, r, 0, games.PDFTableRowOOB(payload, payload.OwnerID == session.UserID))
+				}
+
+			case *internal.PDFPage:
+				h.Render(conn, r, 0, games.PDFViewerFields(payload.PDFID, payload.Fields))
+			case *internal.Roll:
+				h.Render(conn, r, 0, games.Roll(payload))
+			case *internal.ChatMessage:
+				// ...
+			}
 		}
 	}
 }

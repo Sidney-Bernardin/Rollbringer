@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"io"
 	"net/http"
 
@@ -45,12 +46,28 @@ func (h *BaseHandler) Err(w io.Writer, r *http.Request, err error) {
 	h.Render(w, r, httpStatusCode, views.ProblemDetail(pd))
 }
 
-func (h *BaseHandler) Render(w io.Writer, r *http.Request, httpStatusCode int, data templ.Component) {
+func (h *BaseHandler) Render(w io.Writer, r *http.Request, httpStatusCode int, data any) {
 	if rw, ok := w.(http.ResponseWriter); ok {
 		rw.WriteHeader(httpStatusCode)
 	}
 
-	if err := data.Render(r.Context(), w); err != nil {
-		internal.HandleError(r.Context(), h.Logger, errors.Wrap(err, "cannot render component"))
+	switch res := data.(type) {
+	case templ.Component:
+		if err := res.Render(r.Context(), w); err != nil {
+			internal.HandleError(r.Context(), h.Logger, errors.Wrap(err, "cannot render component"))
+			return
+		}
+
+	default:
+		b, err := json.Marshal(res)
+		if err != nil {
+			internal.HandleError(r.Context(), h.Logger, errors.Wrap(err, "cannot encode JSON"))
+			return
+		}
+
+		if _, err := w.Write(b); err != nil {
+			internal.HandleError(r.Context(), h.Logger, errors.Wrap(err, "cannot write response"))
+			return
+		}
 	}
 }

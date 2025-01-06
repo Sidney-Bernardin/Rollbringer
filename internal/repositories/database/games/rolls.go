@@ -2,7 +2,6 @@ package games
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -13,28 +12,6 @@ import (
 	"rollbringer/internal/repositories/database"
 )
 
-func rollColumns(view internal.RollView) string {
-	switch view {
-	case internal.RollViewListItem:
-		return `rolls.*,` +
-			`users.id AS "owner.id",` +
-			`users.username AS "owner.username",` +
-			`users.google_picture AS "owner.google_picture"`
-
-	default:
-		return `rolls.*`
-	}
-}
-
-func rollJoins(view internal.RollView) string {
-	switch view {
-	case internal.RollViewListItem:
-		return `LEFT JOIN users.users ON users.id = rolls.owner_id`
-	default:
-		return ``
-	}
-}
-
 func (db *gamesSchema) RollInsert(ctx context.Context, roll *internal.Roll) error {
 	query := ` 
 		WITH inserted_roll AS (
@@ -42,8 +19,13 @@ func (db *gamesSchema) RollInsert(ctx context.Context, roll *internal.Roll) erro
 				VALUES ($1, $2, $3, $4, $5, $6)
 			RETURNING *
 		)
-		SELECT inserted_roll.*, users.id AS "owner.id", users.username AS "owner.username", users.google_picture AS "owner.google_picture"
-			FROM inserted_roll LEFT JOIN users.users ON users.id = inserted_roll.owner_id
+		SELECT
+			inserted_roll.*,
+			users.id AS "owner.id",
+			users.username AS "owner.username",
+			users.google_picture AS "owner.google_picture"
+		FROM inserted_roll
+			LEFT JOIN users.users ON users.id = inserted_roll.owner_id
 	`
 
 	var dbRoll database.Roll
@@ -58,10 +40,19 @@ func (db *gamesSchema) RollInsert(ctx context.Context, roll *internal.Roll) erro
 	return nil
 }
 
-func (db *gamesSchema) RollsGetByGame(ctx context.Context, gameID uuid.UUID, view internal.RollView) ([]*internal.Roll, error) {
+func (db *gamesSchema) RollsGetByGame(ctx context.Context, gameID uuid.UUID) ([]*internal.Roll, error) {
+	query := ` 
+		SELECT
+			rolls.*,
+			users.id AS "owner.id",
+			users.username AS "owner.username",
+			users.google_picture AS "owner.google_picture"
+		FROM games.rolls
+			LEFT JOIN users.users ON users.id = rolls.owner_id
+		WHERE rolls.game_id = $1
+	`
 
 	var rolls []*database.Roll
-	query := fmt.Sprintf(`SELECT %s FROM games.rolls %s WHERE rolls.game_id = $1`, rollColumns(view), rollJoins(view))
 	if err := sqlx.SelectContext(ctx, db.TX, &rolls, query, gameID); err != nil {
 		return nil, errors.Wrap(err, "cannot select rolls")
 	}

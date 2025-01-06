@@ -73,7 +73,7 @@ func HostedGameRow(game *internal.Game) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" players</td><td><button class=\"bg-btn\" :hx-delete=\"`/games/games/${$root.dataset.gameId}`\" hx-target=\"closest tr\" hx-swap=\"outerHTML\" @click.stop><iconify-icon icon=\"material-symbols:delete-outline-rounded\"></iconify-icon></button></td></tr>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" players</td><td><button class=\"fg-btn\" :hx-delete=\"`/games/games/${$root.dataset.gameId}`\" hx-target=\"closest tr\" hx-swap=\"outerHTML\" @click.stop><iconify-icon icon=\"material-symbols:delete-outline-rounded\"></iconify-icon></button></td></tr>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
