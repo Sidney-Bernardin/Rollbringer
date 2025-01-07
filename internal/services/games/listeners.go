@@ -78,6 +78,8 @@ func (svc *service) SubToGame(ctx context.Context, gameID uuid.UUID, resChan cha
 			payload = &internal.PDFPage{}
 		case internal.EventRoll:
 			payload = &internal.Roll{}
+		case internal.EventChatMessage:
+			payload = &internal.ChatMessage{}
 		default:
 			return nil, nil
 		}

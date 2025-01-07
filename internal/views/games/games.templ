@@ -1,9 +1,6 @@
 package games
 
-import (
-	"rollbringer/internal"
-	. "rollbringer/internal/views"
-)
+import "rollbringer/internal"
 
 templ HostedGameRow(game *internal.Game) {
 	<tr
@@ -12,7 +9,7 @@ templ HostedGameRow(game *internal.Game) {
 		@click="window.location.href = `/pages?g=${$root.dataset.gameId}`"
 	>
 		<td>{ game.Name } </td>
-		<td>{ S(len(game.Users)) } players</td>
+		<td></td>
 		<td>
 			<button
 				class="fg-btn"

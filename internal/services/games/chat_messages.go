@@ -10,6 +10,13 @@ import (
 )
 
 func (svc *service) CreateChatMessage(ctx context.Context, session *internal.Session, gameID uuid.UUID, message string) (*internal.ChatMessage, error) {
+	if message == "" {
+		return nil, internal.NewProblemDetail(ctx, internal.PDOpts{
+			Type:   internal.PDTypeInvalidChatMessage,
+			Detail: "The given message cannot be empty.",
+		})
+	}
+
 	chatMsg := &internal.ChatMessage{
 		OwnerID: session.UserID,
 		GameID:  gameID,

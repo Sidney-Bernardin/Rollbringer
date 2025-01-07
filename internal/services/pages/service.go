@@ -78,6 +78,7 @@ func (svc *service) PlayPage(ctx context.Context, page *internal.PlayPage) error
 			page.Game.HostID = res.Game.HostID
 			page.Game.PDFs = res.Game.PDFs
 			page.Game.Rolls = res.Game.Rolls
+			page.Game.ChatMessages = res.Game.ChatMessages
 		}
 
 		return nil

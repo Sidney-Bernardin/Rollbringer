@@ -31,6 +31,7 @@ CREATE SCHEMA games;
 
 CREATE TABLE games.games (
     id UUID PRIMARY KEY,
+    created_at timestamp NOT NULL DEFAULT now(),
 
     host_id UUID NOT NULL REFERENCES users.users ON DELETE CASCADE,
     name text NOT NULL
@@ -38,6 +39,7 @@ CREATE TABLE games.games (
 
 CREATE TABLE games.pdfs (
     id UUID PRIMARY KEY,
+    created_at timestamp NOT NULL DEFAULT now(),
 
     owner_id UUID NOT NULL REFERENCES users.users ON DELETE CASCADE,
     game_id UUID REFERENCES games.games ON DELETE SET NULL,
@@ -50,6 +52,7 @@ CREATE TABLE games.pdfs (
 
 CREATE TABLE games.rolls (
     id UUID PRIMARY KEY,
+    created_at timestamp NOT NULL DEFAULT now(),
 
     owner_id UUID NOT NULL REFERENCES users.users ON DELETE CASCADE,
     game_id UUID NOT NULL REFERENCES games.games ON DELETE CASCADE,
@@ -61,6 +64,7 @@ CREATE TABLE games.rolls (
 
 CREATE TABLE games.chat_messages (
     id UUID PRIMARY KEY,
+    created_at timestamp NOT NULL DEFAULT now(),
 
     owner_id UUID NOT NULL REFERENCES users.users ON DELETE CASCADE,
     game_id UUID NOT NULL REFERENCES games.games ON DELETE CASCADE,

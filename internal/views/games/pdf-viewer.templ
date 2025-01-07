@@ -68,6 +68,9 @@ templ pdfViewerField(pdfID uuid.UUID, name, value string) {
 			<input
 				type={ fieldType }
 				id={ name }
+				if fieldType != "checkbox" {
+					value={ value }
+				}
 				name="field_value"
 				if fieldType == "checkbox" && value == "on" {
 					checked

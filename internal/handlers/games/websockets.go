@@ -122,15 +122,9 @@ func (h *handler) handleGameWebsocket(conn *websocket.Conn) {
 					continue
 				}
 
-				roll, err := h.svc.CreateRoll(ctx, session, *gameID, payload.DiceTypes, payload.Modifiers)
-				if err != nil {
+				if _, err := h.svc.CreateRoll(ctx, session, *gameID, payload.DiceTypes, payload.Modifiers); err != nil {
 					errChan <- errors.Wrap(err, "cannot create roll")
 					continue
-				}
-
-				resChan <- &internal.EventWrapper[any]{
-					Event:   internal.EventRoll,
-					Payload: roll,
 				}
 
 			case *internal.CreateChatMessageRequest:
@@ -138,15 +132,9 @@ func (h *handler) handleGameWebsocket(conn *websocket.Conn) {
 					continue
 				}
 
-				chatMsg, err := h.svc.CreateChatMessage(ctx, session, *gameID, payload.Message)
-				if err != nil {
+				if _, err := h.svc.CreateChatMessage(ctx, session, *gameID, payload.Message); err != nil {
 					errChan <- errors.Wrap(err, "cannot create chat-message")
 					continue
-				}
-
-				resChan <- &internal.EventWrapper[any]{
-					Event:   internal.EventRoll,
-					Payload: chatMsg,
 				}
 			}
 		}
@@ -173,7 +161,7 @@ func (h *handler) handleGameWebsocket(conn *websocket.Conn) {
 			case *internal.Roll:
 				h.Render(conn, r, 0, games.Roll(payload))
 			case *internal.ChatMessage:
-				// ...
+				h.Render(conn, r, 0, games.ChatMessage(payload))
 			}
 		}
 	}

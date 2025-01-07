@@ -1,6 +1,11 @@
 window.htmx = require('htmx.org');
 import "htmx.org/dist/ext/ws.js";
 
+
+window.addEventListener("htmx:responseError", (e: CustomEvent) => {
+    console.log(e)
+});
+
 window.addEventListener("htmx:configRequest", (e: CustomEvent) => {
     const currentGameID = document.body.dataset.gameId
     const minimizedResponseGameID = e.detail.elt.dataset.minimizedResponseGameId
@@ -25,7 +30,6 @@ window.addEventListener("htmx:wsConfigSend", (e: CustomEvent) => {
 });
 
 window.addEventListener("htmx:wsAfterMessage", (e: CustomEvent) => {
-
     try {
         var message = JSON.parse(e.detail.message)
     } catch (err) {
@@ -33,6 +37,8 @@ window.addEventListener("htmx:wsAfterMessage", (e: CustomEvent) => {
     }
 
     switch (message.event) {
+        case "ERROR":
+            alert(`${message.payload.type}: ${message.payload.detail}`)
         case "DELETED_PDF":
             window.dispatchEvent(new CustomEvent("deleted-pdf", { detail: { pdfID: message.payload.id } }))
             window.dispatchEvent(new CustomEvent("remove-tab", { detail: { tabID: message.payload.id } }))

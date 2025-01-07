@@ -7,9 +7,9 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/pkg/errors"
+	"golang.org/x/net/websocket"
 
 	"rollbringer/internal"
-	"rollbringer/internal/views"
 )
 
 var problemDetailStatusCodes = map[internal.PDType]int{
@@ -38,12 +38,16 @@ var problemDetailStatusCodes = map[internal.PDType]int{
 func (h *BaseHandler) Err(w io.Writer, r *http.Request, err error) {
 	pd := internal.HandleError(r.Context(), h.Logger, err)
 
-	var httpStatusCode int
-	if _, ok := w.(http.ResponseWriter); ok {
-		httpStatusCode = problemDetailStatusCodes[pd.Type]
-	}
+	switch w.(type) {
+	case *websocket.Conn:
+		h.Render(w, r, 0, internal.EventWrapper[any]{
+			Event:   internal.EventError,
+			Payload: pd,
+		})
 
-	h.Render(w, r, httpStatusCode, views.ProblemDetail(pd))
+	case http.ResponseWriter:
+		h.Render(w, r, problemDetailStatusCodes[pd.Type], pd)
+	}
 }
 
 func (h *BaseHandler) Render(w io.Writer, r *http.Request, httpStatusCode int, data any) {

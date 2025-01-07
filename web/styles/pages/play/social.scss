@@ -1,3 +1,48 @@
+@use "../../colors.scss" as *;
+
 .social {
   grid-area: social;
+
+  .chat {
+    display: flex;
+    flex-direction: column;
+
+    .messages {
+      display: flex;
+      height: 100%;
+      overflow-y: auto;
+      flex-direction: column-reverse;
+
+      .chat-message {
+        display: flex;
+        gap: 8px;
+        border-radius: 5px;
+        padding: 8px;
+
+        &:hover {
+          backdrop-filter: brightness(1.25);
+        }
+
+        img {
+          width: 2rem;
+          height: 2rem;
+          border-radius: 50%;
+        }
+
+        p {
+          overflow-wrap: anywhere;
+          align-self: center;
+
+          .username {
+            color: $text2;
+            margin-right: 8px;
+          }
+        }
+      }
+    }
+
+    form {
+      padding-top: 8px;
+    }
+  }
 }

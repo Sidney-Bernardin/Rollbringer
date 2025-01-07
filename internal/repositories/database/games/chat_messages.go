@@ -47,7 +47,7 @@ func (db *gamesSchema) ChatMessagesGetByGame(ctx context.Context, gameID uuid.UU
 			users.username AS "owner.username",
 			users.google_picture AS "owner.google_picture"
 		FROM games.chat_messages 
-			LEFT JOIN users.users ON users.id = inserted_pdf.owner_id
+			LEFT JOIN users.users ON users.id = chat_messages.owner_id
 		WHERE chat_messages.game_id = $1
 	`
 

@@ -1,6 +1,8 @@
 package database
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 
@@ -49,7 +51,8 @@ func (session *Session) Internalized() *internal.Session {
 }
 
 type Game struct {
-	ID uuid.UUID `db:"id"`
+	ID        uuid.UUID `db:"id"`
+	CreatedAt time.Time `db:"created_at"`
 
 	HostID uuid.UUID `db:"host_id"`
 	Host   *User     `db:"host"`
@@ -69,7 +72,8 @@ func (game *Game) Internalized() *internal.Game {
 }
 
 type PDF struct {
-	ID uuid.UUID `db:"id"`
+	ID        uuid.UUID `db:"id"`
+	CreatedAt time.Time `db:"created_at"`
 
 	OwnerID uuid.UUID `db:"owner_id"`
 	Owner   *User     `db:"owner"`
@@ -98,7 +102,8 @@ func (pdf *PDF) Internalized() *internal.PDF {
 }
 
 type Roll struct {
-	ID uuid.UUID `db:"id"`
+	ID        uuid.UUID `db:"id"`
+	CreatedAt time.Time `db:"created_at"`
 
 	OwnerID uuid.UUID `db:"owner_id"`
 	Owner   *User     `db:"owner"`
@@ -128,7 +133,8 @@ func (roll *Roll) Internalized() *internal.Roll {
 }
 
 type ChatMessage struct {
-	ID uuid.UUID `db:"id"`
+	ID        uuid.UUID `db:"id"`
+	CreatedAt time.Time `db:"created_at"`
 
 	OwnerID uuid.UUID `db:"owner_id"`
 	Owner   *User     `db:"owner"`

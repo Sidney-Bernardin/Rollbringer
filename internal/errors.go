@@ -32,7 +32,8 @@ const (
 	PDTypeInvalidPDFFieldName  PDType = "invalid_pdf_field_name"
 	PDTypeNotSubscribedToPDF   PDType = "not_subscribed_to_pdf"
 
-	PDTypeInvalidDie PDType = "invalid_die"
+	PDTypeInvalidDie         PDType = "invalid_die"
+	PDTypeInvalidChatMessage PDType = "invalid_chat_message"
 )
 
 type PDOpts struct {

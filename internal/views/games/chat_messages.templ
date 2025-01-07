@@ -1,0 +1,14 @@
+package games
+
+import "rollbringer/internal"
+
+templ ChatMessage(chatMsg *internal.ChatMessage) {
+	<div hx-swap-oob="afterbegin:.chat .messages">
+		<div class="chat-message">
+			<img src={ *chatMsg.Owner.GooglePicture } alt={ chatMsg.Owner.Username } referrerpolicy="no-referrer"/>
+			<p>
+				<strong class="username">{ chatMsg.Owner.Username }</strong><strong class="message">{ chatMsg.Message }</strong>
+			</p>
+		</div>
+	</div>
+}

@@ -54,14 +54,21 @@ templ Play(page *internal.PlayPage) {
 							</tbody>
 						</table>
 					}
-					@StaticTabContent("maps", "Maps") {
-						<h1>Maps</h1>
-					}
 				}
 				@StaticTabContainer("social", "Chat", "Profile") {
 					if page.Game != nil {
 						@StaticTabContent("chat", "Chat") {
-							<h1>Chat</h1>
+							<div class="messages">
+								for _, chatMsg := range page.Game.ChatMessages {
+									@games.ChatMessage(chatMsg)
+								}
+							</div>
+							<form
+								hx-vals='{ "EVENT": "CREATE_CHAT_MESSAGE_REQUEST" }'
+								ws-send
+							>
+								<input type="text" name="message" placeholder="Hello, World!"/>
+							</form>
 						}
 					}
 					@StaticTabContent("profile", "Profile") {

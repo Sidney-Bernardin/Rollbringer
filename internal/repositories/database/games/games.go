@@ -91,7 +91,7 @@ func (db *gamesSchema) GamesGetByHost(ctx context.Context, hostID uuid.UUID, vie
 }
 
 func (db *gamesSchema) GamesGetByUser(ctx context.Context, userID uuid.UUID, view internal.GameView) ([]*internal.Game, error) {
-	query := fmt.Sprintf(`
+	query := fmt.Sprintf(` 
 		SELECT %s FROM games.games %s
 		WHERE EXISTS (
 			SELECT * FROM game_users WHERE game_users.user_id = $1 AND game_users.game_id = games.id
