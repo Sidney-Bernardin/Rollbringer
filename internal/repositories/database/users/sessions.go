@@ -19,7 +19,8 @@ func sessionColumns(view internal.SessionView) string {
 		return `sessions.*,` +
 			`users.id AS "user.id",` +
 			`users.username AS "user.username",` +
-			`users.google_id AS "user.google_id"`
+			`users.google_id AS "user.google_id",` +
+			`users.google_picture AS "user.google_picture"`
 
 	default:
 		return `sessions.*`

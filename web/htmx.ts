@@ -3,7 +3,8 @@ import "htmx.org/dist/ext/ws.js";
 
 
 window.addEventListener("htmx:responseError", (e: CustomEvent) => {
-    console.log(e)
+    let res = JSON.parse(e.detail.xhr.response)
+    alert(`${res.type}: ${res.detail}`)
 });
 
 window.addEventListener("htmx:configRequest", (e: CustomEvent) => {

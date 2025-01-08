@@ -3,6 +3,20 @@
 .social {
   grid-area: social;
 
+  .profile {
+    header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      img {
+        width: 5rem;
+        height: 5rem;
+        border-radius: 50%;
+      }
+    }
+  }
+
   .chat {
     display: flex;
     flex-direction: column;
@@ -13,29 +27,35 @@
       overflow-y: auto;
       flex-direction: column-reverse;
 
-      .chat-message {
+
+      .inner {
         display: flex;
-        gap: 8px;
-        border-radius: 5px;
-        padding: 8px;
+        flex-direction: column;
 
-        &:hover {
-          backdrop-filter: brightness(1.25);
-        }
+        .chat-message {
+          display: flex;
+          gap: 8px;
+          border-radius: 5px;
+          padding: 8px;
 
-        img {
-          width: 2rem;
-          height: 2rem;
-          border-radius: 50%;
-        }
+          &:hover {
+            backdrop-filter: brightness(1.25);
+          }
 
-        p {
-          overflow-wrap: anywhere;
-          align-self: center;
+          img {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+          }
 
-          .username {
-            color: $text2;
-            margin-right: 8px;
+          p {
+            overflow-wrap: anywhere;
+            align-self: center;
+
+            .username {
+              color: $text2;
+              margin-right: 8px;
+            }
           }
         }
       }

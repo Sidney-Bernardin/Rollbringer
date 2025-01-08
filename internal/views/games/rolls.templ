@@ -7,7 +7,7 @@ import (
 
 templ Roll(roll *internal.Roll) {
 	<div hx-swap-oob="beforeend:.top-bar .roll-results .inner">
-		<div class="roll">
+		<div class="roll" title={ roll.Owner.Username }>
 			<img src={ *roll.Owner.GooglePicture } alt={ roll.Owner.Username } referrerpolicy="no-referrer"/>
 			for i, result := range roll.DiceResults {
 				<math>

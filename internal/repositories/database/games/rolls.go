@@ -50,6 +50,7 @@ func (db *gamesSchema) RollsGetByGame(ctx context.Context, gameID uuid.UUID) ([]
 		FROM games.rolls
 			LEFT JOIN users.users ON users.id = rolls.owner_id
 		WHERE rolls.game_id = $1
+		ORDER BY rolls.created_at
 	`
 
 	var rolls []*database.Roll

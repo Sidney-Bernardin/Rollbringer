@@ -8,7 +8,7 @@ import (
 templ PDFTableRow(pdf *internal.PDF, isOwner bool) {
 	<tr
 		x-data
-        x-init="htmx.process($el)"
+		x-init="htmx.process($el)"
 		data-pdf-id={ S(pdf.ID) }
 		data-pdf-name={ pdf.Name }
 		data-pdf-game-id={ S(pdf.GameID) }
@@ -21,8 +21,11 @@ templ PDFTableRow(pdf *internal.PDF, isOwner bool) {
         })"
 		@deleted-pdf.window="($event.detail.pdfID === $el.dataset.pdfId) && $el.remove()"
 	>
-		<td>{ pdf.Name } </td>
-		<td>{ pdf.Owner.Username } </td>
+		<td>{ pdf.Name }</td>
+		<td>{ pdf.Owner.Username }</td>
+		if pdf.Game != nil {
+			<td>{ pdf.Game.Name }</td>
+		}
 		<td>
 			if isOwner {
 				<button

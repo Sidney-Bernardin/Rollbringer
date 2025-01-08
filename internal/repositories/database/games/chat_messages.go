@@ -49,6 +49,7 @@ func (db *gamesSchema) ChatMessagesGetByGame(ctx context.Context, gameID uuid.UU
 		FROM games.chat_messages 
 			LEFT JOIN users.users ON users.id = chat_messages.owner_id
 		WHERE chat_messages.game_id = $1
+		ORDER BY chat_messages.created_at
 	`
 
 	var chatMsgs []*database.ChatMessage

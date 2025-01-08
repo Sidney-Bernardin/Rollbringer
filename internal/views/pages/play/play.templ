@@ -59,9 +59,11 @@ templ Play(page *internal.PlayPage) {
 					if page.Game != nil {
 						@StaticTabContent("chat", "Chat") {
 							<div class="messages">
-								for _, chatMsg := range page.Game.ChatMessages {
-									@games.ChatMessage(chatMsg)
-								}
+								<div class="inner">
+									for _, chatMsg := range page.Game.ChatMessages {
+										@games.ChatMessage(chatMsg)
+									}
+								</div>
 							</div>
 							<form
 								hx-vals='{ "EVENT": "CREATE_CHAT_MESSAGE_REQUEST" }'
@@ -72,7 +74,14 @@ templ Play(page *internal.PlayPage) {
 						}
 					}
 					@StaticTabContent("profile", "Profile") {
-						<h1>Profile</h1>
+						<header>
+							<img
+								src={ *page.Session.User.GooglePicture }
+								alt={ page.Session.User.Username }
+								referrerpolicy="no-referrer"
+							/>
+							{ page.Session.User.Username }
+						</header>
 					}
 				}
 				<span class="gutter gutter-2">
