@@ -1,0 +1,31 @@
+//go:build !nogames
+// +build !nogames
+
+package main
+
+import (
+	"rollbringer/pkg/domain"
+	handler "rollbringer/pkg/handlers/pages"
+	"rollbringer/pkg/repositories/nats"
+)
+
+func init() {
+	registeredFeatures["pages"] = func() error {
+
+		// Create PubSub repository.
+		pubSubRepo, err := nats.NewPubSubRepository(config, logger.With("dependency", "nats-pubsub-repo"))
+		if err != nil {
+			return domain.Wrap(err, "cannot create PubSub repository", nil)
+		}
+
+		svc := &domain.Service{
+			Config: config,
+			Logger: logger.With("dependency", "base-service"),
+			PubSub: pubSubRepo,
+		}
+		h := handler.New(config, logger.With("dependency", "http-api"), svc)
+
+		features["pages"] = feature{h, svc}
+		return nil
+	}
+}
