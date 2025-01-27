@@ -1,5 +1,5 @@
-//go:build !nogames
-// +build !nogames
+//go:build !nopages
+// +build !nopages
 
 package main
 
