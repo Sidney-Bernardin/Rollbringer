@@ -36,7 +36,7 @@ func main() {
 
 	// Create dependencies.
 	if err := dependencies(); err != nil {
-		domain.HandleError(ctx, slog.Default(), domain.SlogLevelFatal, domain.Wrap(err, "cannot create dependencies", nil))
+		domain.HandleError(ctx, logger, domain.SlogLevelFatal, domain.Wrap(err, "cannot create dependencies", nil))
 		return
 	}
 
@@ -76,6 +76,7 @@ func main() {
 }
 
 func dependencies() (err error) {
+	logger = slog.Default()
 
 	// Create config.
 	config, err = domain.GetConfig()

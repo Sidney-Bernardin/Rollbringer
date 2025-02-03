@@ -10,10 +10,12 @@ type Config struct {
 
 	PGUrl string `required:"true" split_words:"true"`
 
-	NATSHostname             string `split_words:"true"`
-	NATSPort                 int    `split_words:"true"`
-	NATSEmbeddedServer       bool   `default:"true" split_words:"true"`
-	NATSEmbeddedServerListen bool   `split_words:"true"`
+	NATSHostname                        string `split_words:"true"`
+	NATSPort                            int    `split_words:"true"`
+	NATSEmbeddedServer                  bool   `default:"true" split_words:"true"`
+	NATSEmbeddedServerListen            bool   `split_words:"true"`
+	NATSEmbeddedServerWebsocketHostname string `split_words:"true"`
+	NATSEmbeddedServerWebsocketPort     int    `split_words:"true"`
 }
 
 func GetConfig() (*Config, error) {

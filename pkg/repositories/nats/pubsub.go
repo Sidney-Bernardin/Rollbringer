@@ -23,6 +23,11 @@ func CreateEmbeddedServer(config *domain.Config, logger *slog.Logger) (err error
 		DontListen: !config.NATSEmbeddedServerListen,
 		Host:       config.NATSHostname,
 		Port:       config.NATSPort,
+		Websocket: server.WebsocketOpts{
+			NoTLS: true,
+			Host: config.NATSEmbeddedServerWebsocketHostname,
+			Port: config.NATSEmbeddedServerWebsocketPort,
+		},
 	})
 
 	if err != nil {
