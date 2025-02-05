@@ -25,8 +25,8 @@ func CreateEmbeddedServer(config *domain.Config, logger *slog.Logger) (err error
 		Port:       config.NATSPort,
 		Websocket: server.WebsocketOpts{
 			NoTLS: true,
-			Host: config.NATSEmbeddedServerWebsocketHostname,
-			Port: config.NATSEmbeddedServerWebsocketPort,
+			Host:  config.NATSEmbeddedServerWebsocketHostname,
+			Port:  config.NATSEmbeddedServerWebsocketPort,
 		},
 	})
 

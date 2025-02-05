@@ -14,15 +14,13 @@ import (
 
 var db *sqlx.DB
 
-type DatabaseRepository struct {
-	DB *sqlx.DB
-	TX sqlx.ExtContext
-}
-
-func NewDatabaseRepository(config *domain.Config, migrations fs.FS) (ret *DatabaseRepository, err error) {
+func NewDatabaseConnection(config *domain.Config, migrations fs.FS) (*sqlx.DB, error) {
+	if db != nil {
+		return db, nil
+	}
 
 	// Create connection to Postgres server.
-	db, err = sqlx.Connect("pgx", config.PGUrl)
+	db, err := sqlx.Connect("pgx", config.PGUrl)
 	if err != nil {
 		return nil, domain.Wrap(err, "cannot connect to Postgres server", nil)
 	}
@@ -44,7 +42,12 @@ func NewDatabaseRepository(config *domain.Config, migrations fs.FS) (ret *Databa
 		return nil, domain.Wrap(err, "cannot migrate all the way up", nil)
 	}
 
-	return &DatabaseRepository{db, db}, nil
+	return db, nil
+}
+
+type DatabaseRepository struct {
+	DB *sqlx.DB
+	TX sqlx.ExtContext
 }
 
 func (repo *DatabaseRepository) Close() error {

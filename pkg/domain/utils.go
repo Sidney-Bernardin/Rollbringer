@@ -2,6 +2,8 @@ package domain
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"log/slog"
 
@@ -60,4 +62,12 @@ func HandleError(ctx context.Context, logger *slog.Logger, level slog.Level, err
 
 	logger.LogAttrs(ctx, level, "Server error", logAttrs...)
 	return UserErr(ctx, UsrErrTypeServerError, "", nil)
+}
+
+func NewRandomString(ctx context.Context) (string, error) {
+	b := make([]byte, 32)
+	if _, err := rand.Read(b); err != nil {
+		return "", Wrap(err, "cannot read bytes", nil)
+	}
+	return hex.EncodeToString(b), nil
 }

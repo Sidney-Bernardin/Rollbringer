@@ -5,7 +5,7 @@ package main
 
 import (
 	"rollbringer/pkg/domain"
-	handler "rollbringer/pkg/handlers/pages"
+	"rollbringer/pkg/handlers/pages"
 	"rollbringer/pkg/repositories/nats"
 )
 

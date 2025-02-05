@@ -53,6 +53,7 @@ type UserErrorType string
 const (
 	UsrErrTypeServerError          UserErrorType = "server_error"
 	UsrErrTypeCannotProcessRequest UserErrorType = "cannot_process_request"
+	UsrErrTypeUnauthorized         UserErrorType = "unauthorized"
 )
 
 func UserErr(ctx context.Context, t UserErrorType, desc string, attrs map[string]any) *UserError {
