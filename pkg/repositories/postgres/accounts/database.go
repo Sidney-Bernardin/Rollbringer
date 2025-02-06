@@ -2,11 +2,12 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"io/fs"
 	"log/slog"
 
 	"rollbringer/pkg/domain"
-	"rollbringer/pkg/domain/services/accounts"
+	service "rollbringer/pkg/domain/services/accounts"
 	"rollbringer/pkg/repositories/postgres"
 )
 
@@ -38,7 +39,7 @@ func (repo *accountsDatabaseRepository) Transaction(ctx context.Context, txFunc 
 	}
 
 	defer func() {
-		if err := tx.Rollback(); err != nil {
+		if err := tx.Rollback(); err != nil && err != sql.ErrTxDone {
 			domain.HandleError(ctx, repo.logger, slog.LevelError, domain.Wrap(err, "cannot rollback transaction", nil))
 		}
 	}()

@@ -47,7 +47,7 @@ func (h *AccountsHandler) mwOAuthCallback(oauthConfig *oauth2.Config) func(http.
 
 			http.SetCookie(w, &http.Cookie{
 				Name:     "SESSION_ID",
-				Value:    r.Context().Value("user").(*domain.User).Session.ID.String(),
+				Value:    user.Session.ID.String(),
 				Path:     h.Config.SessionCookiePath,
 				Expires:  time.Now().Add(h.Config.SessionCookieTimeout),
 				SameSite: http.SameSiteStrictMode,
