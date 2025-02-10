@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"log/slog"
@@ -14,7 +15,15 @@ import (
 )
 
 var statusCodes = map[domain.UserErrorType]int{
-	domain.UsrErrTypeServerError: http.StatusInternalServerError,
+	domain.UsrErrTypeServerError:          http.StatusInternalServerError,
+	domain.UsrErrTypeCannotProcessRequest: http.StatusUnprocessableEntity,
+	domain.UsrErrTypeUnauthorized:         http.StatusUnauthorized,
+
+	domain.UsrErrTypeGoogleUserDoesNotExists: http.StatusNotFound,
+	domain.UsrErrTypeGoogleUserAlreadyExists: http.StatusConflict,
+
+	domain.UsrErrTypeSpotifyUserDoesNotExists: http.StatusNotFound,
+	domain.UsrErrTypeSpotifyUserAlreadyExists: http.StatusConflict,
 }
 
 type Handler struct {
@@ -46,7 +55,9 @@ func (h *Handler) Err(w io.Writer, r *http.Request, err error) {
 }
 
 func (h *Handler) Respond(w io.Writer, r *http.Request, statusCode int, res any) {
-	ctx := r.Context()
+	ctx, cancel := context.WithCancel(r.Context())
+	*r = *r.WithContext(ctx)
+	defer cancel()
 
 	// If writing HTTP, write response header.
 	if rw, ok := w.(http.ResponseWriter); ok {
@@ -58,7 +69,7 @@ func (h *Handler) Respond(w io.Writer, r *http.Request, statusCode int, res any)
 
 	// Templ response.
 	case templ.Component:
-		err = res.Render(ctx, w)
+		err = res.Render(r.Context(), w)
 		err = domain.Wrap(err, "cannot render Templ response", nil)
 
 	// JSON response.
@@ -67,5 +78,5 @@ func (h *Handler) Respond(w io.Writer, r *http.Request, statusCode int, res any)
 		err = domain.Wrap(err, "cannot JSON encode response", nil)
 	}
 
-	domain.HandleError(ctx, h.Logger, slog.LevelError, err)
+	domain.HandleError(r.Context(), h.Logger, slog.LevelError, err)
 }

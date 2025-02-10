@@ -6,8 +6,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
-	"golang.org/x/oauth2/spotify"
 
 	"rollbringer/pkg/domain"
 	service "rollbringer/pkg/domain/services/accounts"
@@ -18,12 +16,9 @@ type AccountsHandler struct {
 	*handlers.Handler
 
 	accountsSvc service.AccountsService
-
-	oauthGoogleConfig  *oauth2.Config
-	oauthSpotifyConfig *oauth2.Config
 }
 
-func New(config *domain.Config, logger *slog.Logger, gamesSvc service.AccountsService) http.Handler {
+func New(config *domain.Config, logger *slog.Logger, oauthConfigGoogle, oauthConfigSpotify *oauth2.Config, gamesSvc service.AccountsService) http.Handler {
 	h := &AccountsHandler{
 		Handler: &handlers.Handler{
 			Config:  config,
@@ -32,30 +27,40 @@ func New(config *domain.Config, logger *slog.Logger, gamesSvc service.AccountsSe
 			Service: gamesSvc,
 		},
 		accountsSvc: gamesSvc,
-		oauthGoogleConfig: &oauth2.Config{
-			Endpoint:     google.Endpoint,
-			ClientID:     config.OauthGoogleClientID,
-			ClientSecret: config.OauthGoogleClientSecret,
-			RedirectURL:  config.OauthGoogleRedirectURL,
-			Scopes:       []string{"openid", "profile", "email"},
-		},
-		oauthSpotifyConfig: &oauth2.Config{
-			Endpoint:     spotify.Endpoint,
-			ClientID:     config.OauthSpotifyClientID,
-			ClientSecret: config.OauthSpotifyClientSecret,
-			RedirectURL:  config.OauthSpotifyRedirectURL,
-			Scopes:       []string{"user-read-private", "user-read-email"},
-		},
 	}
 
-	h.Router.Route("/login", func(r chi.Router) {
-		r.Get("/google", h.handleOAuth(h.oauthGoogleConfig))
-		r.With(h.mwOAuthCallback(h.oauthGoogleConfig)).
-			Get("/google-callback", h.handleLoginCallbackGoogle)
+	h.Router.Use(h.MWLog)
 
-		r.Get("/spotify", h.handleOAuth(h.oauthSpotifyConfig))
-		r.With(h.mwOAuthCallback(h.oauthSpotifyConfig)).
-			Get("/spotify-callback", h.handleLoginCallbackSpotify)
+	h.Router.Route("/signup", func(r chi.Router) {
+		r.Route("/google", func(g chi.Router) {
+			g.Use(h.mwOAuthConfig(oauthConfigGoogle, config.OauthGoogleSignupRedirectURL))
+
+			g.Get("/", h.handleOAuth)
+			g.With(h.mwOAuthCallback, h.mwCreateGoogleUser).Get("/callback", h.handleSignup)
+		})
+
+		r.Route("/spotify", func(s chi.Router) {
+			s.Use(h.mwOAuthConfig(oauthConfigSpotify, config.OauthSpotifySignupRedirectURL))
+
+			s.Get("/", h.handleOAuth)
+			s.With(h.mwOAuthCallback, h.mwCreateSpotifyUser).Get("/callback", h.handleSignup)
+		})
+	})
+
+	h.Router.Route("/signin", func(r chi.Router) {
+		r.Route("/google", func(g chi.Router) {
+			g.Use(h.mwOAuthConfig(oauthConfigGoogle, config.OauthGoogleSigninRedirectURL))
+
+			g.Get("/", h.handleOAuth)
+			g.With(h.mwOAuthCallback, h.mwCreateGoogleUser).Get("/callback", h.handleSignin)
+		})
+
+		r.Route("/spotify", func(s chi.Router) {
+			s.Use(h.mwOAuthConfig(oauthConfigSpotify, config.OauthSpotifySigninRedirectURL))
+
+			s.Get("/", h.handleOAuth)
+			s.With(h.mwOAuthCallback, h.mwCreateSpotifyUser).Get("/callback", h.handleSignin)
+		})
 	})
 
 	return h

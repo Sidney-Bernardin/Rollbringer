@@ -1,4 +1,4 @@
-package postgres
+package database
 
 import (
 	"database/sql"
@@ -34,8 +34,8 @@ func (hstoreArray HstoreArray) Value() (driver.Value, error) {
 		hsAryCopy[i] = hstore.Hstore{Map: map[string]sql.NullString{}}
 		for k, v := range m {
 			hsAryCopy[i].Map[k] = sql.NullString{
-				String: v, 
-				Valid: true,
+				String: v,
+				Valid:  true,
 			}
 		}
 	}

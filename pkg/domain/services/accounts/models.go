@@ -6,13 +6,14 @@ type GoogleIDTokenClaims struct {
 	*jwt.RegisteredClaims
 
 	GivenName string `json:"given_name"`
+	Email     string `json:"email"`
 	Picture   string `json:"picture"`
 }
 
 type SpotifyUser struct {
 	ID             string
 	DisplayName    string
-	ProfilePicture string
+	ProfilePicture *string
 }
 
 type SpotifyPrivateUser struct {

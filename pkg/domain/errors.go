@@ -8,7 +8,8 @@ import (
 )
 
 var (
-	ErrNotFound = errors.New("not found")
+	ErrNotFound      = errors.New("not found")
+	ErrAlreadyExists = errors.New("already exists")
 )
 
 /////
@@ -39,6 +40,10 @@ func (err *detailedError) Unwrap() error {
 	return err.child
 }
 
+func (err *detailedError) Cause() error {
+	return err.child
+}
+
 /////
 
 type UserError struct {
@@ -54,6 +59,12 @@ const (
 	UsrErrTypeServerError          UserErrorType = "server_error"
 	UsrErrTypeCannotProcessRequest UserErrorType = "cannot_process_request"
 	UsrErrTypeUnauthorized         UserErrorType = "unauthorized"
+
+	UsrErrTypeGoogleUserDoesNotExists UserErrorType = "google_user_does_not_exist"
+	UsrErrTypeGoogleUserAlreadyExists UserErrorType = "google_user_already_exists"
+
+	UsrErrTypeSpotifyUserDoesNotExists UserErrorType = "spotify_user_does_not_exist"
+	UsrErrTypeSpotifyUserAlreadyExists UserErrorType = "spotify_user_already_exists"
 )
 
 func UserErr(ctx context.Context, t UserErrorType, desc string, attrs map[string]any) *UserError {

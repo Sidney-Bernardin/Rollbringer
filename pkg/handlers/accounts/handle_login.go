@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"net/http"
 	"time"
 
@@ -10,50 +9,42 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func (h *AccountsHandler) handleOAuth(oauthConfig *oauth2.Config) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var ctx = r.Context()
+func (h *AccountsHandler) handleOAuth(w http.ResponseWriter, r *http.Request) {
+	var oauthConfig = r.Context().Value("oauth_config").(*oauth2.Config)
 
-		// Create state string.
-		state, err := domain.NewRandomString(ctx)
-		if err != nil {
-			h.Err(w, r, domain.Wrap(err, "cannot create oauth state", nil))
-			return
-		}
-
-		// Set a new cookie for the state string.
-		http.SetCookie(w, &http.Cookie{
-			Name:     "OAUTH_STATE",
-			Value:    state,
-			Expires:  time.Now().Add(h.Config.OAuthStateCookieTimeout),
-			HttpOnly: true,
-		})
-
-		// Redirect to OAuth consent page.
-		http.Redirect(w, r, oauthConfig.AuthCodeURL(state), http.StatusTemporaryRedirect)
-	}
-}
-
-func (h *AccountsHandler) handleLoginCallbackGoogle(w http.ResponseWriter, r *http.Request) {
-	var ctx = r.Context()
-
-	user, err := h.accountsSvc.LoginWithGoogle(ctx, ctx.Value("token").(*oauth2.Token))
+	// Create state string.
+	state, err := domain.NewRandomString(r.Context())
 	if err != nil {
-		h.Err(w, r, domain.Wrap(err, "cannot login with google", nil))
+		h.Err(w, r, domain.Wrap(err, "cannot create oauth state", nil))
 		return
 	}
 
-	*r = *r.WithContext(context.WithValue(ctx, "user", user))
+	// Set a new cookie for the state string.
+	http.SetCookie(w, &http.Cookie{
+		Name:     "OAUTH_STATE",
+		Value:    state,
+		Expires:  time.Now().Add(h.Config.OAuthStateCookieTimeout),
+		HttpOnly: true,
+	})
+
+	// Redirect to OAuth consent page.
+	http.Redirect(w, r, oauthConfig.AuthCodeURL(state), http.StatusTemporaryRedirect)
 }
 
-func (h *AccountsHandler) handleLoginCallbackSpotify(w http.ResponseWriter, r *http.Request) {
-	var ctx = r.Context()
+func (h *AccountsHandler) handleSignup(w http.ResponseWriter, r *http.Request) {
+	var user = r.Context().Value("user").(*domain.User)
 
-	user, err := h.accountsSvc.LoginWithSpotify(ctx, h.oauthSpotifyConfig, ctx.Value("token").(*oauth2.Token))
-	if err != nil {
-		h.Err(w, r, domain.Wrap(err, "cannot login with spotify", nil))
+	if err := h.accountsSvc.Signup(r.Context(), user); err != nil {
+		h.Err(w, r, domain.Wrap(err, "cannot signin", nil))
 		return
 	}
+}
 
-	*r = *r.WithContext(context.WithValue(ctx, "user", user))
+func (h *AccountsHandler) handleSignin(w http.ResponseWriter, r *http.Request) {
+	var user = r.Context().Value("user").(*domain.User)
+
+	if err := h.accountsSvc.Signin(r.Context(), user); err != nil {
+		h.Err(w, r, domain.Wrap(err, "cannot signin", nil))
+		return
+	}
 }

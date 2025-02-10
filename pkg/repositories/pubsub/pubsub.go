@@ -1,4 +1,4 @@
-package nats
+package pubsub
 
 import (
 	"context"
@@ -16,18 +16,13 @@ import (
 
 var embeddedServer *server.Server
 
-func CreateEmbeddedServer(config *domain.Config, logger *slog.Logger) (err error) {
+func createEmbeddedServer(config *domain.Config, logger *slog.Logger) (err error) {
 
 	// Crate NATS server.
 	embeddedServer, err = server.NewServer(&server.Options{
 		DontListen: !config.NATSEmbeddedServerListen,
 		Host:       config.NATSHostname,
 		Port:       config.NATSPort,
-		Websocket: server.WebsocketOpts{
-			NoTLS: true,
-			Host:  config.NATSEmbeddedServerWebsocketHostname,
-			Port:  config.NATSEmbeddedServerWebsocketPort,
-		},
 	})
 
 	if err != nil {
@@ -59,6 +54,13 @@ func NewPubSubRepository(config *domain.Config, logger *slog.Logger) (domain.Pub
 		url  = fmt.Sprintf("nats://%s:%v", config.NATSHostname, config.NATSPort)
 		opts = []nats.Option{}
 	)
+
+	// Create an embedded NATS server if it's configured and doesn't already exist.
+	if config.NATSEmbeddedServer && embeddedServer == nil {
+		if err := createEmbeddedServer(config, logger); err != nil {
+			return nil, domain.Wrap(err, "cannot create embedded NATS server", nil)
+		}
+	}
 
 	// If the embedded server exists, use it.
 	if embeddedServer != nil {

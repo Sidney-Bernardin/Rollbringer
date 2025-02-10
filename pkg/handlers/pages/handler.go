@@ -28,7 +28,7 @@ func New(config *domain.Config, logger *slog.Logger, svc *domain.Service) http.H
 		},
 	}
 
-	h.Router.Use(h.Log)
+	h.Router.Use(h.MWLog)
 	h.Router.Handle("/static/*", http.StripPrefix("/pages/static/", http.FileServerFS(os.DirFS("cmd/static"))))
 	h.Router.Get("/", h.HomePage)
 

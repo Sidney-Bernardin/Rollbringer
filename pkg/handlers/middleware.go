@@ -4,7 +4,7 @@ import (
 	"net/http"
 )
 
-func (h *Handler) Log(next http.Handler) http.Handler {
+func (h *Handler) MWLog(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		h.Logger.InfoContext(r.Context(), "New request",
 			"method", r.Method,

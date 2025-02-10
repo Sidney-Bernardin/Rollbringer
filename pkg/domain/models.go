@@ -23,7 +23,11 @@ type User struct {
 	ID        uuid.UUID `json:"id" db:"id"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 
-	Username string `json:"username" db:"username"`
+	GoogleID  *string `json:"google_id" db:"google_id"`
+	SpotifyID *string `json:"spotify_id" db:"spotify_id"`
+
+	Username       string `json:"username" db:"username"`
+	ProfilePicture string `json:"profile_picture" db:"profile_picture"`
 
 	Session     *Session     `json:"session" db:"session"`
 	GoogleUser  *GoogleUser  `json:"google_user" db:"google_user"`
@@ -31,21 +35,21 @@ type User struct {
 }
 
 type GoogleUser struct {
-	UserID    uuid.UUID `json:"user_id" db:"user_id"`
+	GoogleID  string    `json:"google_id" db:"google_id"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 
-	GoogleID       string `json:"google_id" db:"google_id"`
 	GivenName      string `json:"given_name" db:"given_name"`
+	Email          string `json:"email" db:"email"`
 	ProfilePicture string `json:"profile_picture" db:"profile_picture"`
 }
 
 type SpotifyUser struct {
-	UserID    uuid.UUID `json:"user_id" db:"user_id"`
+	SpotifyID string    `json:"spotify_id" db:"spotify_id"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 
-	SpotifyID      string `json:"spotify_id" db:"spotify_id"`
-	DisplayName    string `json:"display_name" db:"display_name"`
-	ProfilePicture string `json:"profile_picture" db:"profile_picture"`
+	DisplayName    string  `json:"display_name" db:"display_name"`
+	Email          string  `json:"email" db:"email"`
+	ProfilePicture *string `json:"profile_picture" db:"profile_picture"`
 }
 
 type Session struct {

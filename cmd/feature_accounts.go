@@ -4,19 +4,37 @@
 package main
 
 import (
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
+	oauth_spotify "golang.org/x/oauth2/spotify"
+
 	"rollbringer/pkg/domain"
 	service "rollbringer/pkg/domain/services/accounts"
 	handler "rollbringer/pkg/handlers/accounts"
-	"rollbringer/pkg/repositories/nats"
-	database "rollbringer/pkg/repositories/postgres/accounts"
+	database "rollbringer/pkg/repositories/database/accounts"
+	"rollbringer/pkg/repositories/pubsub"
 	"rollbringer/pkg/repositories/spotify"
 )
 
 func init() {
 	registeredFeatures["accounts"] = func() error {
 
+		oauthConfigGoogle := &oauth2.Config{
+			Endpoint:     google.Endpoint,
+			ClientID:     config.OauthGoogleClientID,
+			ClientSecret: config.OauthGoogleClientSecret,
+			Scopes:       []string{"openid", "profile", "email"},
+		}
+
+		oauthConfigSpotify := &oauth2.Config{
+			Endpoint:     oauth_spotify.Endpoint,
+			ClientID:     config.OauthSpotifyClientID,
+			ClientSecret: config.OauthSpotifyClientSecret,
+			Scopes:       []string{"user-read-private", "user-read-email"},
+		}
+
 		// Create PubSub repository.
-		pubSubRepo, err := nats.NewPubSubRepository(config, logger.With("dependency", "nats-pubsub-repo"))
+		pubSubRepo, err := pubsub.NewPubSubRepository(config, logger.With("dependency", "nats-pubsub-repo"))
 		if err != nil {
 			return domain.Wrap(err, "cannot create PubSub repository", nil)
 		}
@@ -31,7 +49,7 @@ func init() {
 		}
 
 		svc := service.New(config, logger, pubSubRepo, accountsDBRepo, spotifyRepo)
-		h := handler.New(config, logger.With("dependency", "http-api"), svc)
+		h := handler.New(config, logger.With("dependency", "http-api"), oauthConfigGoogle, oauthConfigSpotify, svc)
 
 		features["accounts"] = feature{h, svc}
 		return nil

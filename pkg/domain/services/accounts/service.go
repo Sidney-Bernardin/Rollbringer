@@ -12,8 +12,11 @@ import (
 type AccountsService interface {
 	domain.IService
 
-	LoginWithGoogle(ctx context.Context, token *oauth2.Token) (*domain.User, error)
-	LoginWithSpotify(ctx context.Context, oauthConfig *oauth2.Config, token *oauth2.Token) (*domain.User, error)
+	NewGoogleUser(ctx context.Context, token *oauth2.Token) (*domain.User, error)
+	NewSpotifyUser(ctx context.Context, oauthConfig *oauth2.Config, token *oauth2.Token) (*domain.User, error)
+
+	Signin(ctx context.Context, user *domain.User) error
+	Signup(ctx context.Context, user *domain.User) error
 }
 
 type accountsService struct {

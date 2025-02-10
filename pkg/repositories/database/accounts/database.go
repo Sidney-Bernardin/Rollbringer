@@ -7,28 +7,25 @@ import (
 	"log/slog"
 
 	"rollbringer/pkg/domain"
-	service "rollbringer/pkg/domain/services/accounts"
-	"rollbringer/pkg/repositories/postgres"
+	"rollbringer/pkg/domain/services/accounts"
+	"rollbringer/pkg/repositories/database"
 )
 
 type accountsDatabaseRepository struct {
-	*postgres.DatabaseRepository
+	*database.DatabaseRepository
 
 	logger *slog.Logger
 }
 
 func NewGamesDatabaseRepository(config *domain.Config, logger *slog.Logger, migrations fs.FS) (service.AccountsDatabaseRepository, error) {
-	db, err := postgres.NewDatabaseConnection(config, migrations)
+	db, err := database.NewDatabase(config, migrations)
 	if err != nil {
-		return nil, domain.Wrap(err, "cannot create database connection", nil)
+		return nil, domain.Wrap(err, "cannot create database", nil)
 	}
 
 	return &accountsDatabaseRepository{
-		DatabaseRepository: &postgres.DatabaseRepository{
-			DB: db,
-			TX: db,
-		},
-		logger: logger,
+		DatabaseRepository: db,
+		logger:             logger,
 	}, nil
 }
 
@@ -45,7 +42,7 @@ func (repo *accountsDatabaseRepository) Transaction(ctx context.Context, txFunc 
 	}()
 
 	err = txFunc(&accountsDatabaseRepository{
-		DatabaseRepository: &postgres.DatabaseRepository{
+		DatabaseRepository: &database.DatabaseRepository{
 			TX: tx,
 		},
 	})

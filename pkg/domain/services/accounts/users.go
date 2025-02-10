@@ -10,7 +10,7 @@ import (
 	"rollbringer/pkg/domain"
 )
 
-func (svc *accountsService) LoginWithGoogle(ctx context.Context, token *oauth2.Token) (*domain.User, error) {
+func (svc *accountsService) NewGoogleUser(ctx context.Context, token *oauth2.Token) (*domain.User, error) {
 
 	idTokenStr, ok := ctx.Value("token").(*oauth2.Token).Extra("id_token").(string)
 	if !ok {
@@ -23,23 +23,20 @@ func (svc *accountsService) LoginWithGoogle(ctx context.Context, token *oauth2.T
 	}
 	claims := idToken.Claims.(*GoogleIDTokenClaims)
 
-	user := &domain.User{
-		Username: claims.GivenName,
+	return &domain.User{
+		GoogleID:       &claims.Subject,
+		Username:       claims.GivenName,
+		ProfilePicture: claims.Picture,
 		GoogleUser: &domain.GoogleUser{
 			GoogleID:       claims.Subject,
 			GivenName:      claims.GivenName,
+			Email:          claims.Email,
 			ProfilePicture: claims.Picture,
 		},
-	}
-
-	if err := svc.login(ctx, user); err != nil {
-		return nil, domain.Wrap(err, "cannot login", nil)
-	}
-
-	return user, nil
+	}, nil
 }
 
-func (svc *accountsService) LoginWithSpotify(ctx context.Context, oauthConfig *oauth2.Config, token *oauth2.Token) (*domain.User, error) {
+func (svc *accountsService) NewSpotifyUser(ctx context.Context, oauthConfig *oauth2.Config, token *oauth2.Token) (*domain.User, error) {
 
 	spotify := svc.spotifyRepo.Me(ctx, oauthConfig, token)
 	spotifyPrivateUser, err := spotify.GetCurrentUser(ctx)
@@ -47,62 +44,20 @@ func (svc *accountsService) LoginWithSpotify(ctx context.Context, oauthConfig *o
 		return nil, domain.Wrap(err, "cannot get spotify current user", nil)
 	}
 
-	user := &domain.User{
-		Username: spotifyPrivateUser.DisplayName,
+	profilePicture := svc.Config.DefaultProfilePicture
+	if spotifyPrivateUser.ProfilePicture != nil {
+		profilePicture = *spotifyPrivateUser.ProfilePicture
+	}
+
+	return &domain.User{
+		SpotifyID:      &spotifyPrivateUser.ID,
+		Username:       spotifyPrivateUser.DisplayName,
+		ProfilePicture: profilePicture,
 		SpotifyUser: &domain.SpotifyUser{
 			SpotifyID:      spotifyPrivateUser.ID,
 			DisplayName:    spotifyPrivateUser.DisplayName,
+			Email:          spotifyPrivateUser.Email,
 			ProfilePicture: spotifyPrivateUser.ProfilePicture,
 		},
-	}
-
-	if err := svc.login(ctx, user); err != nil {
-		return nil, domain.Wrap(err, "cannot login", nil)
-	}
-
-	return user, nil
-}
-
-func (svc *accountsService) login(ctx context.Context, user *domain.User) error {
-
-	err := svc.accountsDBRepo.Transaction(ctx, func(tx AccountsDatabaseRepository) error {
-
-		if err := tx.UserInsert(ctx, user); err != nil {
-			return domain.Wrap(err, "cannot insert user", nil)
-		}
-
-		csrfToken, err := domain.NewRandomString(ctx)
-		if err != nil {
-			return domain.Wrap(err, "cannot create CSRF token", nil)
-		}
-
-		user.Session = &domain.Session{
-			UserID:    user.ID,
-			CSRFToken: csrfToken,
-		}
-
-		if err := tx.SessionInsert(ctx, user.Session); err != nil {
-			return domain.Wrap(err, "cannot insert session", nil)
-		}
-
-		if user.GoogleUser != nil {
-			user.GoogleUser.UserID = user.ID
-
-			if err := tx.GoogleUserInsert(ctx, user.GoogleUser); err != nil {
-				return domain.Wrap(err, "cannot insert google-user", nil)
-			}
-		}
-
-		if user.SpotifyUser != nil {
-			user.SpotifyUser.UserID = user.ID
-
-			if err := tx.SpotifyUserInsert(ctx, user.SpotifyUser); err != nil {
-				return domain.Wrap(err, "cannot insert spotify-user", nil)
-			}
-		}
-
-		return nil
-	})
-
-	return domain.Wrap(err, "cannot do transaction", nil)
+	}, nil
 }

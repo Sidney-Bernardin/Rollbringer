@@ -6,14 +6,14 @@ package main
 import (
 	"rollbringer/pkg/domain"
 	"rollbringer/pkg/handlers/pages"
-	"rollbringer/pkg/repositories/nats"
+	"rollbringer/pkg/repositories/pubsub"
 )
 
 func init() {
 	registeredFeatures["pages"] = func() error {
 
 		// Create PubSub repository.
-		pubSubRepo, err := nats.NewPubSubRepository(config, logger.With("dependency", "nats-pubsub-repo"))
+		pubSubRepo, err := pubsub.NewPubSubRepository(config, logger.With("dependency", "nats-pubsub-repo"))
 		if err != nil {
 			return domain.Wrap(err, "cannot create PubSub repository", nil)
 		}

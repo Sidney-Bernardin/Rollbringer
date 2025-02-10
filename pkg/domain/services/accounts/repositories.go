@@ -11,10 +11,16 @@ type AccountsDatabaseRepository interface {
 	Close() error
 	Transaction(context.Context, func(AccountsDatabaseRepository) error) error
 
-	UserInsert(context.Context, *domain.User) error
-	GoogleUserInsert(context.Context, *domain.GoogleUser) error
-	SpotifyUserInsert(context.Context, *domain.SpotifyUser) error
-	SessionInsert(context.Context, *domain.Session) error
+	UserInsert(ctx context.Context, user *domain.User) error
+	UserGet(ctx context.Context, key string, value any) (*domain.User, error)
+
+	GoogleUserInsert(ctx context.Context, googleUser *domain.GoogleUser) error
+	GoogleUserUpdate(ctx context.Context, key string, value any, updates map[string]any) error
+
+	SpotifyUserInsert(ctx context.Context, spotifyUser *domain.SpotifyUser) error
+	SpotifyUserUpdate(ctx context.Context, key string, value any, updates map[string]any) error
+
+	SessionInsert(ctx context.Context, session *domain.Session) error
 }
 
 type SpotifyRepository interface {

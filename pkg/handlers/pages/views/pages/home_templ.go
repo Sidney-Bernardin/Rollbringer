@@ -29,7 +29,7 @@ func HomePage() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Home</title><link rel=\"icon\" type=\"image/x-icon\" href=\"/pages/static/favicon.png\"><link rel=\"stylesheet\" type=\"text/css\" href=\"/pages/static/styles/home.css\"><script src=\"https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js\"></script><script src=\"/pages/static/pages/home.js\" defer></script></head><body><a href=\"/accounts/login/google\">Log-In with Google</a> <a href=\"/accounts/login/spotify\">Log-In with Spotify</a></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Home</title><link rel=\"icon\" type=\"image/x-icon\" href=\"/pages/static/favicon.png\"><link rel=\"stylesheet\" type=\"text/css\" href=\"/pages/static/styles/home.css\"><script src=\"https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js\"></script><script src=\"/pages/static/pages/home.js\" defer></script></head><body><h1>Sign-Up</h1><a href=\"/accounts/signup/google\">Google</a> <a href=\"/accounts/signup/spotify\">Spotify</a><h1>Sign-In</h1><a href=\"/accounts/signin/google\">Google</a> <a href=\"/accounts/signin/spotify\">Spotify</a><hr></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

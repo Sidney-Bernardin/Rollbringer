@@ -8,7 +8,6 @@ import (
 	"os/signal"
 
 	"rollbringer/pkg/domain"
-	"rollbringer/pkg/repositories/nats"
 
 	"github.com/dpotapov/slogpfx"
 	"github.com/go-chi/chi/v5"
@@ -106,14 +105,6 @@ func dependencies() (err error) {
 
 	// Create logger.
 	logger = slog.New(h)
-
-	if config.NATSEmbeddedServer {
-
-		// Create embedded NATS server.
-		if err := nats.CreateEmbeddedServer(config, logger.With("dependency", "nats-embedded-server")); err != nil {
-			return domain.Wrap(err, "cannot create embedded NATS server", nil)
-		}
-	}
 
 	return nil
 }

@@ -39,7 +39,7 @@ func (repo *spotifyRepository) GetCurrentUser(ctx context.Context) (ret *service
 	}
 
 	if privateUser.Images != nil && len(privateUser.Images) > 0 {
-		ret.ProfilePicture = privateUser.Images[0].URL
+		ret.ProfilePicture = &privateUser.Images[0].URL
 	}
 
 	return ret, nil
