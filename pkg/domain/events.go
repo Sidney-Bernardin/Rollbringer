@@ -7,7 +7,7 @@ type Operation string
 const (
 	OperationError             Operation = "ERROR"
 	OperationSession           Operation = "SESSION"
-	OperationGetSessionRequest Operation = "AUTH_REQUEST"
+	OperationGetSessionRequest Operation = "GET_SESSION_REQUEST"
 )
 
 type Event struct {
