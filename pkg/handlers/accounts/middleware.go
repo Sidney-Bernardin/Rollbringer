@@ -10,7 +10,7 @@ import (
 	"rollbringer/pkg/domain"
 )
 
-func (h *AccountsHandler) mwOAuthConfig(oauthConfig *oauth2.Config, redirectURL string) func(http.Handler) http.Handler {
+func (h *accountsHandler) mwOAuthConfig(oauthConfig *oauth2.Config, redirectURL string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -23,14 +23,18 @@ func (h *AccountsHandler) mwOAuthConfig(oauthConfig *oauth2.Config, redirectURL 
 	}
 }
 
-func (h *AccountsHandler) mwOAuthCallback(next http.Handler) http.Handler {
+func (h *accountsHandler) mwOAuthCallback(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var oauthConfig = r.Context().Value("oauth_config").(*oauth2.Config)
+
+		var (
+			ctx         = r.Context()
+			oauthConfig = ctx.Value("oauth_config").(*oauth2.Config)
+		)
 
 		stateCookie, err := r.Cookie("OAUTH_STATE")
 		if err != nil {
 			if err == http.ErrNoCookie {
-				h.Err(w, r, domain.UserErr(r.Context(), domain.UsrErrTypeUnauthorized, "You're unauthorized!", nil))
+				h.Err(w, r, domain.UserErr(ctx, domain.UsrErrTypeUnauthorized, "You're unauthorized!", nil))
 				return
 			}
 
@@ -39,28 +43,27 @@ func (h *AccountsHandler) mwOAuthCallback(next http.Handler) http.Handler {
 		}
 
 		if r.FormValue("state") != stateCookie.Value {
-			h.Err(w, r, domain.UserErr(r.Context(), domain.UsrErrTypeUnauthorized, "You're unauthorized!", nil))
+			h.Err(w, r, domain.UserErr(ctx, domain.UsrErrTypeUnauthorized, "You're unauthorized!", nil))
 			return
 		}
 
-		token, err := oauthConfig.Exchange(r.Context(), r.FormValue("code"))
+		token, err := oauthConfig.Exchange(ctx, r.FormValue("code"))
 		if err != nil {
-			h.Err(w, r, domain.UserErr(r.Context(), domain.UsrErrTypeUnauthorized, "You're unauthorized!", nil))
+			h.Err(w, r, domain.UserErr(ctx, domain.UsrErrTypeUnauthorized, "You're unauthorized!", nil))
 			return
 		}
 
-		*r = *r.WithContext(context.WithValue(r.Context(), "token", token))
+		*r = *r.WithContext(context.WithValue(ctx, "token", token))
 		next.ServeHTTP(w, r)
 
-		if err := r.Context().Err(); err != nil {
+		ctx = r.Context()
+		if err := ctx.Err(); err != nil {
 			return
 		}
-
-		var user, _ = r.Context().Value("user").(*domain.User)
 
 		http.SetCookie(w, &http.Cookie{
 			Name:     "SESSION_ID",
-			Value:    user.Session.ID.String(),
+			Value:    ctx.Value("user").(*domain.User).Session.ID.String(),
 			Path:     h.Config.SessionCookiePath,
 			Expires:  time.Now().Add(h.Config.SessionCookieTimeout),
 			SameSite: http.SameSiteStrictMode,
@@ -71,30 +74,36 @@ func (h *AccountsHandler) mwOAuthCallback(next http.Handler) http.Handler {
 	})
 }
 
-func (h *AccountsHandler) mwCreateGoogleUser(next http.Handler) http.Handler {
+func (h *accountsHandler) mwCreateGoogleUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var token = r.Context().Value("token").(*oauth2.Token)
 
-		user, err := h.accountsSvc.NewGoogleUser(r.Context(), token)
+		var (
+			ctx   = r.Context()
+			token = ctx.Value("token").(*oauth2.Token)
+		)
+
+		user, err := h.accountsSvc.NewGoogleUser(ctx, token)
 		if err != nil {
 			h.Err(w, r, domain.Wrap(err, "cannot create google-user", nil))
 			return
 		}
 
-		*r = *r.WithContext(context.WithValue(r.Context(), "user", user))
+		*r = *r.WithContext(context.WithValue(ctx, "user", user))
 		next.ServeHTTP(w, r)
 	})
 }
 
-func (h *AccountsHandler) mwCreateSpotifyUser(next http.Handler) http.Handler {
+func (h *accountsHandler) mwCreateSpotifyUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		var (
-			oauthConfig = r.Context().Value("oauth_config").(*oauth2.Config)
-			token       = r.Context().Value("token").(*oauth2.Token)
+			ctx = r.Context()
+
+			oauthConfig = ctx.Value("oauth_config").(*oauth2.Config)
+			token       = ctx.Value("token").(*oauth2.Token)
 		)
 
-		user, err := h.accountsSvc.NewSpotifyUser(r.Context(), oauthConfig, token)
+		user, err := h.accountsSvc.NewSpotifyUser(ctx, oauthConfig, token)
 		if err != nil {
 			h.Err(w, r, domain.Wrap(err, "cannot create spotify-user", nil))
 			return

@@ -1,6 +1,15 @@
 package pages
 
-templ HomePage() {
+import (
+	"fmt"
+	"rollbringer/pkg/domain"
+)
+
+type HomePageState struct {
+	Session *domain.Session
+}
+
+templ HomePage(page *HomePageState) {
 	<html lang="en">
 		<head>
 			<meta charset="UTF-8"/>
@@ -11,14 +20,21 @@ templ HomePage() {
 			<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 			<script src="/pages/static/pages/home.js" defer></script>
 		</head>
-		<body>
-			<h1>Sign-Up</h1>
-			<a href="/accounts/signup/google">Google</a>
-			<a href="/accounts/signup/spotify">Spotify</a>
-			<h1>Sign-In</h1>
-			<a href="/accounts/signin/google">Google</a>
-			<a href="/accounts/signin/spotify">Spotify</a>
-			<hr/>
+		<body hx-headers={templ.JSONString(map[string]any{
+            "CSRF-Token": "abc",
+        })}>
+			if page.Session == nil {
+				<h1>Sign-Up</h1>
+				<a href="/accounts/signup/google">Google</a>
+				<a href="/accounts/signup/spotify">Spotify</a>
+				<hr/>
+				<h1>Sign-In</h1>
+				<a href="/accounts/signin/google">Google</a>
+				<a href="/accounts/signin/spotify">Spotify</a>
+			} else {
+				<h1>{ fmt.Sprintf("Hello, %s!", page.Session.User.Username) }</h1>
+                <p>{page.Session.GoogleUser.Email}</p>
+			}
 		</body>
 	</html>
 }

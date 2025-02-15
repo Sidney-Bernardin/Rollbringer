@@ -6,19 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type Operation string
-
-const (
-	OperationError Operation = "ERROR"
-)
-
-type Event struct {
-	Operation Operation `json:"operation"`
-	Payload   any       `json:"payload"`
-}
-
-/////
-
 type User struct {
 	ID        uuid.UUID `json:"id" db:"id"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
@@ -29,9 +16,9 @@ type User struct {
 	Username       string `json:"username" db:"username"`
 	ProfilePicture string `json:"profile_picture" db:"profile_picture"`
 
-	Session     *Session     `json:"session" db:"session"`
-	GoogleUser  *GoogleUser  `json:"google_user" db:"google_user"`
-	SpotifyUser *SpotifyUser `json:"spotify_user" db:"spotify_user"`
+	GoogleUser  *GoogleUser  `json:"google_user,omitempty" db:"google_user"`
+	SpotifyUser *SpotifyUser `json:"spotify_user,omitempty" db:"spotify_user"`
+	Session     *Session     `json:"session,omitempty" db:"session"`
 }
 
 type GoogleUser struct {
@@ -58,4 +45,7 @@ type Session struct {
 
 	UserID    uuid.UUID `json:"user_id" db:"user_id"`
 	CSRFToken string    `json:"csrf_token" db:"csrf_token"`
+
+	User       *User       `json:"user,omitempty" db:"user"`
+	GoogleUser *GoogleUser `json:"google_user,omitempty" db:"google_user"`
 }

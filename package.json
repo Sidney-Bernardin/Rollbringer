@@ -15,11 +15,18 @@
     },
     "targets": {
         "default": {
-            "source": [ "./web/*", "./web/pages/*", "./web/styles/*" ],
+            "source": [
+                "./web/*",
+                "./web/pages/*",
+                "./web/styles/*"
+            ],
             "distDir": "./cmd/static"
         }
     },
     "@parcel/resolver-default": {
         "packageExports": true
+    },
+    "dependencies": {
+        "htmx.org": "^2.0.4"
     }
 }

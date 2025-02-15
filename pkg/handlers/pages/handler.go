@@ -12,14 +12,14 @@ import (
 	"rollbringer/pkg/handlers/pages/views/pages"
 )
 
-type PagesHandler struct {
+type pagesHandler struct {
 	*handlers.Handler
 
 	pubSub domain.PubSubRepository
 }
 
 func New(config *domain.Config, logger *slog.Logger, svc *domain.Service) http.Handler {
-	h := &PagesHandler{
+	h := &pagesHandler{
 		Handler: &handlers.Handler{
 			Config:  config,
 			Logger:  logger,
@@ -30,15 +30,15 @@ func New(config *domain.Config, logger *slog.Logger, svc *domain.Service) http.H
 
 	h.Router.Use(h.MWLog)
 	h.Router.Handle("/static/*", http.StripPrefix("/pages/static/", http.FileServerFS(os.DirFS("cmd/static"))))
-	h.Router.Get("/", h.HomePage)
+	h.Router.With(h.MWAuthenticate(false, false, true)).Get("/", h.handleHomePage)
 
 	return h
 }
 
-type HomePage struct {
-	Title string `json:"title"`
-}
+func (h *pagesHandler) handleHomePage(w http.ResponseWriter, r *http.Request) {
+	var session = h.State(r)["session"].(*domain.Session)
 
-func (h *PagesHandler) HomePage(w http.ResponseWriter, r *http.Request) {
-	h.Respond(w, r, http.StatusOK, pages.HomePage())
+	h.Respond(w, r, http.StatusOK, pages.HomePage(&pages.HomePageState{
+		Session: session,
+	}))
 }

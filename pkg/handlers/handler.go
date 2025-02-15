@@ -9,6 +9,8 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
+	"github.com/pkg/errors"
 	"golang.org/x/net/websocket"
 
 	"rollbringer/pkg/domain"
@@ -18,6 +20,7 @@ var statusCodes = map[domain.UserErrorType]int{
 	domain.UsrErrTypeServerError:          http.StatusInternalServerError,
 	domain.UsrErrTypeCannotProcessRequest: http.StatusUnprocessableEntity,
 	domain.UsrErrTypeUnauthorized:         http.StatusUnauthorized,
+	domain.UsrErrTypeRecordNotFound:       http.StatusNotFound,
 
 	domain.UsrErrTypeGoogleUserDoesNotExists: http.StatusNotFound,
 	domain.UsrErrTypeGoogleUserAlreadyExists: http.StatusConflict,
@@ -79,4 +82,42 @@ func (h *Handler) Respond(w io.Writer, r *http.Request, statusCode int, res any)
 	}
 
 	domain.HandleError(r.Context(), h.Logger, slog.LevelError, err)
+}
+
+func (h *Handler) State(r *http.Request) map[string]any {
+	state, ok := r.Context().Value("state").(map[string]any)
+	if !ok {
+		state = map[string]any{}
+		*r = *r.WithContext(context.WithValue(r.Context(), "state", state))
+	}
+	return state
+}
+
+func (h *Handler) authenticate(r *http.Request, checkCSRF bool) (*domain.Session, error) {
+	var ctx = r.Context()
+
+	cookie, err := r.Cookie("SESSION_ID")
+	if err != nil {
+		return nil, nil
+	}
+
+	sessionID, _ := uuid.Parse(cookie.Value)
+	if sessionID == uuid.Nil {
+		return nil, nil
+	}
+
+	session, err := h.Service.GetSession(ctx, sessionID)
+	if err != nil {
+		if userErr, ok := errors.Cause(err).(*domain.UserError); ok && userErr.Type == domain.UsrErrTypeRecordNotFound {
+			return nil, nil
+		}
+
+		return nil, domain.Wrap(err, "cannot get session", nil)
+	}
+
+	if checkCSRF && r.Header.Get("CSRF-TOKEN") != session.CSRFToken {
+		return nil, nil
+	}
+
+	return session, nil
 }

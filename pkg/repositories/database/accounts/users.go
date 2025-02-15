@@ -26,10 +26,12 @@ func (repo *accountsDatabaseRepository) UserInsert(ctx context.Context, user *do
 /////
 
 const qUserGet = ` 
-SELECT * FROM accounts.users WHERE %s = $1`
+SELECT * FROM accounts.users WHERE users.%s = $1`
 
 func (repo *accountsDatabaseRepository) UserGet(ctx context.Context, key string, value any) (*domain.User, error) {
 	user := &domain.User{}
-	err := repo.Get(ctx, user, fmt.Sprintf(qUserGet, key), value)
-	return user, domain.Wrap(err, "cannot select user", nil)
+	if err := repo.Get(ctx, user, fmt.Sprintf(qUserGet, key), value); err != nil {
+		return nil, domain.Wrap(err, "cannot select user", nil)
+	}
+	return user, nil
 }

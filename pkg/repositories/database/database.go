@@ -5,8 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"io/fs"
-	"maps"
-	"slices"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -41,6 +39,7 @@ func NewDatabase(config *domain.Config, migrations fs.FS) (*DatabaseRepository, 
 	if err != nil {
 		return nil, domain.Wrap(err, "cannot connect to Postgres server", nil)
 	}
+
 	database = db
 	repo.DB = db
 	repo.TX = db
@@ -96,15 +95,15 @@ func (repo *DatabaseRepository) Get(ctx context.Context, record any, query strin
 
 func (repo *DatabaseRepository) Update(ctx context.Context, updates map[string]any, query string, args ...any) error {
 
-	var sets string
-	for n, k := range slices.Collect(maps.Keys(updates)) {
-		sets += fmt.Sprintf("%s = $%d,", k, n+1+len(args))
+	sets := ""
+	n := 1
+	for k, v := range updates {
+		sets += fmt.Sprintf("%s = $%d,", k, n+len(args))
+		args = append(args, v)
 	}
 	sets = sets[:len(sets)-1]
 
-	result, err := repo.TX.ExecContext(ctx, fmt.Sprintf(query, sets),
-		append(args, slices.Collect(maps.Values(updates))...)...)
-
+	result, err := repo.TX.ExecContext(ctx, fmt.Sprintf(query, sets), args...)
 	if err != nil {
 		return domain.Wrap(err, "cannot update record", nil)
 	}

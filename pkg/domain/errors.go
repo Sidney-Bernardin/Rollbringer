@@ -33,7 +33,7 @@ func Wrap(err error, msg string, attrs map[string]any) error {
 }
 
 func (err *detailedError) Error() string {
-	return fmt.Sprintf("%s: %s", err.msg, err.child.Error())
+	return fmt.Sprintf("%s: %v", err.msg, err.child)
 }
 
 func (err *detailedError) Unwrap() error {
@@ -59,6 +59,7 @@ const (
 	UsrErrTypeServerError          UserErrorType = "server_error"
 	UsrErrTypeCannotProcessRequest UserErrorType = "cannot_process_request"
 	UsrErrTypeUnauthorized         UserErrorType = "unauthorized"
+	UsrErrTypeRecordNotFound       UserErrorType = "record_not_found"
 
 	UsrErrTypeGoogleUserDoesNotExists UserErrorType = "google_user_does_not_exist"
 	UsrErrTypeGoogleUserAlreadyExists UserErrorType = "google_user_already_exists"

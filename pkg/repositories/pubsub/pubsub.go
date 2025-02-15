@@ -123,8 +123,9 @@ func (repo *PubSubRepository) Request(ctx context.Context, subject string, resPa
 	resOperation := domain.Operation(resMsg.Header.Get("operation"))
 
 	// Treat the response-payload as a UserError if the response-operation is ERROR.
-	var userErr *domain.UserError
+	var userErr error
 	if resOperation == domain.OperationError {
+		userErr = &domain.UserError{}
 		resPayload = userErr
 	}
 
@@ -136,7 +137,7 @@ func (repo *PubSubRepository) Request(ctx context.Context, subject string, resPa
 	return resOperation, userErr
 }
 
-func (repo *PubSubRepository) Subscribe(ctx context.Context, subject string, dpFunc domain.DefinePayloadFunc, handlerFunc func(*domain.Event) *domain.Event) error {
+func (repo *PubSubRepository) Subscribe(ctx context.Context, subject string, callback domain.PubSubCallback, expectedEvents map[domain.Operation]any) error {
 
 	// Subscribe to the subject.
 	subChan := make(chan *nats.Msg, 1)
@@ -158,7 +159,7 @@ func (repo *PubSubRepository) Subscribe(ctx context.Context, subject string, dpF
 
 				var (
 					reqOperation = domain.Operation(reqMsg.Header.Get("operation"))
-					reqPayload   = dpFunc(reqOperation)
+					reqPayload   = expectedEvents[reqOperation]
 				)
 
 				// Decode the request-message's data.
@@ -167,8 +168,8 @@ func (repo *PubSubRepository) Subscribe(ctx context.Context, subject string, dpF
 					return
 				}
 
-				// Call the handler function.
-				resEvent := handlerFunc(&domain.Event{
+				// Call the callback function.
+				resEvent := callback(ctx, &domain.Event{
 					Operation: reqOperation,
 					Payload:   reqPayload,
 				})

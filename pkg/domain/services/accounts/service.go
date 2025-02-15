@@ -45,5 +45,9 @@ func New(
 }
 
 func (svc *accountsService) Run(ctx context.Context) error {
-	return nil
+	err := svc.PubSub.Subscribe(ctx, "accounts", svc.subAccounts, map[domain.Operation]any{
+		domain.OperationGetSessionRequest: &domain.GetSessionRequest{},
+	})
+
+	return domain.Wrap(err, "cannot subscribe", map[string]any{"subject": "accounts"})
 }

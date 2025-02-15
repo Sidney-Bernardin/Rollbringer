@@ -82,7 +82,7 @@ func (svc *accountsService) Signin(ctx context.Context, user *domain.User) error
 
 		if user.SpotifyUser != nil {
 			err := tx.SpotifyUserUpdate(ctx, "spotify_id", user.SpotifyUser.SpotifyID, map[string]any{
-				"display_name":      user.SpotifyUser.DisplayName,
+				"display_name":    user.SpotifyUser.DisplayName,
 				"email":           user.SpotifyUser.Email,
 				"profile_picture": user.SpotifyUser.ProfilePicture,
 			})

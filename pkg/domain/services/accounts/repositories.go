@@ -21,6 +21,7 @@ type AccountsDatabaseRepository interface {
 	SpotifyUserUpdate(ctx context.Context, key string, value any, updates map[string]any) error
 
 	SessionInsert(ctx context.Context, session *domain.Session) error
+	SessionGet(ctx context.Context, key string, value any) (*domain.Session, error)
 }
 
 type SpotifyRepository interface {

@@ -12,14 +12,14 @@ import (
 	"rollbringer/pkg/handlers"
 )
 
-type AccountsHandler struct {
+type accountsHandler struct {
 	*handlers.Handler
 
 	accountsSvc service.AccountsService
 }
 
 func New(config *domain.Config, logger *slog.Logger, oauthConfigGoogle, oauthConfigSpotify *oauth2.Config, gamesSvc service.AccountsService) http.Handler {
-	h := &AccountsHandler{
+	h := &accountsHandler{
 		Handler: &handlers.Handler{
 			Config:  config,
 			Logger:  logger,
