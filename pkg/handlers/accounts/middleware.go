@@ -70,7 +70,7 @@ func (h *accountsHandler) mwOAuthCallback(next http.Handler) http.Handler {
 			HttpOnly: true,
 		})
 
-		http.Redirect(w, r, "/pages", http.StatusTemporaryRedirect)
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 	})
 }
 

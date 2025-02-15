@@ -1,4 +1,5 @@
 services:
+
   database:
     container_name: database
     image: postgres:latest

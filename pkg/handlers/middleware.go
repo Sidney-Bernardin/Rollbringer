@@ -32,7 +32,7 @@ func (h *Handler) MWAuthenticate(required, checkCSRF, redirect bool) func(http.H
 
 			if session == nil && required {
 				if redirect {
-					http.Redirect(w, r, "/pages", http.StatusTemporaryRedirect)
+					http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 				} else {
 					h.Err(w, r, domain.UserErr(ctx, domain.UsrErrTypeUnauthorized, "You're unauthorized!", nil))
 				}

@@ -51,7 +51,7 @@ func init() {
 		svc := service.New(config, logger.With("dependency", "domain"), pubSubRepo, accountsDBRepo, spotifyRepo)
 		h := handler.New(config, logger.With("dependency", "http-api"), oauthConfigGoogle, oauthConfigSpotify, svc)
 
-		features["accounts"] = feature{h, svc}
+		features["accounts"] = feature{h, svc, "/accounts"}
 		return nil
 	}
 }

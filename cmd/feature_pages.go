@@ -25,7 +25,7 @@ func init() {
 		}
 		h := handler.New(config, logger.With("dependency", "http-api"), svc)
 
-		features["pages"] = feature{h, svc}
+		features["pages"] = feature{h, svc, "/"}
 		return nil
 	}
 }

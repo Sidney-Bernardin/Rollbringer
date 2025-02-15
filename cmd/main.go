@@ -18,6 +18,7 @@ import (
 type feature struct {
 	handler http.Handler
 	service domain.IService
+	urlPath string
 }
 
 var (
@@ -125,7 +126,7 @@ func run(ctx context.Context) error {
 	for name, feat := range features {
 
 		// Add the feature's handler to the HTTP server.
-		httpServer.Handler.(chi.Router).Mount("/"+name, feat.handler)
+		httpServer.Handler.(chi.Router).Mount(feat.urlPath, feat.handler)
 
 		// Run the feature's service.
 		go func() {

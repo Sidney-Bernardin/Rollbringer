@@ -9,7 +9,7 @@ import (
 type Config struct {
 	Addr                  string `required:"true" split_words:"true"`
 	DevMode               bool   `default:"true" split_words:"true"`
-	DefaultProfilePicture string `default:"/pages/static/favicon.png" split_words:"true"`
+	DefaultProfilePicture string `default:"/static/favicon.png" split_words:"true"`
 
 	LogPretty      bool `default:"true" split_words:"true"`
 	LogPrettyColor bool `default:"true" split_words:"true"`

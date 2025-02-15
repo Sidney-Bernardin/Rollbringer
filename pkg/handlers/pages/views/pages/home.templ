@@ -15,14 +15,16 @@ templ HomePage(page *HomePageState) {
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<title>Home</title>
-			<link rel="icon" type="image/x-icon" href="/pages/static/favicon.png"/>
-			<link rel="stylesheet" type="text/css" href="/pages/static/styles/home.css"/>
+			<link rel="icon" type="image/x-icon" href="/static/favicon.png"/>
+			<link rel="stylesheet" type="text/css" href="/static/styles/home.css"/>
 			<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-			<script src="/pages/static/pages/home.js" defer></script>
+			<script src="/static/pages/home.js" defer></script>
 		</head>
-		<body hx-headers={templ.JSONString(map[string]any{
+		<body
+			hx-headers={ templ.JSONString(map[string]any{
             "CSRF-Token": "abc",
-        })}>
+        }) }
+		>
 			if page.Session == nil {
 				<h1>Sign-Up</h1>
 				<a href="/accounts/signup/google">Google</a>
@@ -33,7 +35,11 @@ templ HomePage(page *HomePageState) {
 				<a href="/accounts/signin/spotify">Spotify</a>
 			} else {
 				<h1>{ fmt.Sprintf("Hello, %s!", page.Session.User.Username) }</h1>
-                <p>{page.Session.GoogleUser.Email}</p>
+				if page.Session.GoogleUser != nil {
+					<p>{ page.Session.GoogleUser.Email }</p>
+				} else if page.Session.SpotifyUser != nil {
+					<p>{ page.Session.SpotifyUser.Email }</p>
+				}
 			}
 		</body>
 	</html>

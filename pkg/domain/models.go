@@ -46,6 +46,7 @@ type Session struct {
 	UserID    uuid.UUID `json:"user_id" db:"user_id"`
 	CSRFToken string    `json:"csrf_token" db:"csrf_token"`
 
-	User       *User       `json:"user,omitempty" db:"user"`
-	GoogleUser *GoogleUser `json:"google_user,omitempty" db:"google_user"`
+	User        *User        `json:"user,omitempty" db:"user"`
+	GoogleUser  *GoogleUser  `json:"google_user,omitempty" db:"google_user"`
+	SpotifyUser *SpotifyUser `json:"spotify_user,omitempty" db:"spotify_user"`
 }
