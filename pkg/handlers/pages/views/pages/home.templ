@@ -14,17 +14,16 @@ templ HomePage(page *HomePageState) {
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-			<title>Home</title>
+			<title>Home | Rollbringer</title>
 			<link rel="icon" type="image/x-icon" href="/static/favicon.png"/>
 			<link rel="stylesheet" type="text/css" href="/static/styles/home.css"/>
 			<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 			<script src="/static/pages/home.js" defer></script>
 		</head>
-		<body
-			hx-headers={ templ.JSONString(map[string]any{
-            "CSRF-Token": "abc",
-        }) }
-		>
+		<body hx-headers={ templ.JSONString(map[string]any{"CSRF-Token": "abc"}) }>
+			<div class="nav-bar">
+				<a href="/">home</a> | <a href="/play">play</a>
+			</div>
 			if page.Session == nil {
 				<h1>Sign-Up</h1>
 				<a href="/accounts/signup/google">Google</a>

@@ -31,6 +31,7 @@ func New(config *domain.Config, logger *slog.Logger, svc *domain.Service) http.H
 	h.Router.Use(h.MWLog)
 	h.Router.Handle("/static/*", http.StripPrefix("/static/", http.FileServerFS(os.DirFS("cmd/static"))))
 	h.Router.With(h.MWAuthenticate(false, false, true)).Get("/", h.handleHomePage)
+	h.Router.With(h.MWAuthenticate(true, false, true)).Get("/play", h.handlePlayPage)
 
 	return h
 }
@@ -39,6 +40,14 @@ func (h *pagesHandler) handleHomePage(w http.ResponseWriter, r *http.Request) {
 	var session = h.State(r)["session"].(*domain.Session)
 
 	h.Respond(w, r, http.StatusOK, pages.HomePage(&pages.HomePageState{
+		Session: session,
+	}))
+}
+
+func (h *pagesHandler) handlePlayPage(w http.ResponseWriter, r *http.Request) {
+	var session = h.State(r)["session"].(*domain.Session)
+
+	h.Respond(w, r, http.StatusOK, pages.PlayPage(&pages.PlayPageState{
 		Session: session,
 	}))
 }

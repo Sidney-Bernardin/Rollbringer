@@ -27,6 +27,8 @@
         "packageExports": true
     },
     "dependencies": {
-        "htmx.org": "^2.0.4"
+        "htmx.org": "^2.0.4",
+        "iconify-icon": "^2.3.0",
+        "split-grid": "^1.0.11"
     }
 }
