@@ -34,7 +34,7 @@ func init() {
 		}
 
 		// Create PubSub repository.
-		pubSubRepo, err := pubsub.NewPubSubRepository(config, logger.With("dependency", "nats-pubsub-repo"))
+		pubSubRepo, err := pubsub.NewPubSubRepository(config, logger.With("dependency", "pubsub-repo"))
 		if err != nil {
 			return domain.Wrap(err, "cannot create PubSub repository", nil)
 		}
@@ -43,7 +43,7 @@ func init() {
 		spotifyRepo := spotify.NewSpotifyRepository()
 
 		// Create accounts database repository.
-		accountsDBRepo, err := database.NewGamesDatabaseRepository(config, logger.With("dependency", "postgres-repo"), migrations)
+		accountsDBRepo, err := database.NewAccountsDatabaseRepository(config, logger.With("dependency", "db-repo"), migrations)
 		if err != nil {
 			return domain.Wrap(err, "cannot create accounts database repository", nil)
 		}

@@ -11,6 +11,7 @@
     "license": "ISC",
     "devDependencies": {
         "@parcel/transformer-sass": "^2.13.3",
+        "@types/alpinejs": "^3.13.11",
         "parcel": "^2.13.3"
     },
     "targets": {
@@ -27,8 +28,10 @@
         "packageExports": true
     },
     "dependencies": {
+        "alpinejs": "^3.14.8",
         "htmx.org": "^2.0.4",
         "iconify-icon": "^2.3.0",
+        "konva": "^9.3.18",
         "split-grid": "^1.0.11"
     }
 }

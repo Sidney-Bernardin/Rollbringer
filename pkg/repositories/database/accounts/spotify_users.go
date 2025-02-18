@@ -6,8 +6,6 @@ import (
 	"rollbringer/pkg/domain"
 )
 
-/////
-
 const qSpotifyUserInsert = ` 
 INSERT INTO accounts.spotify_users (spotify_id, display_name, email, profile_picture)
 VALUES ($1, $2, $3, $4)

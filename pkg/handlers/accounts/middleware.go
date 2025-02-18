@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"net/http"
 	"time"
 
@@ -13,11 +12,12 @@ import (
 func (h *accountsHandler) mwOAuthConfig(oauthConfig *oauth2.Config, redirectURL string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			var state = h.State(r)
 
 			redirectOAuthConfig := *oauthConfig
 			redirectOAuthConfig.RedirectURL = redirectURL
 
-			*r = *r.WithContext(context.WithValue(r.Context(), "oauth_config", &redirectOAuthConfig))
+			state["oauth_config"] = &redirectOAuthConfig
 			next.ServeHTTP(w, r)
 		})
 	}
@@ -27,8 +27,10 @@ func (h *accountsHandler) mwOAuthCallback(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		var (
-			ctx         = r.Context()
-			oauthConfig = ctx.Value("oauth_config").(*oauth2.Config)
+			state = h.State(r)
+			ctx   = r.Context()
+
+			oauthConfig = state["oauth_config"].(*oauth2.Config)
 		)
 
 		stateCookie, err := r.Cookie("OAUTH_STATE")
@@ -53,17 +55,16 @@ func (h *accountsHandler) mwOAuthCallback(next http.Handler) http.Handler {
 			return
 		}
 
-		*r = *r.WithContext(context.WithValue(ctx, "token", token))
+		state["token"] = token
 		next.ServeHTTP(w, r)
 
-		ctx = r.Context()
-		if err := ctx.Err(); err != nil {
+		if err := r.Context().Err(); err != nil {
 			return
 		}
 
 		http.SetCookie(w, &http.Cookie{
 			Name:     "SESSION_ID",
-			Value:    ctx.Value("user").(*domain.User).Session.ID.String(),
+			Value:    state["user"].(*domain.User).Session.ID.String(),
 			Path:     h.Config.SessionCookiePath,
 			Expires:  time.Now().Add(h.Config.SessionCookieTimeout),
 			SameSite: http.SameSiteStrictMode,
@@ -78,8 +79,10 @@ func (h *accountsHandler) mwCreateGoogleUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		var (
+			state = h.State(r)
 			ctx   = r.Context()
-			token = ctx.Value("token").(*oauth2.Token)
+
+			token = state["token"].(*oauth2.Token)
 		)
 
 		user, err := h.accountsSvc.NewGoogleUser(ctx, token)
@@ -88,7 +91,7 @@ func (h *accountsHandler) mwCreateGoogleUser(next http.Handler) http.Handler {
 			return
 		}
 
-		*r = *r.WithContext(context.WithValue(ctx, "user", user))
+		state["user"] = user
 		next.ServeHTTP(w, r)
 	})
 }
@@ -97,10 +100,11 @@ func (h *accountsHandler) mwCreateSpotifyUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		var (
-			ctx = r.Context()
+			state = h.State(r)
+			ctx   = r.Context()
 
-			oauthConfig = ctx.Value("oauth_config").(*oauth2.Config)
-			token       = ctx.Value("token").(*oauth2.Token)
+			oauthConfig = state["oauth_config"].(*oauth2.Config)
+			token       = state["token"].(*oauth2.Token)
 		)
 
 		user, err := h.accountsSvc.NewSpotifyUser(ctx, oauthConfig, token)
@@ -109,7 +113,7 @@ func (h *accountsHandler) mwCreateSpotifyUser(next http.Handler) http.Handler {
 			return
 		}
 
-		*r = *r.WithContext(context.WithValue(r.Context(), "user", user))
+		state["user"] = user
 		next.ServeHTTP(w, r)
 	})
 }

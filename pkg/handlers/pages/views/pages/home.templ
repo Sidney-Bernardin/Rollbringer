@@ -21,9 +21,6 @@ templ HomePage(page *HomePageState) {
 			<script src="/static/pages/home.js" defer></script>
 		</head>
 		<body hx-headers={ templ.JSONString(map[string]any{"CSRF-Token": "abc"}) }>
-			<div class="nav-bar">
-				<a href="/">home</a> | <a href="/play">play</a>
-			</div>
 			if page.Session == nil {
 				<h1>Sign-Up</h1>
 				<a href="/accounts/signup/google">Google</a>
@@ -34,11 +31,20 @@ templ HomePage(page *HomePageState) {
 				<a href="/accounts/signin/spotify">Spotify</a>
 			} else {
 				<h1>{ fmt.Sprintf("Hello, %s!", page.Session.User.Username) }</h1>
-				if page.Session.GoogleUser != nil {
-					<p>{ page.Session.GoogleUser.Email }</p>
-				} else if page.Session.SpotifyUser != nil {
-					<p>{ page.Session.SpotifyUser.Email }</p>
+				if page.Session.User.GoogleUser != nil {
+					<p>Google: { page.Session.User.GoogleUser.Email }</p>
 				}
+                if page.Session.User.SpotifyUser != nil {
+					<p>Spotify:{ page.Session.User.SpotifyUser.Email }</p>
+				}
+				<hr/>
+				<ul>
+					for _, room := range page.Session.User.Rooms {
+						<li>
+							<a href={ templ.SafeURL("/play/" + room.ID.String()) }>{ room.Name }</a>
+						</li>
+					}
+				</ul>
 			}
 		</body>
 	</html>

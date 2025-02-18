@@ -45,7 +45,25 @@ func (h *pagesHandler) handleHomePage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *pagesHandler) handlePlayPage(w http.ResponseWriter, r *http.Request) {
-	var session = h.State(r)["session"].(*domain.Session)
+
+	var (
+		state = h.State(r)
+		ctx   = r.Context()
+
+		session = state["session"].(*domain.Session)
+	)
+
+	_, err := h.pubSub.Request(ctx, "play", &session.User.Rooms, &domain.Event{
+		Operation: domain.OperationGetSessionRequest,
+		Payload: domain.GetRoomsRequest{
+			OwnerID: session.UserID,
+		},
+	})
+
+	if err != nil {
+		h.Err(w, r, domain.Wrap(err, "cannot get rooms", nil))
+		return
+	}
 
 	h.Respond(w, r, http.StatusOK, pages.PlayPage(&pages.PlayPageState{
 		Session: session,

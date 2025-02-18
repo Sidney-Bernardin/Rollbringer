@@ -12,7 +12,7 @@ import (
 
 func (svc *accountsService) NewGoogleUser(ctx context.Context, token *oauth2.Token) (*domain.User, error) {
 
-	idTokenStr, ok := ctx.Value("token").(*oauth2.Token).Extra("id_token").(string)
+	idTokenStr, ok := token.Extra("id_token").(string)
 	if !ok {
 		return nil, errors.New("id_token is not string")
 	}

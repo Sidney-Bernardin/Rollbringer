@@ -9,6 +9,13 @@ import (
 	"rollbringer/pkg/domain"
 )
 
+type joinedSession struct {
+	Session     *domain.Session     `db:"session"`
+	User        *domain.User        `db:"user"`
+	GoogleUser  *domain.GoogleUser  `db:"google_user"`
+	SpotifyUser *domain.SpotifyUser `db:"spotify_user"`
+}
+
 /////
 
 const qSessionInsert = ` 
@@ -32,7 +39,9 @@ func (repo *accountsDatabaseRepository) SessionInsert(ctx context.Context, sessi
 
 const qSessionGet = ` 
 SELECT
-	sessions.id, sessions.user_id, sessions.csrf_token,
+	sessions.id AS "session.id",
+	sessions.user_id AS "session.user_id",
+	sessions.csrf_token AS "session.csrf_token",
 
 	users.id AS "user.id",
 	users.google_id AS "user.google_id",
@@ -52,18 +61,15 @@ LEFT JOIN accounts.spotify_users ON users.spotify_id = spotify_users.spotify_id
 WHERE sessions.%s = $1`
 
 func (repo *accountsDatabaseRepository) SessionGet(ctx context.Context, key string, value any) (*domain.Session, error) {
-	session := &domain.Session{}
-	if err := repo.Get(ctx, session, fmt.Sprintf(qSessionGet, key), value); err != nil {
+
+	var res joinedSession
+	if err := repo.GetOne(ctx, &res, fmt.Sprintf(qSessionGet, key), value); err != nil {
 		return nil, domain.Wrap(err, "cannot select session", nil)
 	}
 
-	if session.GoogleUser.GoogleID == "<null>" {
-		session.GoogleUser = nil
-	}
+	res.Session.User = res.User
+	res.Session.User.GoogleUser = res.GoogleUser
+	res.Session.User.SpotifyUser = res.SpotifyUser
 
-	if session.SpotifyUser.SpotifyID == "<null>" {
-		session.SpotifyUser = nil
-	}
-
-	return session, nil
+	return res.Session, nil
 }

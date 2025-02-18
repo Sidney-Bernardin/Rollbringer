@@ -81,7 +81,7 @@ func (repo *DatabaseRepository) Insert(ctx context.Context, record any, query st
 	return nil
 }
 
-func (repo *DatabaseRepository) Get(ctx context.Context, record any, query string, args ...any) error {
+func (repo *DatabaseRepository) GetOne(ctx context.Context, record any, query string, args ...any) error {
 	if err := sqlx.GetContext(ctx, repo.TX, record, query, args...); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return domain.ErrNotFound

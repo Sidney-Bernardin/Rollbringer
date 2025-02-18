@@ -7,29 +7,29 @@ import (
 	"log/slog"
 
 	"rollbringer/pkg/domain"
-	"rollbringer/pkg/domain/services/accounts"
+	"rollbringer/pkg/domain/services/play"
 	"rollbringer/pkg/repositories/database"
 )
 
-type accountsDatabaseRepository struct {
+type playDatabaseRepository struct {
 	*database.DatabaseRepository
 
 	logger *slog.Logger
 }
 
-func NewAccountsDatabaseRepository(config *domain.Config, logger *slog.Logger, migrations fs.FS) (service.AccountsDatabaseRepository, error) {
+func NewPlayDatabaseRepository(config *domain.Config, logger *slog.Logger, migrations fs.FS) (service.PlayDatabaseRepository, error) {
 	db, err := database.NewDatabase(config, migrations)
 	if err != nil {
 		return nil, domain.Wrap(err, "cannot create database", nil)
 	}
 
-	return &accountsDatabaseRepository{
+	return &playDatabaseRepository{
 		DatabaseRepository: db,
 		logger:             logger,
 	}, nil
 }
 
-func (repo *accountsDatabaseRepository) Transaction(ctx context.Context, txFunc func(service.AccountsDatabaseRepository) error) error {
+func (repo *playDatabaseRepository) Transaction(ctx context.Context, txFunc func(service.PlayDatabaseRepository) error) error {
 	tx, err := repo.DB.BeginTxx(ctx, nil)
 	if err != nil {
 		return domain.Wrap(err, "cannot begin transaction", nil)
@@ -41,7 +41,7 @@ func (repo *accountsDatabaseRepository) Transaction(ctx context.Context, txFunc 
 		}
 	}()
 
-	err = txFunc(&accountsDatabaseRepository{
+	err = txFunc(&playDatabaseRepository{
 		DatabaseRepository: &database.DatabaseRepository{
 			TX: tx,
 		},

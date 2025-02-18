@@ -46,3 +46,24 @@ CREATE TABLE IF NOT EXISTS accounts.sessions (
 
     UNIQUE(user_id)
 );
+
+
+
+CREATE SCHEMA IF NOT EXISTS play;
+
+CREATE TABLE IF NOT EXISTS play.rooms (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+
+    owner_id uuid REFERENCES accounts.users (id) ON DELETE CASCADE,
+
+    name text NOT null
+);
+
+CREATE TABLE IF NOT EXISTS play.boards (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+
+    room_id uuid REFERENCES play.rooms (id) ON DELETE CASCADE,
+
+    name text NOT null,
+    konva jsonb NOT null
+);

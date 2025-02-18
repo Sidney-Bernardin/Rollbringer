@@ -7,8 +7,6 @@ import (
 	"rollbringer/pkg/domain"
 )
 
-/////
-
 const qUserInsert = ` 
 WITH inserted_user AS (
 	INSERT INTO accounts.users (google_id, spotify_id, username, profile_picture)
@@ -30,7 +28,7 @@ SELECT * FROM accounts.users WHERE users.%s = $1`
 
 func (repo *accountsDatabaseRepository) UserGet(ctx context.Context, key string, value any) (*domain.User, error) {
 	user := &domain.User{}
-	if err := repo.Get(ctx, user, fmt.Sprintf(qUserGet, key), value); err != nil {
+	if err := repo.GetOne(ctx, user, fmt.Sprintf(qUserGet, key), value); err != nil {
 		return nil, domain.Wrap(err, "cannot select user", nil)
 	}
 	return user, nil

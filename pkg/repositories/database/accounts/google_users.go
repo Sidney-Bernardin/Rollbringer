@@ -6,8 +6,6 @@ import (
 	"rollbringer/pkg/domain"
 )
 
-/////
-
 const qGoogleUserInsert = ` 
 INSERT INTO accounts.google_users (google_id, given_name, email, profile_picture)
 VALUES ($1, $2, $3, $4)
