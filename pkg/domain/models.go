@@ -33,7 +33,7 @@ type User struct {
 	ProfilePicture string `json:"profile_picture" db:"profile_picture"`
 
 	Session *Session `json:"session"`
-	Rooms   []Room   `json:"rooms"`
+	Rooms   []*Room  `json:"rooms"`
 }
 
 /////
@@ -94,6 +94,8 @@ type Room struct {
 	Owner   *User     `json:"owner" db:"owner"`
 
 	Name string `json:"name" db:"name"`
+
+	Boards []*Board `json:"boards"`
 }
 
 /////
@@ -114,10 +116,19 @@ type GetRoomsRequest struct {
 
 /////
 
+type BoardView int
+
+const (
+	BoardViewAll BoardView = iota
+	BoardViewListItem
+)
+
 type Board struct {
 	ID uuid.UUID `json:"id" db:"id"`
 
 	RoomID uuid.UUID `json:"room_id" db:"room_id"`
+	Room   *Room     `json:"room" db:"room"`
 
-	Name string `json:"name" db:"name"`
+	Name  string `json:"name" db:"name"`
+	Konva []byte `json:"konva" db:"konva"`
 }

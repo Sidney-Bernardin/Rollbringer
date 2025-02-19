@@ -6,10 +6,11 @@ import (
 	"os"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 
 	"rollbringer/pkg/domain"
 	"rollbringer/pkg/handlers"
-	"rollbringer/pkg/handlers/pages/views/pages"
+	"rollbringer/pkg/handlers/pages/views"
 )
 
 type pagesHandler struct {
@@ -26,6 +27,7 @@ func New(config *domain.Config, logger *slog.Logger, svc *domain.Service) http.H
 			Router:  chi.NewRouter(),
 			Service: svc,
 		},
+		pubSub: svc.PubSub,
 	}
 
 	h.Router.Use(h.MWLog)
@@ -37,9 +39,29 @@ func New(config *domain.Config, logger *slog.Logger, svc *domain.Service) http.H
 }
 
 func (h *pagesHandler) handleHomePage(w http.ResponseWriter, r *http.Request) {
-	var session = h.State(r)["session"].(*domain.Session)
 
-	h.Respond(w, r, http.StatusOK, pages.HomePage(&pages.HomePageState{
+	var (
+		state = h.State(r)
+		ctx   = r.Context()
+
+		session, _ = state["session"].(*domain.Session)
+	)
+
+	if session != nil {
+		_, err := h.pubSub.Request(ctx, "play", &session.User.Rooms, &domain.Event{
+			Operation: domain.OperationGetRoomsRequest,
+			Payload: domain.GetRoomsRequest{
+				OwnerID: session.UserID,
+			},
+		})
+
+		if err != nil {
+			h.Err(w, r, domain.Wrap(err, "cannot get rooms", nil))
+			return
+		}
+	}
+
+	h.Respond(w, r, http.StatusOK, views.HomePage(&views.HomePageState{
 		Session: session,
 	}))
 }
@@ -50,13 +72,15 @@ func (h *pagesHandler) handlePlayPage(w http.ResponseWriter, r *http.Request) {
 		state = h.State(r)
 		ctx   = r.Context()
 
-		session = state["session"].(*domain.Session)
+		session   = state["session"].(*domain.Session)
+		roomID, _ = uuid.Parse(r.URL.Query().Get("r"))
 	)
 
-	_, err := h.pubSub.Request(ctx, "play", &session.User.Rooms, &domain.Event{
-		Operation: domain.OperationGetSessionRequest,
-		Payload: domain.GetRoomsRequest{
-			OwnerID: session.UserID,
+	var room *domain.Room
+	_, err := h.pubSub.Request(ctx, "play", &room, &domain.Event{
+		Operation: domain.OperationGetRoomRequest,
+		Payload: domain.GetRoomRequest{
+			RoomID: roomID,
 		},
 	})
 
@@ -65,7 +89,8 @@ func (h *pagesHandler) handlePlayPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.Respond(w, r, http.StatusOK, pages.PlayPage(&pages.PlayPageState{
+	h.Respond(w, r, http.StatusOK, views.PlayPage(&views.PlayPageState{
 		Session: session,
+		Room:    room,
 	}))
 }

@@ -19,6 +19,11 @@ import (
 
 var database *sqlx.DB
 
+type View struct {
+	Columns string
+	Joins   string
+}
+
 type DatabaseRepository struct {
 	DB *sqlx.DB
 	TX sqlx.ExtContext

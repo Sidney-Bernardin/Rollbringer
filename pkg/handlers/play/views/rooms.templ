@@ -1,0 +1,9 @@
+package views
+
+import "rollbringer/pkg/domain"
+
+templ RoomListItem(room *domain.Room) {
+	<li>
+		<a href={ templ.SafeURL("/play?r=" + room.ID.String()) }>{ room.Name }</a>
+	</li>
+}

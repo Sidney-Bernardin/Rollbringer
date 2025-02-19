@@ -29,7 +29,7 @@ func init() {
 		svc := service.New(config, logger.With("dependency", "domain"), pubSubRepo, playDBRepo)
 		h := handler.New(config, logger.With("dependency", "http-api"), svc)
 
-		features["play"] = feature{h, svc, "/play"}
+		features["play"] = feature{h, svc, "/services/play"}
 		return nil
 	}
 }

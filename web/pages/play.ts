@@ -3,9 +3,7 @@ import "htmx.org"
 import Konva from "konva"
 import Alpine from "alpinejs"
 import Split from "split-grid"
-
-globalThis.Alpine = Alpine
-Alpine.start()
+import htmx from "htmx.org"
 
 Split({
     columnGutters: [
@@ -26,30 +24,16 @@ Split({
     ],
 })
 
-const stage = new Konva.Stage({
-    container: document.querySelector(".board"),
-    width: 500,
-    height: 500,
-})
 
-const layer = new Konva.Layer()
+globalThis.defaultKonvaBoard = `{"attrs":{"width":578,"height":200},"className":"Stage","children":[{"attrs":{},"className":"Layer","children":[{"attrs":{"x":100,"y":100,"sides":6,"radius":70,"fill":"red","stroke":"black","strokeWidth":4},"className":"RegularPolygon"}]}]}`
 
-const img = new Image()
-const image = new Konva.Image({
-    id: "123abc",
-    name: "foobarbaz",
-    x: 250,
-    y: 250,
-    image: img,
-    width: 100,
-    height: 100,
-    draggable: true,
-})
-img.src = "/static/favicon.png"
-layer.add(image)
+Alpine.data("board", () => ({
+    stage: null,
 
-stage.add(layer)
-layer.draw()
+    init() {
+        this.stage = Konva.Node.create(this.$el.dataset.konva, this.$el)
+    },
+}))
 
-const json = stage.toJSON()
-console.log(json)
+globalThis.Alpine = Alpine
+Alpine.start()

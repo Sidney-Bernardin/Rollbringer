@@ -1,0 +1,30 @@
+package views
+
+import "rollbringer/pkg/domain"
+
+templ BoardView(board *domain.Board, view domain.BoardView) {
+	switch view {
+		case domain.BoardViewListItem:
+			@BoardListItem(board)
+		default:
+			@Board(board)
+	}
+}
+
+templ Board(board *domain.Board) {
+	<div
+		x-data="board"
+		class="board"
+		data-board-id={ board.ID.String() }
+		data-name={ board.Name }
+		data-konva={ string(board.Konva) }
+	></div>
+}
+
+templ BoardListItem(board *domain.Board) {
+	<li>
+		<button hx-get={ "/services/play/boards/" + board.ID.String() } hx-target=".boards" hx-swap="innerHTML">
+			{ board.Name }
+		</button>
+	</li>
+}

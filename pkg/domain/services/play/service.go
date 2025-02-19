@@ -16,6 +16,9 @@ type PlayService interface {
 	GetRoom(ctx context.Context, roomID uuid.UUID) (*domain.Room, error)
 	GetRooms(ctx context.Context, ownerID uuid.UUID) ([]*domain.Room, error)
 	DeleteRoom(ctx context.Context, session *domain.Session, roomID uuid.UUID) error
+
+	CreateBoard(ctx context.Context, session *domain.Session, view domain.BoardView, board *domain.Board) error
+	GetBoard(ctx context.Context, view domain.BoardView, boardID uuid.UUID) (*domain.Board, error)
 }
 
 type playService struct {
@@ -42,7 +45,7 @@ func New(
 
 func (svc *playService) Run(ctx context.Context) error {
 	err := svc.PubSub.Subscribe(ctx, "play", svc.subPlay, map[domain.Operation]any{
-		domain.OperationGetRoomRequest: &domain.GetRoomRequest{},
+		domain.OperationGetRoomRequest:  &domain.GetRoomRequest{},
 		domain.OperationGetRoomsRequest: &domain.GetRoomsRequest{},
 	})
 

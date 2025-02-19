@@ -14,9 +14,9 @@ body {
   grid-template-columns: 2fr 8px 2fr 8px 100px;
   grid-template-areas:
     "  nav  nav  nav     nav  nav "
-    "  g1   g1   g1      g1   g1  "
-    "viewer g2  board    g3 social"
-    "viewer g2   g4      g3 social"
+    "  g1   g1    g1     g1   g1  "
+    "viewer g2  boards   g3 social"
+    "viewer g2    g4     g3 social"
     "viewer g2 materials g3 social";
 
   .nav-bar {
@@ -27,8 +27,8 @@ body {
     grid-area: viewer;
   }
 
-  .board {
-    grid-area: board;
+  .boards {
+    grid-area: boards;
   }
 
   .materials {

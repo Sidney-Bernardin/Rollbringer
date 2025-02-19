@@ -1,8 +1,9 @@
-package pages
+package views
 
 import (
 	"fmt"
 	"rollbringer/pkg/domain"
+	"rollbringer/pkg/handlers/play/views"
 )
 
 type HomePageState struct {
@@ -20,31 +21,38 @@ templ HomePage(page *HomePageState) {
 			<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 			<script src="/static/pages/home.js" defer></script>
 		</head>
-		<body hx-headers={ templ.JSONString(map[string]any{"CSRF-Token": "abc"}) }>
+		<body
+			if page.Session != nil {
+				hx-headers={ templ.JSONString(map[string]any{"CSRF-Token": page.Session.CSRFToken}) }
+			}
+		>
 			if page.Session == nil {
 				<h1>Sign-Up</h1>
-				<a href="/accounts/signup/google">Google</a>
-				<a href="/accounts/signup/spotify">Spotify</a>
+				<a href="/services/accounts/signup/google">Google</a>
+				<a href="/services/accounts/signup/spotify">Spotify</a>
 				<hr/>
 				<h1>Sign-In</h1>
-				<a href="/accounts/signin/google">Google</a>
-				<a href="/accounts/signin/spotify">Spotify</a>
+				<a href="/services/accounts/signin/google">Google</a>
+				<a href="/services/accounts/signin/spotify">Spotify</a>
 			} else {
 				<h1>{ fmt.Sprintf("Hello, %s!", page.Session.User.Username) }</h1>
 				if page.Session.User.GoogleUser != nil {
 					<p>Google: { page.Session.User.GoogleUser.Email }</p>
 				}
-                if page.Session.User.SpotifyUser != nil {
+				if page.Session.User.SpotifyUser != nil {
 					<p>Spotify:{ page.Session.User.SpotifyUser.Email }</p>
 				}
 				<hr/>
+				<h2>Rooms</h2>
 				<ul>
 					for _, room := range page.Session.User.Rooms {
-						<li>
-							<a href={ templ.SafeURL("/play/" + room.ID.String()) }>{ room.Name }</a>
-						</li>
+						@views.RoomListItem(room)
 					}
 				</ul>
+				<form hx-post="/services/play/rooms" hx-target="ul" hx-swap="beforeend">
+					<input type="text" name="name" placeholder="Name"/>
+					<input type="submit"/>
+				</form>
 			}
 		</body>
 	</html>
