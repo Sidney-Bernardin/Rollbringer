@@ -137,7 +137,7 @@ func (repo *PubSubRepository) Request(ctx context.Context, subject string, resPa
 	return resOperation, userErr
 }
 
-func (repo *PubSubRepository) Subscribe(ctx context.Context, subject string, callback domain.PubSubCallback, expectedEvents map[domain.Operation]any) error {
+func (repo *PubSubRepository) Subscribe(ctx context.Context, subject string, callback domain.PubSubCallback, expectedOperations map[domain.Operation]any) error {
 
 	// Subscribe to the subject.
 	subChan := make(chan *nats.Msg, 1)
@@ -159,7 +159,7 @@ func (repo *PubSubRepository) Subscribe(ctx context.Context, subject string, cal
 
 				var (
 					reqOperation = domain.Operation(reqMsg.Header.Get("operation"))
-					reqPayload   = expectedEvents[reqOperation]
+					reqPayload   = expectedOperations[reqOperation]
 				)
 
 				// Decode the request-message's data.

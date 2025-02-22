@@ -1,6 +1,7 @@
 package views
 
 import (
+	"fmt"
 	"rollbringer/pkg/domain"
 	"rollbringer/pkg/handlers/play/views"
 )
@@ -20,10 +21,12 @@ templ PlayPage(page *PlayPageState) {
 			<link rel="stylesheet" type="text/css" href="/static/styles/play.css"/>
 			<script src="/static/pages/play.js" defer></script>
 		</head>
-		<body 
-            x-data
+		<body
+			x-data
+			hx-ext="ws"
 			hx-headers={ templ.JSONString(map[string]any{"CSRF-Token": page.Session.CSRFToken}) }
-        >
+			ws-connect={ fmt.Sprintf("/services/play/rooms/%s/ws", page.Room.ID) }
+		>
 			<div class="grid">
 				<div class="nav-bar">
 					<a href="/">Home</a>

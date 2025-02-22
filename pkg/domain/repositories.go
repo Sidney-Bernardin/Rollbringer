@@ -7,7 +7,7 @@ import (
 type PubSubRepository interface {
 	Request(ctx context.Context, subject string, resPayload any, req *Event) (Operation, error)
 	Publish(ctx context.Context, subject string, req *Event) error
-	Subscribe(ctx context.Context, subject string, cb PubSubCallback, expectedEvents map[Operation]any) error
+	Subscribe(ctx context.Context, subject string, cb PubSubCallback, expectedOperations map[Operation]any) error
 	Close()
 }
 

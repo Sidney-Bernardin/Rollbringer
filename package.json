@@ -4,14 +4,22 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "watch": "npx parcel watch --watch-dir web --no-hmr --no-cache"
     },
     "keywords": [],
     "author": "",
     "license": "ISC",
+    "dependencies": {
+        "alpinejs": "^3.14.8",
+        "htmx-ext-ws": "^2.0.3",
+        "htmx.org": "^2.0.4",
+        "iconify-icon": "^2.3.0",
+        "konva": "^9.3.18",
+        "split-grid": "^1.0.11"
+    },
     "devDependencies": {
-        "@parcel/transformer-sass": "^2.13.3",
         "@types/alpinejs": "^3.13.11",
+        "@types/node": "^22.13.5",
         "parcel": "^2.13.3"
     },
     "targets": {
@@ -19,19 +27,9 @@
             "source": [
                 "./web/*",
                 "./web/pages/*",
-                "./web/styles/*"
+                "./web/components/*"
             ],
             "distDir": "./cmd/static"
         }
-    },
-    "@parcel/resolver-default": {
-        "packageExports": true
-    },
-    "dependencies": {
-        "alpinejs": "^3.14.8",
-        "htmx.org": "^2.0.4",
-        "iconify-icon": "^2.3.0",
-        "konva": "^9.3.18",
-        "split-grid": "^1.0.11"
     }
 }

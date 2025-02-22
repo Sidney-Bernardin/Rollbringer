@@ -18,7 +18,10 @@ templ Board(board *domain.Board) {
 		data-board-id={ board.ID.String() }
 		data-name={ board.Name }
 		data-konva={ string(board.Konva) }
-	></div>
+	>
+		<button @click="logStage()">Log Stage</button>
+		<div class="konva"></div>
+	</div>
 }
 
 templ BoardListItem(board *domain.Board) {

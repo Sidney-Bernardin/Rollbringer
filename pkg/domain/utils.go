@@ -10,9 +10,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-type DefinePayloadFunc func(Operation) (payload any)
-
-func DecodeEvent(bytes []byte, dpFunc DefinePayloadFunc) (*Event, error) {
+func DecodeEvent(bytes []byte, expectedOperations map[Operation]any) (*Event, error) {
 	op := struct {
 		Operation Operation `json:"operation"`
 	}{}
@@ -24,12 +22,12 @@ func DecodeEvent(bytes []byte, dpFunc DefinePayloadFunc) (*Event, error) {
 
 	event := &Event{
 		Operation: op.Operation,
-		Payload:   dpFunc(op.Operation),
+		Payload:   expectedOperations[op.Operation],
 	}
 
 	// Decode the event.
 	if err := json.Unmarshal(bytes, event); err != nil {
-		return event, Wrap(err, "cannot JSON decode event", nil)
+		return nil, Wrap(err, "cannot JSON decode event", nil)
 	}
 
 	return event, nil

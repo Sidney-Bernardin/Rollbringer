@@ -40,12 +40,6 @@ SELECT %s FROM boards %s`
 func (repo *playDatabaseRepository) BoardInsert(ctx context.Context, view domain.BoardView, board *domain.Board) error {
 	v := boardViews[view]
 
-	fmt.Println(string(board.Konva))
-	// var k map[string]any
-	// if err := json.Unmarshal(board.Konva, &k); err != nil {
-	// 	return domain.Wrap(err, "cannot JSON decode konva", nil)
-	// }
-
 	err := repo.Insert(ctx, board, fmt.Sprintf(qBoardInsert, v.Columns, v.Joins),
 		board.Name, board.RoomID, board.Konva)
 	return domain.Wrap(err, "cannot insert board", nil)

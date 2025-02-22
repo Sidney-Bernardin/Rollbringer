@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"golang.org/x/net/websocket"
 
 	"rollbringer/pkg/domain"
 	service "rollbringer/pkg/domain/services/play"
@@ -31,16 +32,18 @@ func New(config *domain.Config, logger *slog.Logger, playSvc service.PlayService
 	h.Router.Use(h.MWLog)
 
 	h.Router.Route("/rooms", func(r chi.Router) {
-		auth := r.With(h.MWAuthenticate(true, true, false))
+		csrf := r.With(h.MWAuthenticate(true, true, false))
+		noCsrf := r.With(h.MWAuthenticate(true, false, false))
 
-		auth.Post("/", h.handleRoomsPost)
-		auth.Delete("/{room_id}", h.handleRoomsDelete)
+		csrf.Post("/", h.handleRoomsPost)
+		csrf.Delete("/{room_id}", h.handleRoomsDelete)
+		noCsrf.Handle("/{room_id}/ws", websocket.Handler(h.handleRoomsWebSocket))
 	})
 
 	h.Router.Route("/boards", func(r chi.Router) {
-		auth := r.With(h.MWAuthenticate(true, true, false))
+		csrf := r.With(h.MWAuthenticate(true, true, false))
 
-		auth.Post("/", h.handleBoardsPost)
+		csrf.Post("/", h.handleBoardsPost)
 		r.Get("/{board_id}", h.handleBoardGet)
 	})
 

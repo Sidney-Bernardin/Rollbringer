@@ -1,10 +1,12 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	"golang.org/x/net/websocket"
 
 	"rollbringer/pkg/domain"
 	"rollbringer/pkg/handlers/play/views"
@@ -44,4 +46,46 @@ func (h *playHandler) handleRoomsDelete(w http.ResponseWriter, r *http.Request) 
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *playHandler) handleRoomsWebSocket(conn *websocket.Conn) {
+
+	var (
+		r = conn.Request()
+		// state = h.State(r)
+		// ctx   = r.Context()
+
+		// session   = state["session"].(*domain.Session)
+		// roomID, _ = uuid.Parse(chi.URLParam(r, "room_id"))
+
+		resChan = make(chan *domain.Event)
+	)
+
+	go func() {
+		for {
+
+			// Receive WebSocket message.
+			var msg []byte
+			if err := websocket.Message.Receive(conn, &msg); err != nil {
+				h.Err(conn, r, domain.Wrap(err, "cannot receive message", nil))
+				return
+			}
+			fmt.Println(string(msg))
+
+			// Decode the message.
+			event, err := domain.DecodeEvent(msg, map[domain.Operation]any{})
+			if err != nil {
+				h.Err(conn, r, domain.Wrap(err, "cannot decode event", nil))
+				return
+			}
+
+			switch event.Payload.(type) {
+			}
+		}
+	}()
+
+	for {
+		switch ((<-resChan).Payload).(type) {
+		}
+	}
 }
