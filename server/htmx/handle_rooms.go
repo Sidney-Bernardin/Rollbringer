@@ -3,10 +3,11 @@ package htmx
 import (
 	"errors"
 	"net/http"
-	"rollbringer/pkg/domain/play/commands"
-	"rollbringer/pkg/domain/play/results"
 
 	"github.com/go-chi/chi/v5"
+
+	"rollbringer/server/domain/play/commands"
+	"rollbringer/server/domain/play/results"
 )
 
 func (h *handler) RoomGet(w http.ResponseWriter, r *http.Request) {
@@ -36,4 +37,3 @@ func (h *handler) RoomGet(w http.ResponseWriter, r *http.Request) {
 
 	h.respond(w, r, http.StatusOK, result)
 }
-

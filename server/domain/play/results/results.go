@@ -4,14 +4,14 @@ import "github.com/google/uuid"
 
 type (
 	RoomInfo struct {
-		RoomID uuid.UUID `json:"room_id"`
-		Name   string    `json:"name"`
+		RoomID  uuid.UUID `json:"room_id"`
+		OwnerID uuid.UUID `json:"owner_id"`
+		Name    string    `json:"name"`
 	}
 
 	RoomListItem struct {
-		RoomID  uuid.UUID `json:"room_id"`
-		Name    string    `json:"name"`
-		Players int       `json:"players"`
+		RoomID uuid.UUID `json:"room_id"`
+		Name   string    `json:"name"`
 	}
 )
 

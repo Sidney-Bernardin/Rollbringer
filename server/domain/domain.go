@@ -3,20 +3,13 @@ package domain
 import (
 	"errors"
 	"fmt"
-	"log/slog"
 )
 
 var (
-	SlogLevelTrace slog.Level = -8
-	LevelDebug     slog.Level = -4
-	LevelInfo      slog.Level = 0
-	LevelWarn      slog.Level = 4
-	LevelError     slog.Level = 8
-	SlogLevelFatal slog.Level = 12
-)
-
-var (
-	ErrEntityConflict = errors.New("entity conflict")
+	ErrEntityConflict     = errors.New("entity conflict")
+	ErrEntityNotFound     = errors.New("entity not found")
+	ErrNoEntitiesEffected = errors.New("no entities effected")
+	ErrInvalidView        = errors.New("invalid view")
 )
 
 type DomainErrorType string

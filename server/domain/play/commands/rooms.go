@@ -1,10 +1,8 @@
 package commands
 
 import (
-	"github.com/google/uuid"
-
-	"rollbringer/pkg/domain"
-	"rollbringer/pkg/domain/play/results"
+	"rollbringer/server/domain"
+	"rollbringer/server/domain/play/results"
 )
 
 type RoomName string
@@ -21,7 +19,7 @@ func NewRoomName(name string) (RoomName, error) {
 	return RoomName(name), nil
 }
 
-type CreateRoom struct {
-	HostID uuid.UUID
+type RoomCreate struct {
+	HostID UUID
 	Name   RoomName
 }

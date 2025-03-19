@@ -7,10 +7,11 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"rollbringer/pkg/domain"
-	play "rollbringer/pkg/domain/play"
-	"rollbringer/pkg/domain/play/results"
-	"rollbringer/pkg/htmx/views"
+	"rollbringer/server"
+	"rollbringer/server/domain"
+	"rollbringer/server/domain/play"
+	"rollbringer/server/domain/play/results"
+	"rollbringer/server/htmx/views"
 
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
@@ -18,17 +19,20 @@ import (
 )
 
 var errCodes = map[domain.DomainErrorType]int{
-	results.DomainErrorTypeInvalidRoomName: http.StatusBadRequest,
+	results.DomainErrorTypeUUIDInvalid:     http.StatusBadRequest,
+	results.DomainErrorTypeRoomNameInvalid: http.StatusBadRequest,
 	results.DomainErrorTypeRoomNameTaken:   http.StatusConflict,
 }
 
 type handler struct {
 	router chi.Router
-	logger *slog.Logger
 
 	playSvc play.Service
 	playDB  play.Database
 	playBkr play.Broker
+
+	logger *slog.Logger
+	config *server.Config
 }
 
 func NewHandler(logger *slog.Logger) *handler {
@@ -60,16 +64,18 @@ func (h *handler) err(w io.Writer, r *http.Request, err error) {
 		return
 	}
 
+	problemDetail := &views.ProblemDetail{
+		Instance: ctx.Value("instance").(string),
+		Type:     string(domainErr.Type),
+		Detail:   domainErr.Description,
+	}
+
 	switch w.(type) {
 	case *websocket.Conn:
-		h.respond(w, r, 0, &views.ProblemDetail{
-			Instance: ctx.Value("instance").(string),
-			Type:     string(domainErr.Type),
-			Detail:   domainErr.Description,
-		})
+		h.respond(w, r, 0, problemDetail)
 
 	case http.ResponseWriter:
-		h.respond(w, r, errCodes[domainErr.Type], domainErr)
+		h.respond(w, r, errCodes[domainErr.Type], problemDetail)
 	}
 }
 
@@ -110,6 +116,6 @@ func (h *handler) state(r *http.Request) map[string]any {
 }
 
 func (h *handler) logServerError(ctx context.Context, err error) {
-	h.logger.Log(ctx, domain.LevelError,
+	h.logger.Log(ctx, server.LevelError,
 		"Internal Server Error", "err", err.Error())
 }

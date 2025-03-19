@@ -1,8 +1,8 @@
 package commands
 
 import (
-	"rollbringer/pkg/domain"
-	"rollbringer/pkg/domain/play/results"
+	"rollbringer/server/domain"
+	"rollbringer/server/domain/play/results"
 
 	"github.com/google/uuid"
 )

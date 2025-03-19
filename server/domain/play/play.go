@@ -2,7 +2,7 @@ package play
 
 import (
 	"context"
-	"rollbringer/pkg/domain/play/commands"
+	"rollbringer/server/domain/play/commands"
 
 	"github.com/google/uuid"
 )
@@ -20,7 +20,7 @@ type (
 )
 
 type Service interface {
-	RoomCreate(*commands.CreateRoom, any) error
+	RoomCreate(*commands.RoomCreate, any) error
 }
 
 type service struct {
@@ -31,7 +31,7 @@ type service struct {
 }
 
 type Database interface {
-	roomInsert(room, res any) error
+	RoomCreate(ctx context.Context, cmd *commands.RoomCreate, res any) error
 	RoomGetByID(ctx context.Context, roomID commands.UUID, res any) error
 }
 
@@ -42,7 +42,7 @@ type Broker interface {
 	SubMovedCanvasNodes(boardID uuid.UUID)
 }
 
-func New(db Database, bkr Broker) *service {
+func NewService(db Database, bkr Broker) *service {
 	return &service{
 		db:           db,
 		bkr:          bkr,
