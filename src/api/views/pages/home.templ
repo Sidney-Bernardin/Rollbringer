@@ -1,0 +1,33 @@
+package pages
+
+import "rollbringer/src/domain/play"
+
+type HomeData struct {
+	RoomListItem *play.RoomListItem
+}
+
+templ Home(page *HomeData) {
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>Home | Rollbringer</title>
+			<link rel="icon" type="image/x-icon" href="/static/favicon.png"/>
+			<link rel="stylesheet" type="text/css" href="/static/styles/home.css"/>
+			<script src="/static/home.js" defer></script>
+		</head>
+		<body>
+			<h1>room: { page.RoomListItem.Name }</h1>
+			<h1>user:</h1>
+			<hr/>
+			<h2>create room</h2>
+			<form hx-post="/rooms">
+				<input type="text" placeholder="name"/>
+			</form>
+			<h2>create user</h2>
+			<form hx-post="/users">
+				<input type="text" placeholder="username"/>
+			</form>
+		</body>
+	</html>
+}

@@ -1,0 +1,11 @@
+services:
+
+  database:
+    container_name: database
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD: password123
+    volumes:
+      - ./tmp/pg-data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432

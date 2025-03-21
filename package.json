@@ -1,0 +1,27 @@
+{
+    "name": "rollbringer",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "watch": "npx parcel watch --watch-dir web --no-hmr --no-cache"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "@parcel/transformer-sass": "^2.14.1",
+        "parcel": "^2.14.1"
+    },
+    "targets": {
+        "default": {
+            "source": [
+                "./web/*",
+                "./web/styles/*",
+                "./web/components/*"
+            ],
+            "distDir": "./src/api/static"
+        }
+    }
+}
