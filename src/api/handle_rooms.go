@@ -46,7 +46,6 @@ func (svr *server) handleRoomGet(w http.ResponseWriter, r *http.Request) {
 		room = play.RoomListItem{}
 	}
 
-	// Get the room by ID.
 	if err := svr.play.RoomGetByID(ctx, &room, chi.URLParam(r, "room_id")); err != nil {
 		svr.err(w, r, errors.Wrap(err, "cannot get room by ID"))
 		return

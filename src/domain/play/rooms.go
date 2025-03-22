@@ -65,6 +65,7 @@ func (svc *service) RoomCreate(ctx context.Context, view any, args *ArgsRoomCrea
 /////
 
 func (svc *service) RoomGetByID(ctx context.Context, view any, roomIDStr string) error {
+
 	roomID, err := domain.ParseUUID(roomIDStr)
 	if err != nil {
 		return errors.Wrap(err, "cannot parse owner-ID")

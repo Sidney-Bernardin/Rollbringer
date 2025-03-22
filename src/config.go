@@ -13,7 +13,8 @@ type Config struct {
 	GracfullShutdownTimeout time.Duration `default:"3s" split_words:"true"`
 	APIAddr                 string        `required:"true" split_words:"true"`
 
-	PostgresURL string `required:"true" split_words:"true"`
+	PostgresAccountsURL string `required:"true" split_words:"true"`
+	PostgresPlayURL     string `required:"true" split_words:"true"`
 }
 
 func NewConfig() (*Config, error) {

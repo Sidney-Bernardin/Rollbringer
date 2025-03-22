@@ -34,11 +34,11 @@ func (db *playDatabase) roomQuery(ctx context.Context, crudFunc database.CRUDFun
 
 	switch v := view.(type) {
 	case *play.RoomInfo:
-		v.RoomID = r.ID
-		v.OwnerID = r.OwnerID
+		v.RoomID = r.ID.String()
+		v.OwnerID = r.OwnerID.String()
 		v.Name = r.Name
 	case *play.RoomListItem:
-		v.RoomID = r.ID
+		v.RoomID = r.ID.String()
 		v.Name = r.Name
 	}
 

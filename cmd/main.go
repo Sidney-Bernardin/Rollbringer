@@ -9,8 +9,10 @@ import (
 
 	"rollbringer/src"
 	"rollbringer/src/api"
+	"rollbringer/src/domain/accounts"
 	"rollbringer/src/domain/play"
-	db_play "rollbringer/src/repositories/database/play"
+	accounts_db "rollbringer/src/repositories/database/accounts"
+	play_db "rollbringer/src/repositories/database/play"
 )
 
 var (
@@ -35,13 +37,22 @@ func main() {
 		return
 	}
 
-	playDB, err := db_play.NewDatabase(config)
+	/////
+
+	playDB, err := play_db.NewDatabase(config)
 	if err != nil {
 		log.Log(ctx, src.LevelFatal, "Cannot create play-database", "err", err.Error())
 		return
 	}
 
+	accountsDB, err := accounts_db.NewDatabase(config)
+	if err != nil {
+		log.Log(ctx, src.LevelFatal, "Cannot create accounts-database", "err", err.Error())
+		return
+	}
+
 	svr := api.NewServer(log, config,
+		accounts.NewService(config, accountsDB),
 		play.NewService(config, playDB, nil))
 
 	/////

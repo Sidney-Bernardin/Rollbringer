@@ -9,24 +9,17 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
-
-	"rollbringer/src"
 )
-
-var database *Database
 
 type Database struct {
 	DB *sqlx.DB
 	TX sqlx.ExtContext
 }
 
-func NewDatabase(config *src.Config, migrations *embed.FS) (*Database, error) {
-	if database != nil {
-		return database, nil
-	}
+func NewDatabase(dbURL string, migrations *embed.FS) (*Database, error) {
 
 	// Connect to Postgres.
-	db, err := sqlx.Connect("pgx", config.PostgresURL)
+	db, err := sqlx.Connect("pgx", dbURL)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot connect to Postgres server")
 	}
@@ -38,7 +31,7 @@ func NewDatabase(config *src.Config, migrations *embed.FS) (*Database, error) {
 	}
 
 	// Create migrate instance.
-	migrator, err := migrate.NewWithSourceInstance("iofs", migrationSrc, config.PostgresURL)
+	migrator, err := migrate.NewWithSourceInstance("iofs", migrationSrc, dbURL)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot create migrate instance")
 	}
@@ -48,12 +41,7 @@ func NewDatabase(config *src.Config, migrations *embed.FS) (*Database, error) {
 		return nil, errors.Wrap(err, "cannot migrate")
 	}
 
-	database = &Database{
-		DB: db,
-		TX: db,
-	}
-
-	return database, nil
+	return &Database{db, db}, nil
 }
 
 func (db *Database) Close() error {

@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"rollbringer/src"
+	"rollbringer/src/domain/accounts"
 	"rollbringer/src/domain/play"
 )
 
@@ -18,18 +19,17 @@ type server struct {
 	log    *slog.Logger
 	config *src.Config
 
-	play play.Service
+	accounts accounts.Service
+	play     play.Service
 }
 
-func NewServer(log *slog.Logger, config *src.Config, playSvc play.Service) *server {
+func NewServer(log *slog.Logger, config *src.Config, accountsSvc accounts.Service, playSvc play.Service) *server {
 	svr := &server{
-		Server: &http.Server{
+		&http.Server{
 			Addr:    config.APIAddr,
 			Handler: chi.NewRouter(),
 		},
-		log:    log,
-		config: config,
-		play:   playSvc,
+		log, config, accountsSvc, playSvc,
 	}
 
 	r := svr.Server.Handler.(chi.Router)
@@ -39,6 +39,14 @@ func NewServer(log *slog.Logger, config *src.Config, playSvc play.Service) *serv
 	r.Route("/pages", func(pages chi.Router) {
 		pages.With(svr.mwInstance("page-home")).
 			Get("/", svr.handlePageHome)
+	})
+
+	r.Route("/users", func(users chi.Router) {
+		users.With(svr.mwInstance("user-create")).
+			Post("/", svr.handleUserCreate)
+
+		users.With(svr.mwInstance("user-get")).
+			Get("/{username}", svr.handleUserGet)
 	})
 
 	r.Route("/rooms", func(rooms chi.Router) {

@@ -1,8 +1,10 @@
 package pages
 
 import "rollbringer/src/domain/play"
+import "rollbringer/src/domain/accounts"
 
 type HomeData struct {
+	UserInfo     *accounts.UserInfo
 	RoomListItem *play.RoomListItem
 }
 
@@ -18,16 +20,7 @@ templ Home(page *HomeData) {
 		</head>
 		<body>
 			<h1>room: { page.RoomListItem.Name }</h1>
-			<h1>user:</h1>
-			<hr/>
-			<h2>create room</h2>
-			<form hx-post="/rooms">
-				<input type="text" placeholder="name"/>
-			</form>
-			<h2>create user</h2>
-			<form hx-post="/users">
-				<input type="text" placeholder="username"/>
-			</form>
+			<h1>user: { page.UserInfo.Username }</h1>
 		</body>
 	</html>
 }
