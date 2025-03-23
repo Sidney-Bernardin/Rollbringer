@@ -25,11 +25,15 @@ type server struct {
 
 func NewServer(log *slog.Logger, config *src.Config, accountsSvc accounts.Service, playSvc play.Service) *server {
 	svr := &server{
-		&http.Server{
+		Server: &http.Server{
 			Addr:    config.APIAddr,
 			Handler: chi.NewRouter(),
 		},
-		log, config, accountsSvc, playSvc,
+
+		log:      log,
+		config:   config,
+		accounts: accountsSvc,
+		play:     playSvc,
 	}
 
 	r := svr.Server.Handler.(chi.Router)
@@ -41,12 +45,9 @@ func NewServer(log *slog.Logger, config *src.Config, accountsSvc accounts.Servic
 			Get("/", svr.handlePageHome)
 	})
 
-	r.Route("/users", func(users chi.Router) {
-		users.With(svr.mwInstance("user-create")).
-			Post("/", svr.handleUserCreate)
-
-		users.With(svr.mwInstance("user-get")).
-			Get("/{username}", svr.handleUserGet)
+	r.With(svr.mwOAuthConfig).Route("/login/{signup_or_signin}", func(signup chi.Router) {
+		signup.Get("/{provider}", svr.handleOAuthStart)
+		signup.Get("/{provider}/callback", svr.handleOAuthFinish)
 	})
 
 	r.Route("/rooms", func(rooms chi.Router) {

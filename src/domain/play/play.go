@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	DomainErrorTypeRoomNameInvalid = "room_name_invalid"
-	DomainErrorTypeRoomNameTaken   = "room_name_taken"
+	ExternalErrorTypeRoomNameInvalid = "room_name_invalid"
+	ExternalErrorTypeRoomNameTaken   = "room_name_taken"
 )
 
 type Service interface {

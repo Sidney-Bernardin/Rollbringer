@@ -13,9 +13,9 @@ type RoomName string
 func ParseRoomName(str string) (RoomName, error) {
 	if len(str) == 0 || 30 < len(str) {
 		return "", &domain.DomainError{
-			Type:        DomainErrorTypeRoomNameInvalid,
+			Type:        ExternalErrorTypeRoomNameInvalid,
 			Description: "Must be between 1 and 30 characters",
-			Details:     map[string]any{"room_name": str},
+			Attrs:       map[string]any{"room_name": str},
 		}
 	}
 
@@ -50,9 +50,9 @@ func (svc *service) RoomCreate(ctx context.Context, view any, args *ArgsRoomCrea
 	if err := svc.db.RoomCreate(ctx, view, &cmd); err != nil {
 		if errors.Is(err, domain.ErrEntityConflict) {
 			return &domain.DomainError{
-				Type:        DomainErrorTypeRoomNameTaken,
+				Type:        ExternalErrorTypeRoomNameTaken,
 				Description: "A room with the given name already exists.",
-				Details:     map[string]any{"room_name": cmd.Name},
+				Attrs:       map[string]any{"room_name": cmd.Name},
 			}
 		}
 
@@ -76,7 +76,7 @@ func (svc *service) RoomGetByID(ctx context.Context, view any, roomIDStr string)
 			return &domain.DomainError{
 				Type:        domain.DomainErrorTypeEntityNotFound,
 				Description: "Cannot find a room with the given ID",
-				Details:     map[string]any{"room_id": roomID},
+				Attrs:       map[string]any{"room_id": roomID},
 			}
 		}
 

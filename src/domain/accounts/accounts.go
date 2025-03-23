@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	DomainErrorTypeUsernameInvalid = "username_invalid"
-	DomainErrorTypeUsernameTaken   = "username_taken"
+	ExternalErrorTypeUsernameInvalid = "username_invalid"
+	ExternalErrorTypeUsernameTaken   = "username_taken"
 )
 
 type Service interface {

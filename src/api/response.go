@@ -9,18 +9,19 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/net/websocket"
 
+	"rollbringer/src"
 	"rollbringer/src/api/views"
-	"rollbringer/src/domain"
 	"rollbringer/src/domain/accounts"
 	"rollbringer/src/domain/play"
 )
 
-var errCodes = map[domain.DomainErrorType]int{
-	domain.DomainErrorTypeUUIDInvalid:       http.StatusBadRequest,
-	play.DomainErrorTypeRoomNameInvalid:     http.StatusBadRequest,
-	play.DomainErrorTypeRoomNameTaken:       http.StatusConflict,
-	accounts.DomainErrorTypeUsernameInvalid: http.StatusBadRequest,
-	accounts.DomainErrorTypeUsernameTaken:   http.StatusConflict,
+var errCodes = map[src.ExternalErrorType]int{
+	src.ExternalErrorTypeUUIDInvalid:          http.StatusBadRequest,
+	src.ExternalErrorTypeEntityNotFound:       http.StatusBadRequest,
+	play.ExternalErrorTypeRoomNameInvalid:     http.StatusBadRequest,
+	play.ExternalErrorTypeRoomNameTaken:       http.StatusConflict,
+	accounts.ExternalErrorTypeUsernameInvalid: http.StatusBadRequest,
+	accounts.ExternalErrorTypeUsernameTaken:   http.StatusConflict,
 }
 
 func (svr *server) respond(w io.Writer, r *http.Request, statusCode int, res any) {
@@ -59,8 +60,8 @@ func (svr *server) err(w io.Writer, r *http.Request, err error) {
 		ctx   = r.Context()
 	)
 
-	var domainErr *domain.DomainError
-	if !errors.As(err, &domainErr) {
+	var extErr *src.ExternalError
+	if !errors.As(err, &extErr) {
 		svr.logServerError(ctx, err)
 		svr.respond(w, r, http.StatusInternalServerError, &views.ProblemDetail{
 			Instance: state["instance"].(string),

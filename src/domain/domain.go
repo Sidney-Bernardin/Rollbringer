@@ -2,7 +2,6 @@ package domain
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/google/uuid"
 )
@@ -16,25 +15,6 @@ var (
 
 /////
 
-type DomainErrorType string
-
-const (
-	DomainErrorTypeUUIDInvalid    = "uuid_invalid"
-	DomainErrorTypeEntityNotFound = "entity_not_found"
-)
-
-type DomainError struct {
-	Type        DomainErrorType
-	Description string
-	Details     map[string]any
-}
-
-func (err *DomainError) Error() string {
-	return fmt.Sprintf("%s: %s", err.Type, err.Description)
-}
-
-/////
-
 type UUID uuid.UUID
 
 func ParseUUID(str string) (UUID, error) {
@@ -43,7 +23,7 @@ func ParseUUID(str string) (UUID, error) {
 		return UUID(uuid.Nil), &DomainError{
 			Type:        DomainErrorTypeUUIDInvalid,
 			Description: err.Error(),
-			Details:     map[string]any{"uuid": str},
+			Attrs:       map[string]any{"uuid": str},
 		}
 	}
 
