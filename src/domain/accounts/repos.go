@@ -2,6 +2,8 @@ package accounts
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
 
 type (
@@ -11,10 +13,22 @@ type (
 	}
 
 	DatabaseCommands interface {
-		UserCreate(ctx context.Context, view any, cmd *CmdUserCreate) error
+		GoogleSignup(ctx context.Context, user *User) (sessionID uuid.UUID, err error)
+		GoogleSignin(ctx context.Context, googleUser *GoogleUser) (sessionID uuid.UUID, err error)
+
+		SpotifySignup(ctx context.Context, user *User) (sessionID uuid.UUID, err error)
+		SpotifySignin(ctx context.Context, spotifUser *SpotifyUser) (sessionID uuid.UUID, err error)
 	}
 
-	DatabaseQueries interface {
-		UserGetByUsername(ctx context.Context, view any, username Username) error
-	}
+	DatabaseQueries interface{}
 )
+
+type Google interface {
+	ConsentURL() (consentURL string, state string)
+	GetGoogleUser(ctx context.Context, state string) (*GoogleUser, error)
+}
+
+type Spotify interface {
+	ConsentURL() (consentURL string, state string)
+	GetSpotifyUser(ctx context.Context, state string) (*SpotifyUser, error)
+}

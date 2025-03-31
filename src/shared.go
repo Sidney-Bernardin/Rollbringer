@@ -1,7 +1,6 @@
 package src
 
 import (
-	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
@@ -22,17 +21,16 @@ type Config struct {
 
 	APIAddr string `required:"true" split_words:"true"`
 
-	SessionCookieTimeout    time.Duration `required:"true" split_words:"true"`
-	SessionCookiePath       string        `required:"true" split_words:"true"`
-	OAuthStateCookieTimeout time.Duration `default:"2m" split_words:"true"`
+	SessionCookieTimeout time.Duration `required:"true" split_words:"true"`
+	OAuthCookieTimeout   time.Duration `default:"15m" split_words:"true"`
 
-	OauthGoogleClientID     string `required:"true" split_words:"true"`
-	OauthGoogleClientSecret string `required:"true" split_words:"true"`
-	OauthGoogleRedirectURL  string `required:"true" split_words:"true"`
+	GoogleOauthClientID     string `required:"true" split_words:"true"`
+	GoogleOauthClientSecret string `required:"true" split_words:"true"`
+	GoogleOauthRedirectURL  string `required:"true" split_words:"true"`
 
-	OauthSpotifyClientID     string `required:"true" split_words:"true"`
-	OauthSpotifyClientSecret string `required:"true" split_words:"true"`
-	OauthSpotifyRedirectURL  string `required:"true" split_words:"true"`
+	SpotifyOauthClientID     string `required:"true" split_words:"true"`
+	SpotifyOauthClientSecret string `required:"true" split_words:"true"`
+	SpotifyOauthRedirectURL  string `required:"true" split_words:"true"`
 
 	PostgresAccountsURL string `required:"true" split_words:"true"`
 	PostgresPlayURL     string `required:"true" split_words:"true"`
@@ -76,14 +74,15 @@ func NewPrettyLogger(noColor bool) *slog.Logger {
 type ExternalErrorType string
 
 const (
+	ExternalErrorTypeInternalError  = "internal_error"
 	ExternalErrorTypeUUIDInvalid    = "uuid_invalid"
 	ExternalErrorTypeEntityNotFound = "entity_not_found"
 )
 
 type ExternalError struct {
-	Type        ExternalErrorType
-	Description string
-	Attrs       map[string]any
+	Type        ExternalErrorType `json:"type"`
+	Description string            `json:"description,omitempty"`
+	Attrs       map[string]any    `json:"attrs,omitempty"`
 }
 
 func (err *ExternalError) Error() string {
@@ -92,10 +91,10 @@ func (err *ExternalError) Error() string {
 
 /////
 
-func NewRandomString(ctx context.Context) (string, error) {
-	b := make([]byte, 32)
-	if _, err := rand.Read(b); err != nil {
-		return "", errors.Wrap(err, "cannot read bytes")
+func CreateRandomString() string {
+	var bState = make([]byte, 32)
+	if _, err := rand.Read(bState); err != nil {
+		panic(err)
 	}
-	return hex.EncodeToString(b), nil
+	return hex.EncodeToString(bState)
 }

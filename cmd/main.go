@@ -13,6 +13,8 @@ import (
 	"rollbringer/src/domain/play"
 	accounts_db "rollbringer/src/repositories/database/accounts"
 	play_db "rollbringer/src/repositories/database/play"
+	"rollbringer/src/repositories/google"
+	"rollbringer/src/repositories/spotify"
 )
 
 var (
@@ -39,21 +41,24 @@ func main() {
 
 	/////
 
-	playDB, err := play_db.NewDatabase(config)
-	if err != nil {
-		log.Log(ctx, src.LevelFatal, "Cannot create play-database", "err", err.Error())
-		return
-	}
-
 	accountsDB, err := accounts_db.NewDatabase(config)
 	if err != nil {
 		log.Log(ctx, src.LevelFatal, "Cannot create accounts-database", "err", err.Error())
 		return
 	}
 
+	playDB, err := play_db.NewDatabase(config)
+	if err != nil {
+		log.Log(ctx, src.LevelFatal, "Cannot create play-database", "err", err.Error())
+		return
+	}
+
+	google := google.New(config)
+	spotify := spotify.New(config)
+
 	svr := api.NewServer(log, config,
-		accounts.NewService(config, accountsDB),
-		play.NewService(config, playDB, nil))
+		accounts.NewService(config, accountsDB, google, spotify), accountsDB, google, spotify,
+		play.NewService(config, playDB, nil), playDB)
 
 	/////
 

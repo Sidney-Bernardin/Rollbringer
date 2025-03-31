@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -15,30 +16,18 @@ import (
 	"rollbringer/src/domain/play"
 )
 
-var errCodes = map[src.ExternalErrorType]int{
-	src.ExternalErrorTypeUUIDInvalid:          http.StatusBadRequest,
-	src.ExternalErrorTypeEntityNotFound:       http.StatusBadRequest,
-	play.ExternalErrorTypeRoomNameInvalid:     http.StatusBadRequest,
-	play.ExternalErrorTypeRoomNameTaken:       http.StatusConflict,
-	accounts.ExternalErrorTypeUsernameInvalid: http.StatusBadRequest,
-	accounts.ExternalErrorTypeUsernameTaken:   http.StatusConflict,
-}
-
 func (svr *server) respond(w io.Writer, r *http.Request, statusCode int, res any) {
-
-	var (
-		state = svr.state(r)
-		ctx   = r.Context()
-	)
+	var ctx = r.Context()
 
 	if rw, ok := w.(http.ResponseWriter); ok {
 		rw.WriteHeader(statusCode)
-		state["status_code"] = statusCode
+
+		ctx = context.WithValue(ctx, "status_code", statusCode)
+		r = r.WithContext(ctx)
 	}
 
 	var err error
 	switch res := res.(type) {
-
 	case templ.Component:
 		err = res.Render(r.Context(), w)
 		err = errors.Wrap(err, "cannot render Templ response")
@@ -53,37 +42,35 @@ func (svr *server) respond(w io.Writer, r *http.Request, statusCode int, res any
 	}
 }
 
+var errCodes = map[src.ExternalErrorType]int{
+	src.ExternalErrorTypeUUIDInvalid:          http.StatusBadRequest,
+	src.ExternalErrorTypeEntityNotFound:       http.StatusBadRequest,
+	play.ExternalErrorTypeRoomNameInvalid:     http.StatusBadRequest,
+	play.ExternalErrorTypeRoomNameTaken:       http.StatusConflict,
+	accounts.ExternalErrorTypeUsernameInvalid: http.StatusBadRequest,
+	accounts.ExternalErrorTypeUsernameTaken:   http.StatusConflict,
+}
+
 func (svr *server) err(w io.Writer, r *http.Request, err error) {
+	var ctx = r.Context()
 
-	var (
-		state = svr.state(r)
-		ctx   = r.Context()
-	)
-
-	var extErr *src.ExternalError
-	if !errors.As(err, &extErr) {
+	var externalErr *src.ExternalError
+	if !errors.As(err, &externalErr) {
 		svr.logServerError(ctx, err)
-		svr.respond(w, r, http.StatusInternalServerError, &views.ProblemDetail{
-			Instance: state["instance"].(string),
-			Type:     "internal_server_error",
+		svr.respond(w, r, http.StatusInternalServerError, &src.ExternalError{
+			Type: src.ExternalErrorTypeInternalError,
 		})
 		return
-	}
-
-	problemDetail := &views.ProblemDetail{
-		Instance: state["instance"].(string),
-		Type:     string(domainErr.Type),
-		Detail:   domainErr.Description,
 	}
 
 	switch w.(type) {
 	case *websocket.Conn:
 		svr.respond(w, r, 0, views.WebSocketMessage{
 			Type:    views.WSMsgTypeError,
-			Payload: problemDetail,
+			Payload: externalErr,
 		})
 
 	case http.ResponseWriter:
-		svr.respond(w, r, errCodes[domainErr.Type], problemDetail)
+		svr.respond(w, r, errCodes[externalErr.Type], externalErr)
 	}
 }

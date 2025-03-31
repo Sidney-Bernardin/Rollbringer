@@ -6,7 +6,6 @@ import (
 
 	"github.com/google/uuid"
 
-	"rollbringer/src/domain"
 	"rollbringer/src/domain/play"
 	"rollbringer/src/repositories/database"
 )
@@ -63,6 +62,6 @@ func (db *playDatabase) RoomCreate(ctx context.Context, view any, cmd *play.CmdR
 
 const qRoomGetByID = `SELECT %s FROM play.rooms %s WHERE id = $1`
 
-func (db *playDatabase) RoomGetByID(ctx context.Context, view any, roomID domain.UUID) error {
+func (db *playDatabase) RoomGetByID(ctx context.Context, view any, roomID uuid.UUID) error {
 	return db.roomQuery(ctx, db.CRUDGet, view, qRoomGetByID, roomID)
 }

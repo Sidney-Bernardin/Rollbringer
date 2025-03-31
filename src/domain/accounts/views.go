@@ -1,6 +1,6 @@
 package accounts
 
-type UserInfo struct {
-	UserID   string
+type ViewUserInfo struct {
+	UserID   string `json:"user_id"`
 	Username string `json:"username"`
 }
