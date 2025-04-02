@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 
-	"rollbringer/src/domain"
 	"rollbringer/src/domain/play"
 	"rollbringer/src/repositories/database"
 )
@@ -16,6 +16,10 @@ type room struct {
 	OwnerID uuid.UUID `db:"owner_id"`
 	Name    string    `db:"name"`
 }
+
+const (
+	qRoomSelectByID = `SELECT %s FROM play.rooms %s WHERE id = $1`
+)
 
 func (db *playDatabase) roomQuery(ctx context.Context, crudFunc database.CRUDFunc, view any, query string, args ...any) error {
 
@@ -47,22 +51,7 @@ func (db *playDatabase) roomQuery(ctx context.Context, crudFunc database.CRUDFun
 
 /////
 
-const qRoomInsert = `
-	WITH inserted_room AS (
-		INSERT INTO play.rooms (host_id, name)
-		VALUES ($1, $2)
-		RETURNING *
-	)
-	SELECT %s FROM inserted_room %s`
-
-func (db *playDatabase) RoomCreate(ctx context.Context, view any, cmd *play.CmdRoomCreate) error {
-	return db.roomQuery(ctx, db.CRUDInsert, view, qRoomInsert, cmd.OwnerID, cmd.Name)
-}
-
-/////
-
-const qRoomGetByID = `SELECT %s FROM play.rooms %s WHERE id = $1`
-
-func (db *playDatabase) RoomGetByID(ctx context.Context, view any, roomID domain.UUID) error {
-	return db.roomQuery(ctx, db.CRUDGet, view, qRoomGetByID, roomID)
+func (db *playDatabase) RoomGetByID(ctx context.Context, view any, roomID uuid.UUID) error {
+	err := db.roomQuery(ctx, db.CRUDGet, view, qRoomSelectByID, roomID)
+	return errors.Wrap(err, "cannot get room by ID")
 }

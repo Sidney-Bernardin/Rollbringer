@@ -6,55 +6,63 @@ import (
 
 	"github.com/google/uuid"
 
+	"rollbringer/src"
+	"rollbringer/src/domain"
 	"rollbringer/src/domain/accounts"
 	"rollbringer/src/repositories/database"
 )
 
 type user struct {
-	ID       uuid.UUID `db:"id"`
-	Username string    `db:"username"`
+	ID             uuid.UUID `db:"id"`
+	GoogleID       string    `db:"google_id"`
+	SpotifyID      string    `db:"spotify_id"`
+	Username       string    `db:"username"`
+	ProfilePicture string    `db:"profile_picture"`
 }
 
-func (db *accountsDatabase) userQuery(ctx context.Context, crudFunc database.CRUDFunc, view any, query string, args ...any) error {
+const (
+	qInsertUser = `
+		INSERT INTO accounts.users (id, google_id, spotify_id, username, profile_picture)
+		VALUES ($1, $2, $3, $4, $5)`
+
+	qUserSelectByGoogleID = `
+		SELECT %s FROM accounts.users %s
+		WHERE google_id = $1`
+
+	qUserSelectBySpotifyID = `
+		SELECT %s FROM accounts.users %s
+		WHERE spotify_id = $1`
+
+	qUserSelectByUsername = `
+		SELECT %s FROM accounts.users %s
+		WHERE username = $1`
+)
+
+func (db *accountsDatabase) queryUser(ctx context.Context, crudFunc database.CRUDFunc, view any, query string, args ...any) error {
 
 	var columns, joins string
 	switch view.(type) {
+	case *uuid.UUID:
+		columns = `users.id`
+	case *accounts.ViewUserInfo:
+		columns = `users.id, users.username, users.profile_picture`
 	default:
-		columns = `users.id, users.username`
+		return &src.ExternalError{Type: domain.ExternalErrorTypeViewInvalid}
 	}
 
-	var r user
-	if err := crudFunc(ctx, &r, fmt.Sprintf(query, columns, joins), args...); err != nil {
+	var u user
+	if err := crudFunc(ctx, &u, fmt.Sprintf(query, columns, joins), args...); err != nil {
 		return err
 	}
 
 	switch v := view.(type) {
-	case *accounts.UserInfo:
-		v.UserID = r.ID.String()
-		v.Username = r.Username
+	case *uuid.UUID:
+		*v = u.ID
+	case *accounts.ViewUserInfo:
+		v.UserID = u.ID.String()
+		v.Username = u.Username
+		v.ProfilePicture = u.ProfilePicture
 	}
 
 	return nil
-}
-
-/////
-
-const qUserInsert = `
-	WITH inserted_user AS (
-		INSERT INTO accounts.users (username)
-		VALUES ($1)
-		RETURNING *
-	)
-	SELECT %s FROM inserted_user %s`
-
-func (db *accountsDatabase) UserCreate(ctx context.Context, view any, cmd *accounts.CmdUserCreate) error {
-	return db.userQuery(ctx, db.CRUDInsert, view, qUserInsert, cmd.Username)
-}
-
-/////
-
-const qUserGetByUsername = `SELECT %s FROM accounts.users %s WHERE username = $1`
-
-func (db *accountsDatabase) UserGetByUsername(ctx context.Context, view any, username accounts.Username) error {
-	return db.userQuery(ctx, db.CRUDGet, view, qUserGetByUsername, username)
 }

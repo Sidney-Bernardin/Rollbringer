@@ -4,26 +4,38 @@ import (
 	"context"
 
 	"rollbringer/src"
+
+	"github.com/google/uuid"
 )
 
+type OAuthProvider int
+
 const (
-	DomainErrorTypeUsernameInvalid = "username_invalid"
-	DomainErrorTypeUsernameTaken   = "username_taken"
+	ExternalErrorTypeUnauthorized src.ExternalErrorType = "unauthorized"
+
+	ExternalErrorTypeUserWithoutProviders src.ExternalErrorType = "user_without_providers"
+	ExternalErrorTypeUsernameInvalid      src.ExternalErrorType = "username_invalid"
+	ExternalErrorTypeUsernameTaken        src.ExternalErrorType = "username_taken"
+
+	ExternalErrorTypeProviderNotLinked     src.ExternalErrorType = "provider_not_linked"
+	ExternalErrorTypeProviderAlreadyLinked src.ExternalErrorType = "provider_already_linked"
 )
 
 type Service interface {
-	UserCreate(ctx context.Context, view any, args *ArgsUserCreate) error
-	UserGetByUsername(ctx context.Context, view any, username string) error
+	GoogleLogin(ctx context.Context, oauthCode string, createNewAccount bool) (sessionID uuid.UUID, err error)
+	SpotifyLogin(ctx context.Context, oauthCode string, createNewAccount bool) (sessionID uuid.UUID, err error)
 }
 
 type service struct {
 	config *src.Config
 
-	db Database
+	db      Database
+	google  Google
+	spotify Spotify
 }
 
-func NewService(config *src.Config, db Database) Service {
-	return &service{config, db}
+func NewService(config *src.Config, db Database, google Google, spotify Spotify) Service {
+	return &service{config, db, google, spotify}
 }
 
 func (svc *service) Run(ctx context.Context) error {

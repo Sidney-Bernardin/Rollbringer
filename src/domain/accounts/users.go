@@ -3,19 +3,76 @@ package accounts
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 
-	"rollbringer/src/domain"
+	"rollbringer/src"
 )
+
+type User struct {
+	UserID uuid.UUID
+
+	GoogleID   *string
+	GoogleUser *GoogleUser
+
+	SpotifyID   *string
+	SpotifyUser *SpotifyUser
+
+	Username       Username
+	ProfilePicture string
+}
+
+func newUser(googleUser *GoogleUser, spotifyUser *SpotifyUser) (user *User, err error) {
+	user = &User{
+		UserID:         uuid.New(),
+		ProfilePicture: "/static/favicon.png",
+	}
+
+	if googleUser != nil {
+		user.GoogleID = &googleUser.GoogleID
+		user.GoogleUser = googleUser
+		user.Username = Username(googleUser.GivenName)
+		user.ProfilePicture = googleUser.ProfilePicture
+	} else if spotifyUser != nil {
+		user.SpotifyID = &spotifyUser.SpotifyID
+		user.SpotifyUser = spotifyUser
+		user.Username = Username(spotifyUser.DisplayName)
+		if spotifyUser.ProfilePicture != nil {
+			user.ProfilePicture = *spotifyUser.ProfilePicture
+		}
+	} else {
+		return nil, &src.ExternalError{Type: ExternalErrorTypeUserWithoutProviders}
+	}
+
+	return user, nil
+}
+
+type GoogleUser struct {
+	GoogleID string
+
+	GivenName      string
+	Email          string
+	ProfilePicture string
+}
+
+type SpotifyUser struct {
+	SpotifyID string
+
+	DisplayName    string
+	Email          string
+	ProfilePicture *string
+}
+
+/////
 
 type Username string
 
 func ParseUsername(str string) (Username, error) {
 	if len(str) == 0 || 25 < len(str) {
-		return "", &domain.DomainError{
-			Type:        DomainErrorTypeUsernameInvalid,
+		return "", &src.ExternalError{
+			Type:        ExternalErrorTypeUsernameInvalid,
 			Description: "Must be between 1 and 25 characters",
-			Details:     map[string]any{"username": str},
+			Attrs:       map[string]any{"username": str},
 		}
 	}
 
@@ -24,57 +81,54 @@ func ParseUsername(str string) (Username, error) {
 
 /////
 
-type CmdUserCreate struct {
-	Username Username
-}
+func (svc *service) GoogleLogin(ctx context.Context, oauthCode string, createNewAccount bool) (sessionID uuid.UUID, err error) {
 
-type ArgsUserCreate struct {
-	Username string
-}
-
-func (svc *service) UserCreate(ctx context.Context, view any, args *ArgsUserCreate) (err error) {
-	var cmd CmdUserCreate
-
-	cmd.Username, err = ParseUsername(args.Username)
+	// Get the google-user from Google.
+	googleUser, err := svc.google.GetGoogleUser(ctx, oauthCode)
 	if err != nil {
-		return errors.Wrap(err, "cannot parse username")
+		return uuid.Nil, errors.Wrap(err, "cannot get google-user from Google")
 	}
 
-	if err := svc.db.UserCreate(ctx, view, &cmd); err != nil {
-		if errors.Is(err, domain.ErrEntityConflict) {
-			return &domain.DomainError{
-				Type:        DomainErrorTypeUsernameTaken,
-				Description: "A user with the given username already exists.",
-				Details:     map[string]any{"username": cmd.Username},
-			}
-		}
+	if !createNewAccount {
 
-		return errors.Wrap(err, "cannot insert room")
+		// Signin.
+		sessionID, err = svc.db.GoogleSignin(ctx, googleUser)
+		return sessionID, errors.Wrap(err, "cannot signin")
 	}
 
-	return nil
+	// Create a user.
+	user, err := newUser(googleUser, nil)
+	if err != nil {
+		return uuid.Nil, errors.Wrap(err, "cannot create user")
+	}
+
+	// Signup.
+	sessionID, err = svc.db.GoogleSignup(ctx, user)
+	return sessionID, errors.Wrap(err, "cannot signup")
 }
 
-/////
+func (svc *service) SpotifyLogin(ctx context.Context, oauthCode string, createNewAccount bool) (sessionID uuid.UUID, err error) {
 
-func (svc *service) UserGetByUsername(ctx context.Context, view any, usernameStr string) error {
-
-	username, err := ParseUsername(usernameStr)
+	// Get the spotify-user from Spotify.
+	spotifyUser, err := svc.spotify.GetSpotifyUser(ctx, oauthCode)
 	if err != nil {
-		return errors.Wrap(err, "cannot parse username")
+		return uuid.Nil, errors.Wrap(err, "cannot get spotify-user from Spotify")
 	}
 
-	if err := svc.db.UserGetByUsername(ctx, view, username); err != nil {
-		if errors.Is(err, domain.ErrEntityNotFound) {
-			return &domain.DomainError{
-				Type:        domain.DomainErrorTypeEntityNotFound,
-				Description: "Cannot find a user with the given username",
-				Details:     map[string]any{"username": username},
-			}
-		}
+	if !createNewAccount {
 
-		return errors.Wrap(err, "cannot get user by username")
+		// Signin.
+		sessionID, err = svc.db.SpotifySignin(ctx, spotifyUser)
+		return sessionID, errors.Wrap(err, "cannot signin")
 	}
 
-	return nil
+	// Create a user.
+	user, err := newUser(nil, spotifyUser)
+	if err != nil {
+		return uuid.Nil, errors.Wrap(err, "cannot create user")
+	}
+
+	// Signup.
+	sessionID, err = svc.db.SpotifySignup(ctx, user)
+	return sessionID, errors.Wrap(err, "cannot signup")
 }

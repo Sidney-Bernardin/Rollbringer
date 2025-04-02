@@ -2,7 +2,8 @@ package play
 
 import (
 	"context"
-	"rollbringer/src/domain"
+
+	"github.com/google/uuid"
 )
 
 type (
@@ -11,18 +12,16 @@ type (
 		DatabaseQueries
 	}
 
-	DatabaseCommands interface {
-		RoomCreate(ctx context.Context, view any, cmd *CmdRoomCreate) error
-	}
+	DatabaseCommands interface{}
 
 	DatabaseQueries interface {
-		RoomGetByID(ctx context.Context, view any, roomID domain.UUID) error
+		RoomGetByID(ctx context.Context, view any, roomID uuid.UUID) error
 	}
 )
 
 type Broker interface {
 	PubCanvaseUsed(<-chan *EventCanvasUsed)
-	SubCanvasesUsed(boardID domain.UUID, ch chan<- *EventCanvasUsed)
+	SubCanvasesUsed(boardID uuid.UUID, ch chan<- *EventCanvasUsed)
 
-	SubMovedCanvasNodes(boardID domain.UUID)
+	SubMovedCanvasNodes(boardID uuid.UUID)
 }

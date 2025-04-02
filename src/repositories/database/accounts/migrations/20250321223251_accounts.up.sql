@@ -23,21 +23,21 @@ CREATE TABLE IF NOT EXISTS accounts.spotify_users (
 );
 
 CREATE TABLE accounts.users (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     created_at timestamp NOT null DEFAULT now(),
 
-    --google_id text REFERENCES accounts.google_users (google_id),
-    --spotify_id text REFERENCES accounts.spotify_users (spotify_id),
+    google_id text REFERENCES accounts.google_users (google_id),
+    spotify_id text REFERENCES accounts.spotify_users (spotify_id),
 
-    username text NOT null
-    --profile_picture text
+    username text NOT null,
+    profile_picture text,
 
-    --UNIQUE(google_id),
-    --UNIQUE(spotify_id)
+    UNIQUE(google_id),
+    UNIQUE(spotify_id)
 );
 
 CREATE TABLE IF NOT EXISTS accounts.sessions (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY,
     created_at timestamp NOT null DEFAULT now(),
 
     user_id uuid REFERENCES accounts.users (id) ON DELETE CASCADE,

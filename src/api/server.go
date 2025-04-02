@@ -6,11 +6,15 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/go-chi/chi/v5"
-
 	"rollbringer/src"
 	"rollbringer/src/domain/accounts"
 	"rollbringer/src/domain/play"
+)
+
+var (
+	externalErrorTypeInternalError   src.ExternalErrorType = "internal_error"
+	externalErrorTypeUnauthorized    src.ExternalErrorType = "unauthorized"
+	externalErrorTypeInvalidProvider src.ExternalErrorType = "invalid_provider"
 )
 
 type server struct {
@@ -19,57 +23,48 @@ type server struct {
 	log    *slog.Logger
 	config *src.Config
 
-	accounts accounts.Service
-	play     play.Service
+	accounts   accounts.Service
+	accountsDB accounts.DatabaseQueries
+	google     accounts.Google
+	spotify    accounts.Spotify
+
+	play   play.Service
+	playDB play.DatabaseQueries
 }
 
-func NewServer(log *slog.Logger, config *src.Config, accountsSvc accounts.Service, playSvc play.Service) *server {
+func NewServer(
+	log *slog.Logger,
+	config *src.Config,
+	accountsSvc accounts.Service,
+	accountsDB accounts.DatabaseQueries,
+	google accounts.Google,
+	spotify accounts.Spotify,
+	playSvc play.Service,
+	playDB play.DatabaseQueries,
+) *server {
 	svr := &server{
 		&http.Server{
-			Addr:    config.APIAddr,
-			Handler: chi.NewRouter(),
+			Addr: config.APIAddr,
 		},
-		log, config, accountsSvc, playSvc,
+		log, config,
+		accountsSvc, accountsDB, google, spotify,
+		playSvc, playDB,
 	}
 
-	r := svr.Server.Handler.(chi.Router)
-	r.Use(svr.mwLog())
+	r := http.NewServeMux()
 	r.Handle("/static/*", http.StripPrefix("/static/", http.FileServerFS(os.DirFS("src/api/static"))))
 
-	r.Route("/pages", func(pages chi.Router) {
-		pages.With(svr.mwInstance("page-home")).
-			Get("/", svr.handlePageHome)
-	})
+	r.Handle("GET /login/{provider}", svr.handleOAuthConsent())
+	r.Handle("GET /login/{provider}/callback", svr.handleOAuthCallback())
 
-	r.Route("/users", func(users chi.Router) {
-		users.With(svr.mwInstance("user-create")).
-			Post("/", svr.handleUserCreate)
+	r.Handle("GET /rooms/{room_id}", svr.handleRoomGet())
 
-		users.With(svr.mwInstance("user-get")).
-			Get("/{username}", svr.handleUserGet)
-	})
+	r.Handle("/", svr.handlePageHome())
 
-	r.Route("/rooms", func(rooms chi.Router) {
-		rooms.With(svr.mwInstance("room-create")).
-			Post("/", svr.handleRoomCreate)
-
-		rooms.With(svr.mwInstance("room-get")).
-			Get("/{room_id}", svr.handleRoomGet)
-	})
-
+	svr.Handler = mw(svr.mwLog)(r)
 	return svr
 }
 
-func (svr *server) state(r *http.Request) map[string]any {
-	state, ok := r.Context().Value("state").(map[string]any)
-	if !ok {
-		state = map[string]any{}
-		*r = *r.WithContext(context.WithValue(r.Context(), "state", state))
-	}
-	return state
-}
-
 func (api *server) logServerError(ctx context.Context, err error) {
-	api.log.Log(ctx, src.LevelError,
-		"Internal Server Error", "err", err.Error())
+	api.log.Log(ctx, src.LevelError, "Internal Server Error", "err", err.Error())
 }
