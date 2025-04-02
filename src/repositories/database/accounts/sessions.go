@@ -1,12 +1,7 @@
 package accounts
 
 import (
-	"context"
-	"fmt"
-
 	"github.com/google/uuid"
-
-	"rollbringer/src/repositories/database"
 )
 
 type session struct {
@@ -16,28 +11,10 @@ type session struct {
 }
 
 const (
-	qSessionInsert = `
-		INSERT INTO accounts.google_users (google_id, given_name, email, profile_picture)
-		VALUES ($1, $2, $3, $4)`
+	qSessionUpsert = `
+		INSERT INTO accounts.sessions (id, user_id, csrf_token)
+		VALUES ($1, $2, $3)
+		ON CONFLICT (user_id) DO UPDATE SET
+			id = EXCLUDED.id,
+			csrf_token = EXCLUDED.csrf_token`
 )
-
-func (db *accountsDatabase) querySession(ctx context.Context, crudFunc database.CRUDFunc, view any, query string, args ...any) error {
-
-	var columns, joins string
-	switch view.(type) {
-	default:
-		columns = `sessions.id, sessions.user_id, sessions.csrf_token`
-	}
-
-	var s session
-	if err := crudFunc(ctx, &s, fmt.Sprintf(query, columns, joins), args...); err != nil {
-		return err
-	}
-
-	switch v := view.(type) {
-	case *uuid.UUID:
-		*v = s.ID
-	}
-
-	return nil
-}

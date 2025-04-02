@@ -40,13 +40,13 @@ func New(config *src.Config) accounts.Google {
 
 func (g *google) ConsentURL() (string, string) {
 	state := src.CreateRandomString()
-	return state, g.oauthConfig.AuthCodeURL(state)
+	return g.oauthConfig.AuthCodeURL(state), state
 }
 
 func (g *google) GetGoogleUser(ctx context.Context, state string) (*accounts.GoogleUser, error) {
 	token, err := g.oauthConfig.Exchange(ctx, state)
 	if err != nil {
-		return nil, errors.Wrap(err, "cannot exchange state for token")
+		return nil, &src.ExternalError{Type: accounts.ExternalErrorTypeUnauthorized}
 	}
 
 	idTokenStr, ok := token.Extra("id_token").(string)

@@ -12,6 +12,7 @@ import (
 )
 
 var (
+	externalErrorTypeInternalError   src.ExternalErrorType = "internal_error"
 	externalErrorTypeUnauthorized    src.ExternalErrorType = "unauthorized"
 	externalErrorTypeInvalidProvider src.ExternalErrorType = "invalid_provider"
 )
@@ -51,13 +52,11 @@ func NewServer(
 	}
 
 	r := http.NewServeMux()
-
 	r.Handle("/static/*", http.StripPrefix("/static/", http.FileServerFS(os.DirFS("src/api/static"))))
 
 	r.Handle("GET /login/{provider}", svr.handleOAuthConsent())
 	r.Handle("GET /login/{provider}/callback", svr.handleOAuthCallback())
 
-	r.Handle("POST /rooms", svr.handleRoomCreate())
 	r.Handle("GET /rooms/{room_id}", svr.handleRoomGet())
 
 	r.Handle("/", svr.handlePageHome())

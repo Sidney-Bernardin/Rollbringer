@@ -32,7 +32,7 @@ func New(config *src.Config) accounts.Spotify {
 
 func (s *spotify) ConsentURL() (string, string) {
 	state := src.CreateRandomString()
-	return state, s.oauthConfig.AuthCodeURL(state)
+	return s.oauthConfig.AuthCodeURL(state), state
 }
 
 func (s *spotify) GetSpotifyUser(ctx context.Context, state string) (*accounts.SpotifyUser, error) {

@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"embed"
-	"rollbringer/src/domain"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -13,6 +12,8 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+
+	"rollbringer/src/domain"
 )
 
 type Database struct {
@@ -51,6 +52,25 @@ func NewDatabase(dbURL string, migrations *embed.FS) (*Database, error) {
 func (db *Database) Close() error {
 	err := db.DB.Close()
 	return errors.Wrap(err, "cannot close database")
+}
+
+func (db *Database) Transaction(ctx context.Context, txFunc func(txDB *Database) error) error {
+
+	// Begin transaction.
+	tx, err := db.DB.BeginTxx(ctx, nil)
+	if err != nil {
+		return errors.Wrap(err, "cannot begin transaction")
+	}
+	defer tx.Rollback()
+
+	// Do transaction callback.
+	if err := txFunc(&Database{TX: tx}); err != nil {
+		return errors.Wrap(err, "transaction failed")
+	}
+
+	// Commit transaction.
+	err = tx.Commit()
+	return errors.Wrap(err, "cannot commit transaction")
 }
 
 type CRUDFunc func(ctx context.Context, view any, q string, args ...any) error

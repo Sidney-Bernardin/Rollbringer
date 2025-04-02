@@ -12,9 +12,7 @@ type (
 		DatabaseQueries
 	}
 
-	DatabaseCommands interface {
-		RoomCreate(ctx context.Context, view any, cmd *CmdRoomCreate) error
-	}
+	DatabaseCommands interface{}
 
 	DatabaseQueries interface {
 		RoomGetByID(ctx context.Context, view any, roomID uuid.UUID) error

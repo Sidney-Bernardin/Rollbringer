@@ -6,27 +6,32 @@ import (
 
 	"github.com/google/uuid"
 
+	"rollbringer/src"
+	"rollbringer/src/domain"
 	"rollbringer/src/domain/accounts"
 	"rollbringer/src/repositories/database"
 )
 
 type user struct {
-	ID       uuid.UUID `db:"id"`
-	Username string    `db:"username"`
+	ID             uuid.UUID `db:"id"`
+	GoogleID       string    `db:"google_id"`
+	SpotifyID      string    `db:"spotify_id"`
+	Username       string    `db:"username"`
+	ProfilePicture string    `db:"profile_picture"`
 }
 
 const (
 	qInsertUser = `
-		WITH inserted_user AS (
-			INSERT INTO accounts.users (id, username)
-			VALUES ($1, $2)
-			RETURNING *
-		)
-		SELECT %s FROM inserted_user %s`
+		INSERT INTO accounts.users (id, google_id, spotify_id, username, profile_picture)
+		VALUES ($1, $2, $3, $4, $5)`
 
 	qUserSelectByGoogleID = `
 		SELECT %s FROM accounts.users %s
 		WHERE google_id = $1`
+
+	qUserSelectBySpotifyID = `
+		SELECT %s FROM accounts.users %s
+		WHERE spotify_id = $1`
 
 	qUserSelectByUsername = `
 		SELECT %s FROM accounts.users %s
@@ -37,8 +42,12 @@ func (db *accountsDatabase) queryUser(ctx context.Context, crudFunc database.CRU
 
 	var columns, joins string
 	switch view.(type) {
+	case *uuid.UUID:
+		columns = `users.id`
+	case *accounts.ViewUserInfo:
+		columns = `users.id, users.username, users.profile_picture`
 	default:
-		columns = `users.id, users.username`
+		return &src.ExternalError{Type: domain.ExternalErrorTypeViewInvalid}
 	}
 
 	var u user
@@ -52,6 +61,7 @@ func (db *accountsDatabase) queryUser(ctx context.Context, crudFunc database.CRU
 	case *accounts.ViewUserInfo:
 		v.UserID = u.ID.String()
 		v.Username = u.Username
+		v.ProfilePicture = u.ProfilePicture
 	}
 
 	return nil

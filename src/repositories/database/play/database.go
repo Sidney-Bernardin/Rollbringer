@@ -18,7 +18,6 @@ type playDatabase struct {
 }
 
 func NewDatabase(config *src.Config) (play.Database, error) {
-
 	database, err := database.NewDatabase(config.PostgresPlayURL, &migrations)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot create database")

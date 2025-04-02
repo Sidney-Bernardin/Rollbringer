@@ -11,14 +11,19 @@ import (
 type OAuthProvider int
 
 const (
-	ExternalErrorTypeUserWithoutProviders = "user_without_providers"
-	ExternalErrorTypeUsernameInvalid      = "username_invalid"
-	ExternalErrorTypeUsernameTaken        = "username_taken"
+	ExternalErrorTypeUnauthorized src.ExternalErrorType = "unauthorized"
+
+	ExternalErrorTypeUserWithoutProviders src.ExternalErrorType = "user_without_providers"
+	ExternalErrorTypeUsernameInvalid      src.ExternalErrorType = "username_invalid"
+	ExternalErrorTypeUsernameTaken        src.ExternalErrorType = "username_taken"
+
+	ExternalErrorTypeProviderNotLinked     src.ExternalErrorType = "provider_not_linked"
+	ExternalErrorTypeProviderAlreadyLinked src.ExternalErrorType = "provider_already_linked"
 )
 
 type Service interface {
-	GoogleLogin(ctx context.Context, oauthState string, createNewAccount bool) (sessionID uuid.UUID, err error)
-	SpotifyLogin(ctx context.Context, oauthState string, createNewAccount bool) (sessionID uuid.UUID, err error)
+	GoogleLogin(ctx context.Context, oauthCode string, createNewAccount bool) (sessionID uuid.UUID, err error)
+	SpotifyLogin(ctx context.Context, oauthCode string, createNewAccount bool) (sessionID uuid.UUID, err error)
 }
 
 type service struct {

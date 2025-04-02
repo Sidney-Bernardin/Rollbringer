@@ -25,10 +25,10 @@ type (
 
 type Google interface {
 	ConsentURL() (consentURL string, state string)
-	GetGoogleUser(ctx context.Context, state string) (*GoogleUser, error)
+	GetGoogleUser(ctx context.Context, oauthCode string) (*GoogleUser, error)
 }
 
 type Spotify interface {
 	ConsentURL() (consentURL string, state string)
-	GetSpotifyUser(ctx context.Context, state string) (*SpotifyUser, error)
+	GetSpotifyUser(ctx context.Context, oauthCode string) (*SpotifyUser, error)
 }

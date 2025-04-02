@@ -46,7 +46,7 @@ func (svr *server) handleOAuthCallback() http.Handler {
 		var ctx = r.Context()
 
 		state, err := r.Cookie("OAUTH_STATE")
-		if err != nil || state.Value != r.FormValue("code") {
+		if err != nil || state.Value != r.FormValue("state") {
 			svr.err(w, r, &src.ExternalError{Type: externalErrorTypeUnauthorized})
 			return
 		}
@@ -61,9 +61,9 @@ func (svr *server) handleOAuthCallback() http.Handler {
 		var sessionID uuid.UUID
 		switch r.PathValue("provider") {
 		case "google":
-			sessionID, err = svr.accounts.GoogleLogin(ctx, state.Value, createAccount)
+			sessionID, err = svr.accounts.GoogleLogin(ctx, r.FormValue("code"), createAccount)
 		case "spotify":
-			sessionID, err = svr.accounts.SpotifyLogin(ctx, state.Value, createAccount)
+			sessionID, err = svr.accounts.SpotifyLogin(ctx, r.FormValue("code"), createAccount)
 		default:
 			err = &src.ExternalError{Type: externalErrorTypeInvalidProvider}
 		}

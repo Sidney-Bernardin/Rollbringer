@@ -73,12 +73,6 @@ func NewPrettyLogger(noColor bool) *slog.Logger {
 
 type ExternalErrorType string
 
-const (
-	ExternalErrorTypeInternalError  = "internal_error"
-	ExternalErrorTypeUUIDInvalid    = "uuid_invalid"
-	ExternalErrorTypeEntityNotFound = "entity_not_found"
-)
-
 type ExternalError struct {
 	Type        ExternalErrorType `json:"type"`
 	Description string            `json:"description,omitempty"`

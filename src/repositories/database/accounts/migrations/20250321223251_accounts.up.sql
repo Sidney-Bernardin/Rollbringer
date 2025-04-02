@@ -29,8 +29,8 @@ CREATE TABLE accounts.users (
     google_id text REFERENCES accounts.google_users (google_id),
     spotify_id text REFERENCES accounts.spotify_users (spotify_id),
 
-    username text NOT null
-    profile_picture text
+    username text NOT null,
+    profile_picture text,
 
     UNIQUE(google_id),
     UNIQUE(spotify_id)

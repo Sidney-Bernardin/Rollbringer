@@ -12,6 +12,7 @@ import (
 
 	"rollbringer/src"
 	"rollbringer/src/api/views"
+	"rollbringer/src/domain"
 	"rollbringer/src/domain/accounts"
 	"rollbringer/src/domain/play"
 )
@@ -43,12 +44,22 @@ func (svr *server) respond(w io.Writer, r *http.Request, statusCode int, res any
 }
 
 var errCodes = map[src.ExternalErrorType]int{
-	src.ExternalErrorTypeUUIDInvalid:          http.StatusBadRequest,
-	src.ExternalErrorTypeEntityNotFound:       http.StatusBadRequest,
-	play.ExternalErrorTypeRoomNameInvalid:     http.StatusBadRequest,
-	play.ExternalErrorTypeRoomNameTaken:       http.StatusConflict,
-	accounts.ExternalErrorTypeUsernameInvalid: http.StatusBadRequest,
-	accounts.ExternalErrorTypeUsernameTaken:   http.StatusConflict,
+	externalErrorTypeInternalError:   http.StatusInternalServerError,
+	externalErrorTypeUnauthorized:    http.StatusUnauthorized,
+	externalErrorTypeInvalidProvider: http.StatusBadRequest,
+
+	domain.ExternalErrorTypeUUIDInvalid: http.StatusBadRequest,
+	domain.ExternalErrorTypeViewInvalid: http.StatusBadRequest,
+
+	accounts.ExternalErrorTypeUnauthorized:          http.StatusUnauthorized,
+	accounts.ExternalErrorTypeUserWithoutProviders:  http.StatusBadRequest,
+	accounts.ExternalErrorTypeUsernameInvalid:       http.StatusBadRequest,
+	accounts.ExternalErrorTypeUsernameTaken:         http.StatusConflict,
+	accounts.ExternalErrorTypeProviderNotLinked:     http.StatusBadRequest,
+	accounts.ExternalErrorTypeProviderAlreadyLinked: http.StatusBadRequest,
+
+	play.ExternalErrorTypeRoomNotFound:    http.StatusNotFound,
+	play.ExternalErrorTypeRoomNameInvalid: http.StatusBadRequest,
 }
 
 func (svr *server) err(w io.Writer, r *http.Request, err error) {
@@ -58,7 +69,7 @@ func (svr *server) err(w io.Writer, r *http.Request, err error) {
 	if !errors.As(err, &externalErr) {
 		svr.logServerError(ctx, err)
 		svr.respond(w, r, http.StatusInternalServerError, &src.ExternalError{
-			Type: src.ExternalErrorTypeInternalError,
+			Type: externalErrorTypeInternalError,
 		})
 		return
 	}

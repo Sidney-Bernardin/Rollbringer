@@ -12,26 +12,36 @@ import (
 type User struct {
 	UserID uuid.UUID
 
-	GoogleUser  *GoogleUser
+	GoogleID   *string
+	GoogleUser *GoogleUser
+
+	SpotifyID   *string
 	SpotifyUser *SpotifyUser
 
-	Username Username
+	Username       Username
+	ProfilePicture string
 }
 
-func newUser(username string, googleUser *GoogleUser, spotifyUser *SpotifyUser) (user *User, err error) {
-	if googleUser == nil && spotifyUser == nil {
-		return nil, &src.ExternalError{Type: ExternalErrorTypeUserWithoutProviders}
-	}
-
+func newUser(googleUser *GoogleUser, spotifyUser *SpotifyUser) (user *User, err error) {
 	user = &User{
-		UserID:      uuid.New(),
-		GoogleUser:  googleUser,
-		SpotifyUser: spotifyUser,
+		UserID:         uuid.New(),
+		ProfilePicture: "/static/favicon.png",
 	}
 
-	user.Username, err = ParseUsername(username)
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot parse username")
+	if googleUser != nil {
+		user.GoogleID = &googleUser.GoogleID
+		user.GoogleUser = googleUser
+		user.Username = Username(googleUser.GivenName)
+		user.ProfilePicture = googleUser.ProfilePicture
+	} else if spotifyUser != nil {
+		user.SpotifyID = &spotifyUser.SpotifyID
+		user.SpotifyUser = spotifyUser
+		user.Username = Username(spotifyUser.DisplayName)
+		if spotifyUser.ProfilePicture != nil {
+			user.ProfilePicture = *spotifyUser.ProfilePicture
+		}
+	} else {
+		return nil, &src.ExternalError{Type: ExternalErrorTypeUserWithoutProviders}
 	}
 
 	return user, nil
@@ -71,44 +81,54 @@ func ParseUsername(str string) (Username, error) {
 
 /////
 
-func (svc *service) GoogleLogin(ctx context.Context, oauthState string, createNewAccount bool) (uuid.UUID, error) {
-	googleUser, err := svc.google.GetGoogleUser(ctx, oauthState)
+func (svc *service) GoogleLogin(ctx context.Context, oauthCode string, createNewAccount bool) (sessionID uuid.UUID, err error) {
+
+	// Get the google-user from Google.
+	googleUser, err := svc.google.GetGoogleUser(ctx, oauthCode)
 	if err != nil {
 		return uuid.Nil, errors.Wrap(err, "cannot get google-user from Google")
 	}
 
-	var sessionID uuid.UUID
 	if !createNewAccount {
+
+		// Signin.
 		sessionID, err = svc.db.GoogleSignin(ctx, googleUser)
 		return sessionID, errors.Wrap(err, "cannot signin")
 	}
 
-	user, err := newUser(googleUser.GivenName, googleUser, nil)
+	// Create a user.
+	user, err := newUser(googleUser, nil)
 	if err != nil {
 		return uuid.Nil, errors.Wrap(err, "cannot create user")
 	}
 
+	// Signup.
 	sessionID, err = svc.db.GoogleSignup(ctx, user)
-	return sessionID, errors.Wrap(err, "cannot login")
+	return sessionID, errors.Wrap(err, "cannot signup")
 }
 
-func (svc *service) SpotifyLogin(ctx context.Context, oauthState string, createNewAccount bool) (uuid.UUID, error) {
-	spotifyUser, err := svc.spotify.GetSpotifyUser(ctx, oauthState)
+func (svc *service) SpotifyLogin(ctx context.Context, oauthCode string, createNewAccount bool) (sessionID uuid.UUID, err error) {
+
+	// Get the spotify-user from Spotify.
+	spotifyUser, err := svc.spotify.GetSpotifyUser(ctx, oauthCode)
 	if err != nil {
-		return uuid.Nil, errors.Wrap(err, "cannot get spotify-user from Google")
+		return uuid.Nil, errors.Wrap(err, "cannot get spotify-user from Spotify")
 	}
 
-	var sessionID uuid.UUID
 	if !createNewAccount {
+
+		// Signin.
 		sessionID, err = svc.db.SpotifySignin(ctx, spotifyUser)
 		return sessionID, errors.Wrap(err, "cannot signin")
 	}
 
-	user, err := newUser(spotifyUser.DisplayName, nil, spotifyUser)
+	// Create a user.
+	user, err := newUser(nil, spotifyUser)
 	if err != nil {
 		return uuid.Nil, errors.Wrap(err, "cannot create user")
 	}
 
-	sessionID, err = svc.db.GoogleSignup(ctx, user)
-	return sessionID, errors.Wrap(err, "cannot login")
+	// Signup.
+	sessionID, err = svc.db.SpotifySignup(ctx, user)
+	return sessionID, errors.Wrap(err, "cannot signup")
 }

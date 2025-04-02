@@ -7,12 +7,11 @@ import (
 )
 
 const (
-	ExternalErrorTypeRoomNameInvalid = "room_name_invalid"
-	ExternalErrorTypeRoomNameTaken   = "room_name_taken"
+	ExternalErrorTypeRoomNotFound    src.ExternalErrorType = "room_not_found"
+	ExternalErrorTypeRoomNameInvalid src.ExternalErrorType = "room_name_invalid"
 )
 
 type Service interface {
-	RoomCreate(ctx context.Context, view any, cmd *ArgsRoomCreate) error
 	RoomGetByID(ctx context.Context, view any, roomID string) error
 }
 
