@@ -2,14 +2,17 @@ package api
 
 import (
 	"context"
+	"embed"
 	"log/slog"
 	"net/http"
-	"os"
 
 	"rollbringer/src"
 	"rollbringer/src/domain/accounts"
 	"rollbringer/src/domain/play"
 )
+
+//go:embed static
+var static embed.FS
 
 var (
 	externalErrorTypeInternalError   src.ExternalErrorType = "internal_error"
@@ -52,16 +55,16 @@ func NewServer(
 	}
 
 	r := http.NewServeMux()
-	r.Handle("/static/*", http.StripPrefix("/static/", http.FileServerFS(os.DirFS("src/api/static"))))
+	r.Handle("/static/", http.FileServerFS(static))
 
 	r.Handle("GET /login/{provider}", svr.handleOAuthConsent())
 	r.Handle("GET /login/{provider}/callback", svr.handleOAuthCallback())
 
 	r.Handle("GET /rooms/{room_id}", svr.handleRoomGet())
 
-	r.Handle("/", svr.handlePageHome())
+	r.Handle("GET /home", svr.handlePageHome())
 
-	svr.Handler = mw(svr.mwLog)(r)
+	svr.Server.Handler = mw(svr.mwLog)(r)
 	return svr
 }
 
