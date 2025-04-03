@@ -4,17 +4,17 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/google/uuid"
 	"github.com/pkg/errors"
 
+	"rollbringer/src/domain"
 	"rollbringer/src/domain/play"
 	"rollbringer/src/repositories/database"
 )
 
 type room struct {
-	ID      uuid.UUID `db:"id"`
-	OwnerID uuid.UUID `db:"owner_id"`
-	Name    string    `db:"name"`
+	ID      domain.UUID `db:"id"`
+	OwnerID domain.UUID `db:"owner_id"`
+	Name    string      `db:"name"`
 }
 
 const (
@@ -51,7 +51,7 @@ func (db *playDatabase) roomQuery(ctx context.Context, crudFunc database.CRUDFun
 
 /////
 
-func (db *playDatabase) RoomGetByID(ctx context.Context, view any, roomID uuid.UUID) error {
+func (db *playDatabase) RoomGetByID(ctx context.Context, view any, roomID domain.UUID) error {
 	err := db.roomQuery(ctx, db.CRUDGet, view, qRoomSelectByID, roomID)
 	return errors.Wrap(err, "cannot get room by ID")
 }

@@ -2,11 +2,12 @@ package api
 
 import (
 	"net/http"
-	"rollbringer/src"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/pkg/errors"
+
+	"rollbringer/src"
+	"rollbringer/src/domain"
 )
 
 func (svr *server) handleOAuthConsent() http.Handler {
@@ -58,7 +59,7 @@ func (svr *server) handleOAuthCallback() http.Handler {
 		}
 		createAccount := loginType.Value == "signup"
 
-		var sessionID uuid.UUID
+		var sessionID domain.UUID
 		switch r.PathValue("provider") {
 		case "google":
 			sessionID, err = svr.accounts.GoogleLogin(ctx, r.FormValue("code"), createAccount)

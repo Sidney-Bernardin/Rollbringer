@@ -3,7 +3,6 @@ package play
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"github.com/pkg/errors"
 
 	"rollbringer/src"
@@ -17,7 +16,7 @@ func ParseRoomName(str string) (RoomName, error) {
 		return "", &src.ExternalError{
 			Type:        ExternalErrorTypeRoomNameInvalid,
 			Description: "Must be between 1 and 30 characters",
-			Attrs:       map[string]any{"room_name": str},
+			Details:     map[string]any{"room_name": str},
 		}
 	}
 
@@ -27,7 +26,7 @@ func ParseRoomName(str string) (RoomName, error) {
 /////
 
 func (svc *service) RoomGetByID(ctx context.Context, view any, roomIDStr string) error {
-	roomID, err := uuid.Parse(roomIDStr)
+	roomID, err := domain.ParseUUID(roomIDStr)
 	if err != nil {
 		return errors.Wrap(err, "cannot parse room-ID")
 	}
@@ -37,7 +36,7 @@ func (svc *service) RoomGetByID(ctx context.Context, view any, roomIDStr string)
 			return &src.ExternalError{
 				Type:        ExternalErrorTypeRoomNotFound,
 				Description: "Cannot find a room with the given ID",
-				Attrs:       map[string]any{"room_id": roomID},
+				Details:     map[string]any{"room_id": roomID},
 			}
 		}
 

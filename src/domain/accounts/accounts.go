@@ -4,8 +4,7 @@ import (
 	"context"
 
 	"rollbringer/src"
-
-	"github.com/google/uuid"
+	"rollbringer/src/domain"
 )
 
 type OAuthProvider int
@@ -22,8 +21,8 @@ const (
 )
 
 type Service interface {
-	GoogleLogin(ctx context.Context, oauthCode string, createNewAccount bool) (sessionID uuid.UUID, err error)
-	SpotifyLogin(ctx context.Context, oauthCode string, createNewAccount bool) (sessionID uuid.UUID, err error)
+	GoogleLogin(ctx context.Context, oauthCode string, createNewAccount bool) (sessionID domain.UUID, err error)
+	SpotifyLogin(ctx context.Context, oauthCode string, createNewAccount bool) (sessionID domain.UUID, err error)
 }
 
 type service struct {

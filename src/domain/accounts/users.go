@@ -3,14 +3,14 @@ package accounts
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"github.com/pkg/errors"
 
 	"rollbringer/src"
+	"rollbringer/src/domain"
 )
 
 type User struct {
-	UserID uuid.UUID
+	UserID domain.UUID
 
 	GoogleID   *string
 	GoogleUser *GoogleUser
@@ -24,7 +24,7 @@ type User struct {
 
 func newUser(googleUser *GoogleUser, spotifyUser *SpotifyUser) (user *User, err error) {
 	user = &User{
-		UserID:         uuid.New(),
+		UserID:         domain.NewUUID(),
 		ProfilePicture: "/static/favicon.png",
 	}
 
@@ -72,7 +72,7 @@ func ParseUsername(str string) (Username, error) {
 		return "", &src.ExternalError{
 			Type:        ExternalErrorTypeUsernameInvalid,
 			Description: "Must be between 1 and 25 characters",
-			Attrs:       map[string]any{"username": str},
+			Details:     map[string]any{"username": str},
 		}
 	}
 
@@ -81,12 +81,12 @@ func ParseUsername(str string) (Username, error) {
 
 /////
 
-func (svc *service) GoogleLogin(ctx context.Context, oauthCode string, createNewAccount bool) (sessionID uuid.UUID, err error) {
+func (svc *service) GoogleLogin(ctx context.Context, oauthCode string, createNewAccount bool) (sessionID domain.UUID, err error) {
 
 	// Get the google-user from Google.
 	googleUser, err := svc.google.GetGoogleUser(ctx, oauthCode)
 	if err != nil {
-		return uuid.Nil, errors.Wrap(err, "cannot get google-user from Google")
+		return domain.UUID{}, errors.Wrap(err, "cannot get google-user from Google")
 	}
 
 	if !createNewAccount {
@@ -99,7 +99,7 @@ func (svc *service) GoogleLogin(ctx context.Context, oauthCode string, createNew
 	// Create a user.
 	user, err := newUser(googleUser, nil)
 	if err != nil {
-		return uuid.Nil, errors.Wrap(err, "cannot create user")
+		return domain.UUID{}, errors.Wrap(err, "cannot create user")
 	}
 
 	// Signup.
@@ -107,12 +107,12 @@ func (svc *service) GoogleLogin(ctx context.Context, oauthCode string, createNew
 	return sessionID, errors.Wrap(err, "cannot signup")
 }
 
-func (svc *service) SpotifyLogin(ctx context.Context, oauthCode string, createNewAccount bool) (sessionID uuid.UUID, err error) {
+func (svc *service) SpotifyLogin(ctx context.Context, oauthCode string, createNewAccount bool) (sessionID domain.UUID, err error) {
 
 	// Get the spotify-user from Spotify.
 	spotifyUser, err := svc.spotify.GetSpotifyUser(ctx, oauthCode)
 	if err != nil {
-		return uuid.Nil, errors.Wrap(err, "cannot get spotify-user from Spotify")
+		return domain.UUID{}, errors.Wrap(err, "cannot get spotify-user from Spotify")
 	}
 
 	if !createNewAccount {
@@ -125,7 +125,7 @@ func (svc *service) SpotifyLogin(ctx context.Context, oauthCode string, createNe
 	// Create a user.
 	user, err := newUser(nil, spotifyUser)
 	if err != nil {
-		return uuid.Nil, errors.Wrap(err, "cannot create user")
+		return domain.UUID{}, errors.Wrap(err, "cannot create user")
 	}
 
 	// Signup.

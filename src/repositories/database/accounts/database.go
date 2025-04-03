@@ -4,13 +4,12 @@ import (
 	"context"
 	"embed"
 
+	"github.com/pkg/errors"
+
 	"rollbringer/src"
 	"rollbringer/src/domain"
 	"rollbringer/src/domain/accounts"
 	"rollbringer/src/repositories/database"
-
-	"github.com/google/uuid"
-	"github.com/pkg/errors"
 )
 
 //go:embed migrations/*.sql
@@ -31,7 +30,7 @@ func NewDatabase(config *src.Config) (accounts.Database, error) {
 	}, nil
 }
 
-func (db *accountsDatabase) GoogleSignup(ctx context.Context, user *accounts.User) (sessionID uuid.UUID, err error) {
+func (db *accountsDatabase) GoogleSignup(ctx context.Context, user *accounts.User) (sessionID domain.UUID, err error) {
 	err = db.Transaction(ctx, func(db *database.Database) error {
 		tx := &accountsDatabase{Database: db}
 
@@ -57,46 +56,46 @@ func (db *accountsDatabase) GoogleSignup(ctx context.Context, user *accounts.Use
 		}
 
 		// Upsert a new session.
-		sessionID = uuid.New()
+		sessionID = domain.NewUUID()
 		err = tx.CRUDInsert(ctx, nil, qSessionUpsert,
-			uuid.New(), user.UserID, accounts.NewCSRFToken())
+			sessionID, user.UserID, accounts.NewCSRFToken())
 		return errors.Wrap(err, "cannot insert session")
 	})
 
 	return sessionID, errors.Wrap(err, "transaction failed")
 }
 
-func (db *accountsDatabase) GoogleSignin(ctx context.Context, googleUser *accounts.GoogleUser) (sessionID uuid.UUID, err error) {
+func (db *accountsDatabase) GoogleSignin(ctx context.Context, googleUser *accounts.GoogleUser) (sessionID domain.UUID, err error) {
 
 	// Update the google-user.
 	err = db.CRUDUpdate(ctx, nil, qGoogleUserUpdateByID,
 		googleUser.GoogleID, googleUser.GivenName, googleUser.Email, googleUser.ProfilePicture)
 	if err != nil {
 		if errors.Is(err, domain.ErrNoEntitiesEffected) {
-			return uuid.Nil, &src.ExternalError{
+			return domain.UUID{}, &src.ExternalError{
 				Type:        accounts.ExternalErrorTypeProviderNotLinked,
 				Description: "The Google account is not linked with a Rollbringer account.",
 			}
 		}
 
-		return uuid.Nil, errors.Wrap(err, "cannot update google-user by ID")
+		return domain.UUID{}, errors.Wrap(err, "cannot update google-user by ID")
 	}
 
 	// Get the user.
-	var userID uuid.UUID
+	var userID domain.UUID
 	err = db.queryUser(ctx, db.CRUDGet, &userID, qUserSelectByGoogleID, googleUser.GoogleID)
 	if err != nil {
-		return uuid.Nil, errors.Wrap(err, "cannot get user by google-id")
+		return domain.UUID{}, errors.Wrap(err, "cannot get user by google-id")
 	}
 
 	// Upsert a new session.
-	sessionID = uuid.New()
+	sessionID = domain.NewUUID()
 	err = db.CRUDInsert(ctx, nil, qSessionUpsert,
 		sessionID, userID, accounts.NewCSRFToken())
 	return sessionID, errors.Wrap(err, "cannot insert session")
 }
 
-func (db *accountsDatabase) SpotifySignup(ctx context.Context, user *accounts.User) (sessionID uuid.UUID, err error) {
+func (db *accountsDatabase) SpotifySignup(ctx context.Context, user *accounts.User) (sessionID domain.UUID, err error) {
 	err = db.Transaction(ctx, func(db *database.Database) error {
 		tx := &accountsDatabase{Database: db}
 
@@ -122,7 +121,7 @@ func (db *accountsDatabase) SpotifySignup(ctx context.Context, user *accounts.Us
 		}
 
 		// Upsert a new session.
-		sessionID = uuid.New()
+		sessionID = domain.NewUUID()
 		err = tx.CRUDInsert(ctx, nil, qSessionUpsert,
 			sessionID, user.UserID, accounts.NewCSRFToken())
 		return errors.Wrap(err, "cannot insert session")
@@ -131,31 +130,31 @@ func (db *accountsDatabase) SpotifySignup(ctx context.Context, user *accounts.Us
 	return sessionID, errors.Wrap(err, "transaction failed")
 }
 
-func (db *accountsDatabase) SpotifySignin(ctx context.Context, spotifyUser *accounts.SpotifyUser) (sessionID uuid.UUID, err error) {
+func (db *accountsDatabase) SpotifySignin(ctx context.Context, spotifyUser *accounts.SpotifyUser) (sessionID domain.UUID, err error) {
 
 	// Update the spotify-user.
 	err = db.CRUDUpdate(ctx, nil, qSpotifyUserUpdateByID,
 		spotifyUser.SpotifyID, spotifyUser.DisplayName, spotifyUser.Email, spotifyUser.ProfilePicture)
 	if err != nil {
 		if errors.Is(err, domain.ErrNoEntitiesEffected) {
-			return uuid.Nil, &src.ExternalError{
+			return domain.UUID{}, &src.ExternalError{
 				Type:        accounts.ExternalErrorTypeProviderNotLinked,
 				Description: "The Spotify account is not linked with a Rollbringer account.",
 			}
 		}
 
-		return uuid.Nil, errors.Wrap(err, "cannot update spotify-user by ID")
+		return domain.UUID{}, errors.Wrap(err, "cannot update spotify-user by ID")
 	}
 
 	// Get the user.
-	var userID uuid.UUID
+	var userID domain.UUID
 	err = db.queryUser(ctx, db.CRUDGet, &userID, qUserSelectBySpotifyID, spotifyUser.SpotifyID)
 	if err != nil {
-		return uuid.Nil, errors.Wrap(err, "cannot get user by spotify-id")
+		return domain.UUID{}, errors.Wrap(err, "cannot get user by spotify-id")
 	}
 
 	// Upsert a new session.
-	sessionID = uuid.New()
+	sessionID = domain.NewUUID()
 	err = db.CRUDInsert(ctx, nil, qSessionUpsert,
 		sessionID, userID, accounts.NewCSRFToken())
 	return sessionID, errors.Wrap(err, "cannot insert session")

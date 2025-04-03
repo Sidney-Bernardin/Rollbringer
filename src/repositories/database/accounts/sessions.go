@@ -1,13 +1,11 @@
 package accounts
 
-import (
-	"github.com/google/uuid"
-)
+import "rollbringer/src/domain"
 
 type session struct {
-	ID        uuid.UUID `db:"id"`
-	UserID    uuid.UUID `db:"user_id"`
-	CSRFToken string    `db:"csrf_token"`
+	ID        domain.UUID `db:"id"`
+	UserID    domain.UUID `db:"user_id"`
+	CSRFToken string      `db:"csrf_token"`
 }
 
 const (

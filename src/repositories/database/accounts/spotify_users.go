@@ -1,11 +1,7 @@
 package accounts
 
-import (
-	"github.com/google/uuid"
-)
-
 type spotifyUser struct {
-	SpotifyID uuid.UUID `db:"spotify_id"`
+	SpotifyID string `db:"spotify_id"`
 
 	DisplayName    string  `db:"given_name"`
 	Email          string  `db:"email"`

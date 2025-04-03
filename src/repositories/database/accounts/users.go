@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/google/uuid"
-
 	"rollbringer/src"
 	"rollbringer/src/domain"
 	"rollbringer/src/domain/accounts"
 	"rollbringer/src/repositories/database"
+
+	"github.com/google/uuid"
 )
 
 type user struct {
@@ -42,7 +42,7 @@ func (db *accountsDatabase) queryUser(ctx context.Context, crudFunc database.CRU
 
 	var columns, joins string
 	switch view.(type) {
-	case *uuid.UUID:
+	case *domain.UUID:
 		columns = `users.id`
 	case *accounts.ViewUserInfo:
 		columns = `users.id, users.username, users.profile_picture`
@@ -56,8 +56,8 @@ func (db *accountsDatabase) queryUser(ctx context.Context, crudFunc database.CRU
 	}
 
 	switch v := view.(type) {
-	case *uuid.UUID:
-		*v = u.ID
+	case *domain.UUID:
+		*v = domain.UUID(u.ID)
 	case *accounts.ViewUserInfo:
 		v.UserID = u.ID.String()
 		v.Username = u.Username

@@ -2,8 +2,7 @@ package accounts
 
 import (
 	"context"
-
-	"github.com/google/uuid"
+	"rollbringer/src/domain"
 )
 
 type (
@@ -13,11 +12,11 @@ type (
 	}
 
 	DatabaseCommands interface {
-		GoogleSignup(ctx context.Context, user *User) (sessionID uuid.UUID, err error)
-		GoogleSignin(ctx context.Context, googleUser *GoogleUser) (sessionID uuid.UUID, err error)
+		GoogleSignup(ctx context.Context, user *User) (sessionID domain.UUID, err error)
+		GoogleSignin(ctx context.Context, googleUser *GoogleUser) (sessionID domain.UUID, err error)
 
-		SpotifySignup(ctx context.Context, user *User) (sessionID uuid.UUID, err error)
-		SpotifySignin(ctx context.Context, spotifUser *SpotifyUser) (sessionID uuid.UUID, err error)
+		SpotifySignup(ctx context.Context, user *User) (sessionID domain.UUID, err error)
+		SpotifySignin(ctx context.Context, spotifUser *SpotifyUser) (sessionID domain.UUID, err error)
 	}
 
 	DatabaseQueries interface{}

@@ -1,15 +1,15 @@
 package play
 
-import "github.com/google/uuid"
+import "rollbringer/src/domain"
 
 type (
 	EventCanvasUsed struct {
-		BoardID uuid.UUID `json:"room_id"`
+		BoardID domain.UUID `json:"room_id"`
 	}
 
 	EventMovedCanvasNode struct {
-		BoardID uuid.UUID `json:"board_id"`
-		X       int       `json:"x"`
-		Y       int       `json:"y"`
+		BoardID domain.UUID `json:"board_id"`
+		X       int         `json:"x"`
+		Y       int         `json:"y"`
 	}
 )

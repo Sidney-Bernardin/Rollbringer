@@ -76,7 +76,7 @@ type ExternalErrorType string
 type ExternalError struct {
 	Type        ExternalErrorType `json:"type"`
 	Description string            `json:"description,omitempty"`
-	Attrs       map[string]any    `json:"attrs,omitempty"`
+	Details     map[string]any    `json:"attrs,omitempty"`
 }
 
 func (err *ExternalError) Error() string {

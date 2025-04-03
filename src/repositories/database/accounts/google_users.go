@@ -1,11 +1,7 @@
 package accounts
 
-import (
-	"github.com/google/uuid"
-)
-
 type googleUser struct {
-	GoogleID uuid.UUID `db:"google_id"`
+	GoogleID string `db:"google_id"`
 
 	GivenName      string `db:"given_name"`
 	Email          string `db:"email"`
