@@ -10,7 +10,8 @@ import (
 type OAuthProvider int
 
 const (
-	ExternalErrorTypeUnauthorized src.ExternalErrorType = "unauthorized"
+	ExternalErrorTypeUnauthorized    src.ExternalErrorType = "unauthorized"
+	ExternalErrorTypeSessionNotFound src.ExternalErrorType = "session_not_found"
 
 	ExternalErrorTypeUserWithoutProviders src.ExternalErrorType = "user_without_providers"
 	ExternalErrorTypeUsernameInvalid      src.ExternalErrorType = "username_invalid"
@@ -23,6 +24,7 @@ const (
 type Service interface {
 	GoogleLogin(ctx context.Context, oauthCode string, createNewAccount bool) (sessionID domain.UUID, err error)
 	SpotifyLogin(ctx context.Context, oauthCode string, createNewAccount bool) (sessionID domain.UUID, err error)
+	Auth(ctx context.Context, sessionID string, csrfToken *string) (*ViewSessionInfo, error)
 }
 
 type service struct {

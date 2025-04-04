@@ -85,7 +85,7 @@ func (db *accountsDatabase) GoogleSignin(ctx context.Context, googleUser *accoun
 	var userID domain.UUID
 	err = db.queryUser(ctx, db.CRUDGet, &userID, qUserSelectByGoogleID, googleUser.GoogleID)
 	if err != nil {
-		return domain.UUID{}, errors.Wrap(err, "cannot get user by google-id")
+		return domain.UUID{}, errors.Wrap(err, "cannot get user by google-ID")
 	}
 
 	// Upsert a new session.
@@ -150,7 +150,7 @@ func (db *accountsDatabase) SpotifySignin(ctx context.Context, spotifyUser *acco
 	var userID domain.UUID
 	err = db.queryUser(ctx, db.CRUDGet, &userID, qUserSelectBySpotifyID, spotifyUser.SpotifyID)
 	if err != nil {
-		return domain.UUID{}, errors.Wrap(err, "cannot get user by spotify-id")
+		return domain.UUID{}, errors.Wrap(err, "cannot get user by spotify-ID")
 	}
 
 	// Upsert a new session.

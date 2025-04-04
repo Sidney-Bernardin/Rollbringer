@@ -1,0 +1,24 @@
+package pages
+
+import "rollbringer/src/domain/accounts"
+
+type PlayData struct {
+	SessionInfo *accounts.ViewSessionInfo
+}
+
+templ Play(page *PlayData) {
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>Play | Rollbringer</title>
+			<link rel="icon" type="image/x-icon" href="/static/favicon.png"/>
+			<link rel="stylesheet" type="text/css" href="/static/styles/play.css"/>
+			<script src="/static/play.js" defer></script>
+		</head>
+		<body>
+			<h1>Play</h1>
+			<p>{ page.SessionInfo.UserInfo.Username }</p>
+		</body>
+	</html>
+}

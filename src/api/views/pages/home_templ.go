@@ -8,7 +8,10 @@ package pages
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
+import "rollbringer/src/domain/accounts"
+
 type HomeData struct {
+	SessionInfo *accounts.ViewSessionInfo
 }
 
 func Home(page *HomeData) templ.Component {
@@ -32,7 +35,35 @@ func Home(page *HomeData) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Home | Rollbringer</title><link rel=\"icon\" type=\"image/x-icon\" href=\"/static/favicon.png\"><link rel=\"stylesheet\" type=\"text/css\" href=\"/static/styles/home.css\"><script src=\"/static/home.js\" defer></script></head><body><a href=\"/login/google?login-type=signup\">Sign-Up with Google</a> <a href=\"/login/google?login-type=signin\">Sign-In with Google</a><hr><a href=\"/login/spotify?login-type=signup\">Sign-Up with Spotify</a> <a href=\"/login/spotify?login-type=signin\">Sign-In with Spotify</a></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Home | Rollbringer</title><link rel=\"icon\" type=\"image/x-icon\" href=\"/static/favicon.png\"><link rel=\"stylesheet\" type=\"text/css\" href=\"/static/styles/home.css\"><script src=\"/static/home.js\" defer></script></head><body>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if page.SessionInfo == nil {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<a href=\"/login/google?login-type=signup\">Sign-Up with Google</a> <a href=\"/login/google?login-type=signin\">Sign-In with Google</a><hr><a href=\"/login/spotify?login-type=signup\">Sign-Up with Spotify</a> <a href=\"/login/spotify?login-type=signin\">Sign-In with Spotify</a>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<p>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var2 string
+			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(page.SessionInfo.UserInfo.Username)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/home.templ`, Line: 27, Col: 43}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</p>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

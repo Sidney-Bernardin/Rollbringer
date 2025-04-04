@@ -12,6 +12,9 @@ type ViewSessionInfo struct {
 type ViewUserInfo struct {
 	UserID string `json:"user_id"`
 
+	GoogleID  *string `json:"google_id"`
+	SpotifyID *string `json:"spotify_id"`
+
 	Username       string `json:"username"`
 	ProfilePicture string `json:"profile_picture"`
 }

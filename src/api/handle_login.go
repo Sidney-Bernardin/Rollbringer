@@ -82,5 +82,7 @@ func (svr *server) handleOAuthCallback() http.Handler {
 			HttpOnly: true,
 			Expires:  time.Now().Add(svr.config.SessionCookieTimeout),
 		})
+
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 	})
 }

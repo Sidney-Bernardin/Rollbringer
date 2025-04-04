@@ -55,14 +55,15 @@ func NewServer(
 	}
 
 	r := http.NewServeMux()
-	r.Handle("/static/", http.FileServerFS(static))
+	r.Handle("GET /static/", http.FileServerFS(static))
 
 	r.Handle("GET /login/{provider}", svr.handleOAuthConsent())
 	r.Handle("GET /login/{provider}/callback", svr.handleOAuthCallback())
 
-	r.Handle("GET /rooms/{room_id}", svr.handleRoomGet())
+	r.Handle("POST /rooms", mw(svr.mwAuth(true, true, ""))(svr.handleRoomCreate()))
 
-	r.Handle("GET /home", svr.handlePageHome())
+	r.Handle("GET /", mw(svr.mwAuth(false, false, "/"))(svr.handlePageHome()))
+	r.Handle("GET /play", mw(svr.mwAuth(true, false, "/"))(svr.handlePagePlay()))
 
 	svr.Server.Handler = mw(svr.mwLog)(r)
 	return svr

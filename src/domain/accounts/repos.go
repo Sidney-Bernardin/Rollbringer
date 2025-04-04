@@ -19,7 +19,10 @@ type (
 		SpotifySignin(ctx context.Context, spotifUser *SpotifyUser) (sessionID domain.UUID, err error)
 	}
 
-	DatabaseQueries interface{}
+	DatabaseQueries interface {
+		SessionGetByID(ctx context.Context, view any, sessionID domain.UUID) error
+		SessionGetByIDAndCSRFToken(ctx context.Context, view any, sessionID domain.UUID, csrfToken CSRFToken) error
+	}
 )
 
 type Google interface {

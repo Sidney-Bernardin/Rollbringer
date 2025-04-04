@@ -24,7 +24,7 @@ func (svr *server) respond(w io.Writer, r *http.Request, statusCode int, res any
 		rw.WriteHeader(statusCode)
 
 		ctx = context.WithValue(ctx, "status_code", statusCode)
-		r = r.WithContext(ctx)
+		*r = *r.WithContext(ctx)
 	}
 
 	var err error
