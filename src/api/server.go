@@ -7,16 +7,14 @@ import (
 	"net/http"
 
 	"rollbringer/src"
-	"rollbringer/src/domain/accounts"
-	"rollbringer/src/domain/play"
+	"rollbringer/src/services/accounts"
+	"rollbringer/src/services/play"
 )
 
 //go:embed static
 var static embed.FS
 
 var (
-	externalErrorTypeInternalError   src.ExternalErrorType = "internal_error"
-	externalErrorTypeUnauthorized    src.ExternalErrorType = "unauthorized"
 	externalErrorTypeInvalidProvider src.ExternalErrorType = "invalid_provider"
 )
 

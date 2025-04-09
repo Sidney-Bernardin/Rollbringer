@@ -9,7 +9,8 @@ import (
 	oauth2_spotify "golang.org/x/oauth2/spotify"
 
 	"rollbringer/src"
-	"rollbringer/src/domain/accounts"
+	"rollbringer/src/services/accounts"
+	"rollbringer/src/services/accounts/models"
 )
 
 type spotify struct {
@@ -35,10 +36,10 @@ func (s *spotify) ConsentURL() (string, string) {
 	return s.oauthConfig.AuthCodeURL(state), state
 }
 
-func (s *spotify) GetSpotifyUser(ctx context.Context, state string) (*accounts.SpotifyUser, error) {
+func (s *spotify) GetSpotifyUser(ctx context.Context, state string) (*models.SpotifyUser, error) {
 	token, err := s.oauthConfig.Exchange(ctx, state)
 	if err != nil {
-		return nil, errors.Wrap(err, "cannot exchange state for token")
+		return nil, &src.ExternalError{Type: src.ExternalErrorTypeUnauthorized}
 	}
 
 	user, err := sdk.New(s.oauthConfig.Client(ctx, token)).CurrentUser(ctx)
@@ -51,7 +52,7 @@ func (s *spotify) GetSpotifyUser(ctx context.Context, state string) (*accounts.S
 		profilePicture = &user.Images[0].URL
 	}
 
-	return &accounts.SpotifyUser{
+	return &models.SpotifyUser{
 		SpotifyID:      user.ID,
 		DisplayName:    user.DisplayName,
 		Email:          user.Email,

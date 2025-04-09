@@ -1,9 +1,9 @@
 package pages
 
-import "rollbringer/src/domain/accounts"
+import "rollbringer/src/services/accounts/models"
 
 type PlayData struct {
-	SessionInfo *accounts.ViewSessionInfo
+	Session *models.Session
 }
 
 templ Play(page *PlayData) {
@@ -18,7 +18,7 @@ templ Play(page *PlayData) {
 		</head>
 		<body>
 			<h1>Play</h1>
-			<p>{ page.SessionInfo.UserInfo.Username }</p>
+			<p>{ string(page.Session.User.Username) }</p>
 		</body>
 	</html>
 }

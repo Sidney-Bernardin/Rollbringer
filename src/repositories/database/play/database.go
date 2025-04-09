@@ -4,8 +4,8 @@ import (
 	"embed"
 
 	"rollbringer/src"
-	"rollbringer/src/domain/play"
 	"rollbringer/src/repositories/database"
+	"rollbringer/src/services/play"
 
 	"github.com/pkg/errors"
 )

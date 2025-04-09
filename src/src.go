@@ -3,7 +3,6 @@ package src
 import (
 	"crypto/rand"
 	"encoding/hex"
-	"fmt"
 	"log/slog"
 	"os"
 	"time"
@@ -13,6 +12,19 @@ import (
 	"github.com/lmittmann/tint"
 	"github.com/mattn/go-isatty"
 	"github.com/pkg/errors"
+)
+
+var (
+	ErrEntityConflict     = errors.New("entity conflict")
+	ErrEntityNotFound     = errors.New("entity not found")
+	ErrNoEntitiesEffected = errors.New("no entities effected")
+
+	LevelTrace slog.Level = -8
+	LevelDebug slog.Level = -4
+	LevelInfo  slog.Level = 0
+	LevelWarn  slog.Level = 4
+	LevelError slog.Level = 8
+	LevelFatal slog.Level = 12
 )
 
 type Config struct {
@@ -42,17 +54,6 @@ func NewConfig() (*Config, error) {
 	return &cfg, errors.Wrap(err, "cannot process configuration")
 }
 
-/////
-
-var (
-	LevelTrace slog.Level = -8
-	LevelDebug slog.Level = -4
-	LevelInfo  slog.Level = 0
-	LevelWarn  slog.Level = 4
-	LevelError slog.Level = 8
-	LevelFatal slog.Level = 12
-)
-
 func NewPrettyLogger(noColor bool) *slog.Logger {
 
 	// Make logs pretty.
@@ -68,22 +69,6 @@ func NewPrettyLogger(noColor bool) *slog.Logger {
 
 	return slog.New(h)
 }
-
-/////
-
-type ExternalErrorType string
-
-type ExternalError struct {
-	Type        ExternalErrorType `json:"type"`
-	Description string            `json:"description,omitempty"`
-	Details     map[string]any    `json:"attrs,omitempty"`
-}
-
-func (err *ExternalError) Error() string {
-	return fmt.Sprintf("%s: %s", err.Type, err.Description)
-}
-
-/////
 
 func CreateRandomString() string {
 	var bState = make([]byte, 32)

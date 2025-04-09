@@ -1,9 +1,9 @@
 package pages
 
-import "rollbringer/src/domain/accounts"
+import "rollbringer/src/services/accounts/models"
 
 type HomeData struct {
-	SessionInfo *accounts.ViewSessionInfo
+	Session *models.Session
 }
 
 templ Home(page *HomeData) {
@@ -17,14 +17,14 @@ templ Home(page *HomeData) {
 			<script src="/static/home.js" defer></script>
 		</head>
 		<body>
-			if page.SessionInfo == nil {
+			if page.Session == nil {
 				<a href="/login/google?login-type=signup">Sign-Up with Google</a>
 				<a href="/login/google?login-type=signin">Sign-In with Google</a>
 				<hr/>
 				<a href="/login/spotify?login-type=signup">Sign-Up with Spotify</a>
 				<a href="/login/spotify?login-type=signin">Sign-In with Spotify</a>
 			} else {
-				<p>{ page.SessionInfo.UserInfo.Username }</p>
+				<p>{ string(page.Session.User.Username) }</p>
 			}
 		</body>
 	</html>

@@ -12,9 +12,9 @@ import (
 
 	"rollbringer/src"
 	"rollbringer/src/api/views"
-	"rollbringer/src/domain"
-	"rollbringer/src/domain/accounts"
-	"rollbringer/src/domain/play"
+	"rollbringer/src/services/accounts"
+	accountModels "rollbringer/src/services/accounts/models"
+	playModels "rollbringer/src/services/play/models"
 )
 
 func (svr *server) respond(w io.Writer, r *http.Request, statusCode int, res any) {
@@ -44,22 +44,16 @@ func (svr *server) respond(w io.Writer, r *http.Request, statusCode int, res any
 }
 
 var errCodes = map[src.ExternalErrorType]int{
-	externalErrorTypeInternalError:   http.StatusInternalServerError,
-	externalErrorTypeUnauthorized:    http.StatusUnauthorized,
 	externalErrorTypeInvalidProvider: http.StatusBadRequest,
 
-	domain.ExternalErrorTypeUUIDInvalid: http.StatusBadRequest,
-	domain.ExternalErrorTypeViewInvalid: http.StatusBadRequest,
+	src.ExternalErrorTypeInternalError: http.StatusInternalServerError,
+	src.ExternalErrorTypeUnauthorized:  http.StatusUnauthorized,
 
-	accounts.ExternalErrorTypeUnauthorized:          http.StatusUnauthorized,
-	accounts.ExternalErrorTypeUserWithoutProviders:  http.StatusBadRequest,
-	accounts.ExternalErrorTypeUsernameInvalid:       http.StatusBadRequest,
-	accounts.ExternalErrorTypeUsernameTaken:         http.StatusConflict,
+	accountModels.ExternalErrorTypeInvalidUsername:  http.StatusBadRequest,
 	accounts.ExternalErrorTypeProviderNotLinked:     http.StatusBadRequest,
-	accounts.ExternalErrorTypeProviderAlreadyLinked: http.StatusBadRequest,
+	accounts.ExternalErrorTypeProviderAlreadyLinked: http.StatusConflict,
 
-	play.ExternalErrorTypeRoomNotFound:    http.StatusNotFound,
-	play.ExternalErrorTypeRoomNameInvalid: http.StatusBadRequest,
+	playModels.ExternalErrorTypeInvalidRoomName: http.StatusBadRequest,
 }
 
 func (svr *server) err(w io.Writer, r *http.Request, err error) {
@@ -69,7 +63,7 @@ func (svr *server) err(w io.Writer, r *http.Request, err error) {
 	if !errors.As(err, &externalErr) {
 		svr.logServerError(ctx, err)
 		svr.respond(w, r, http.StatusInternalServerError, &src.ExternalError{
-			Type: externalErrorTypeInternalError,
+			Type: src.ExternalErrorTypeInternalError,
 		})
 		return
 	}

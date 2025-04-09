@@ -9,12 +9,12 @@ import (
 
 	"rollbringer/src"
 	"rollbringer/src/api"
-	"rollbringer/src/domain/accounts"
-	"rollbringer/src/domain/play"
 	accounts_db "rollbringer/src/repositories/database/accounts"
 	play_db "rollbringer/src/repositories/database/play"
 	"rollbringer/src/repositories/google"
 	"rollbringer/src/repositories/spotify"
+	"rollbringer/src/services/accounts"
+	"rollbringer/src/services/play"
 )
 
 var (

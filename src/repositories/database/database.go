@@ -13,7 +13,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 
-	"rollbringer/src/domain"
+	"rollbringer/src"
 )
 
 type Database struct {
@@ -73,9 +73,7 @@ func (db *Database) Transaction(ctx context.Context, txFunc func(txDB *Database)
 	return errors.Wrap(err, "cannot commit transaction")
 }
 
-type CRUDFunc func(ctx context.Context, view any, q string, args ...any) error
-
-func (db *Database) CRUDInsert(ctx context.Context, view any, query string, args ...any) (err error) {
+func (db *Database) Insert(ctx context.Context, view any, query string, args ...any) (err error) {
 	if view == nil {
 		_, err = db.TX.ExecContext(ctx, query, args...)
 	} else {
@@ -86,7 +84,7 @@ func (db *Database) CRUDInsert(ctx context.Context, view any, query string, args
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == "23505" {
-				return domain.ErrEntityConflict
+				return src.ErrEntityConflict
 			}
 		}
 
@@ -96,10 +94,10 @@ func (db *Database) CRUDInsert(ctx context.Context, view any, query string, args
 	return nil
 }
 
-func (db *Database) CRUDGet(ctx context.Context, view any, query string, args ...any) error {
+func (db *Database) SelectOne(ctx context.Context, view any, query string, args ...any) error {
 	if err := sqlx.GetContext(ctx, db.TX, view, query, args...); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return domain.ErrEntityNotFound
+			return src.ErrEntityNotFound
 		}
 
 		return errors.Wrap(err, "cannot get row")
@@ -108,14 +106,14 @@ func (db *Database) CRUDGet(ctx context.Context, view any, query string, args ..
 	return nil
 }
 
-func (db *Database) CRUDGetMany(ctx context.Context, view any, query string, args ...any) error {
+func (db *Database) SelectMany(ctx context.Context, view any, query string, args ...any) error {
 	if err := sqlx.SelectContext(ctx, db.TX, view, query, args...); err != nil {
 		return errors.Wrap(err, "cannot get rows")
 	}
 	return nil
 }
 
-func (db *Database) CRUDUpdate(ctx context.Context, view any, query string, args ...any) error {
+func (db *Database) Update(ctx context.Context, view any, query string, args ...any) error {
 	result, err := db.TX.ExecContext(ctx, query, args...)
 	if err != nil {
 		return errors.Wrap(err, "cannot update row")
@@ -127,7 +125,7 @@ func (db *Database) CRUDUpdate(ctx context.Context, view any, query string, args
 	}
 
 	if affected <= 0 {
-		return domain.ErrNoEntitiesEffected
+		return src.ErrNoEntitiesEffected
 	}
 
 	return nil

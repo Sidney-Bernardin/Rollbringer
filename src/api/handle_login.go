@@ -7,7 +7,6 @@ import (
 	"github.com/pkg/errors"
 
 	"rollbringer/src"
-	"rollbringer/src/domain"
 )
 
 func (svr *server) handleOAuthConsent() http.Handler {
@@ -48,23 +47,23 @@ func (svr *server) handleOAuthCallback() http.Handler {
 
 		state, err := r.Cookie("OAUTH_STATE")
 		if err != nil || state.Value != r.FormValue("state") {
-			svr.err(w, r, &src.ExternalError{Type: externalErrorTypeUnauthorized})
+			svr.err(w, r, &src.ExternalError{Type: src.ExternalErrorTypeUnauthorized})
 			return
 		}
 
 		loginType, err := r.Cookie("OAUTH_LOGIN_TYPE")
 		if err != nil {
-			svr.err(w, r, &src.ExternalError{Type: externalErrorTypeUnauthorized})
+			svr.err(w, r, &src.ExternalError{Type: src.ExternalErrorTypeUnauthorized})
 			return
 		}
-		createAccount := loginType.Value == "signup"
+		newAccount := loginType.Value == "signup"
 
-		var sessionID domain.UUID
+		var sessionID *src.UUID
 		switch r.PathValue("provider") {
 		case "google":
-			sessionID, err = svr.accounts.GoogleLogin(ctx, r.FormValue("code"), createAccount)
+			sessionID, err = svr.accounts.GoogleLogin(ctx, r.FormValue("code"), newAccount)
 		case "spotify":
-			sessionID, err = svr.accounts.SpotifyLogin(ctx, r.FormValue("code"), createAccount)
+			sessionID, err = svr.accounts.SpotifyLogin(ctx, r.FormValue("code"), newAccount)
 		default:
 			err = &src.ExternalError{Type: externalErrorTypeInvalidProvider}
 		}

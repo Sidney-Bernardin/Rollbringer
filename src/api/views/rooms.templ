@@ -1,0 +1,12 @@
+package views
+
+import (
+	"fmt"
+
+	"rollbringer/src/services/play/models"
+)
+
+templ RoomCard(room *models.Room) {
+	<h1>{ string(room.Name) }</h1>
+	<p>{ fmt.Sprint(room.Users) }</p>
+}

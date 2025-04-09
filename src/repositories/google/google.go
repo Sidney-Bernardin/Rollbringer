@@ -9,7 +9,8 @@ import (
 	oauth2_google "golang.org/x/oauth2/google"
 
 	"rollbringer/src"
-	"rollbringer/src/domain/accounts"
+	"rollbringer/src/services/accounts"
+	"rollbringer/src/services/accounts/models"
 )
 
 type googleIDTokenClaims struct {
@@ -43,10 +44,10 @@ func (g *google) ConsentURL() (string, string) {
 	return g.oauthConfig.AuthCodeURL(state), state
 }
 
-func (g *google) GetGoogleUser(ctx context.Context, state string) (*accounts.GoogleUser, error) {
+func (g *google) GetGoogleUser(ctx context.Context, state string) (*models.GoogleUser, error) {
 	token, err := g.oauthConfig.Exchange(ctx, state)
 	if err != nil {
-		return nil, &src.ExternalError{Type: accounts.ExternalErrorTypeUnauthorized}
+		return nil, &src.ExternalError{Type: src.ExternalErrorTypeUnauthorized}
 	}
 
 	idTokenStr, ok := token.Extra("id_token").(string)
@@ -60,7 +61,7 @@ func (g *google) GetGoogleUser(ctx context.Context, state string) (*accounts.Goo
 	}
 	claims := idToken.Claims.(*googleIDTokenClaims)
 
-	return &accounts.GoogleUser{
+	return &models.GoogleUser{
 		GoogleID:       claims.Subject,
 		GivenName:      claims.GivenName,
 		Email:          claims.Email,

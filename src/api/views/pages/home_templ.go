@@ -8,10 +8,10 @@ package pages
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "rollbringer/src/domain/accounts"
+import "rollbringer/src/services/accounts/models"
 
 type HomeData struct {
-	SessionInfo *accounts.ViewSessionInfo
+	Session *models.Session
 }
 
 func Home(page *HomeData) templ.Component {
@@ -39,7 +39,7 @@ func Home(page *HomeData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if page.SessionInfo == nil {
+		if page.Session == nil {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<a href=\"/login/google?login-type=signup\">Sign-Up with Google</a> <a href=\"/login/google?login-type=signin\">Sign-In with Google</a><hr><a href=\"/login/spotify?login-type=signup\">Sign-Up with Spotify</a> <a href=\"/login/spotify?login-type=signin\">Sign-In with Spotify</a>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -50,7 +50,7 @@ func Home(page *HomeData) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var2 string
-			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(page.SessionInfo.UserInfo.Username)
+			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(string(page.Session.User.Username))
 			if templ_7745c5c3_Err != nil {
 				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/home.templ`, Line: 27, Col: 43}
 			}

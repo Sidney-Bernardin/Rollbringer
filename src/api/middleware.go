@@ -7,7 +7,7 @@ import (
 	"github.com/pkg/errors"
 
 	"rollbringer/src"
-	"rollbringer/src/domain/accounts"
+	"rollbringer/src/services/accounts/models"
 )
 
 type middleware func(http.Handler) http.Handler
@@ -46,24 +46,24 @@ func (svr *server) mwAuth(required, checkCSRF bool, redirectURL string) middlewa
 				csrfToken = &h
 			}
 
-			var sessionInfo *accounts.ViewSessionInfo
+			var session *models.Session
 			if sessionID, err := r.Cookie("SESSION_ID"); err == nil {
-				if sessionInfo, err = svr.accounts.Auth(ctx, sessionID.Value, csrfToken); err != nil {
+				if session, err = svr.accounts.Auth(ctx, sessionID.Value, csrfToken); err != nil {
 					svr.err(w, r, errors.Wrap(err, "cannot authenticate"))
 					return
 				}
 			}
 
-			if sessionInfo == nil && required {
+			if session == nil && required {
 				if redirectURL != "" {
 					http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
 				} else {
-					svr.err(w, r, &src.ExternalError{Type: externalErrorTypeUnauthorized})
+					svr.err(w, r, &src.ExternalError{Type: src.ExternalErrorTypeUnauthorized})
 				}
 				return
 			}
 
-			*r = *r.WithContext(context.WithValue(ctx, "session_info", sessionInfo))
+			*r = *r.WithContext(context.WithValue(ctx, "session", session))
 			next.ServeHTTP(w, r)
 		})
 	}

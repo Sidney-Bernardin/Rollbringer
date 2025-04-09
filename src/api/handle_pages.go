@@ -4,25 +4,25 @@ import (
 	"net/http"
 
 	"rollbringer/src/api/views/pages"
-	"rollbringer/src/domain/accounts"
+	"rollbringer/src/services/accounts/models"
 )
 
 func (svr *server) handlePageHome() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var sessionInfo, _ = r.Context().Value("session_info").(*accounts.ViewSessionInfo)
+		var session, _ = r.Context().Value("session").(*models.Session)
 
 		svr.respond(w, r, http.StatusOK, pages.Home(&pages.HomeData{
-			SessionInfo: sessionInfo,
+			Session: session,
 		}))
 	})
 }
 
 func (svr *server) handlePagePlay() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var sessionInfo, _ = r.Context().Value("session_info").(*accounts.ViewSessionInfo)
+		var session, _ = r.Context().Value("session").(*models.Session)
 
 		svr.respond(w, r, http.StatusOK, pages.Play(&pages.PlayData{
-			SessionInfo: sessionInfo,
+			Session: session,
 		}))
 	})
 }
