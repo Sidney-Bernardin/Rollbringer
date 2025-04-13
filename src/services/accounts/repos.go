@@ -23,6 +23,7 @@ type (
 	DatabaseQueries interface {
 		GetSessionByID(ctx context.Context, sessionID src.UUID) (*models.Session, error)
 		GetSessionByIDAndCSRFToken(ctx context.Context, sessionID src.UUID, csrfToken models.CSRFToken) (*models.Session, error)
+		GetUsersByRoomIDs(ctx context.Context, roomIDs ...src.UUID) (map[src.UUID][]*models.User, error)
 	}
 )
 

@@ -2,18 +2,17 @@ package api
 
 import (
 	"net/http"
-
-	"github.com/pkg/errors"
-
 	"rollbringer/src"
 	"rollbringer/src/api/views"
 	accountModels "rollbringer/src/services/accounts/models"
 	playModels "rollbringer/src/services/play/models"
+
+	"github.com/pkg/errors"
 )
 
 func (svr *server) handleRoomCreate() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var session, _ = r.Context().Value("session_info").(*accountModels.Session)
+		var session, _ = r.Context().Value("session").(*accountModels.Session)
 
 		roomName, err := playModels.ParseRoomName(r.FormValue("name"))
 		if err != nil {
@@ -24,10 +23,10 @@ func (svr *server) handleRoomCreate() http.Handler {
 		room := &playModels.Room{
 			ID:   src.NewUUID(),
 			Name: roomName,
-			Users: map[src.UUID]*playModels.RoomUser{
-				session.UserID: {
+			Users: []*src.RoomUser{
+				{
 					UserID:     session.UserID,
-					Permisions: []playModels.RoomUserPermision{playModels.RoomUserPermisionOwner, playModels.RoomUserPermisionGameMaster},
+					Permisions: []src.RoomUserPermision{src.RoomUserPermisionOwner, src.RoomUserPermisionGameMaster},
 				},
 			},
 		}
@@ -37,6 +36,6 @@ func (svr *server) handleRoomCreate() http.Handler {
 			return
 		}
 
-		svr.respond(w, r, http.StatusOK, views.RoomCard(room))
+		svr.respond(w, r, http.StatusOK, views.RoomCard(room, []*accountModels.User{session.User}))
 	})
 }

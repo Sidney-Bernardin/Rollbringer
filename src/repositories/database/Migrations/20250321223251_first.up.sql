@@ -46,3 +46,22 @@ CREATE TABLE IF NOT EXISTS accounts.sessions (
 
     UNIQUE(user_id)
 );
+
+-- =====
+
+CREATE SCHEMA IF NOT EXISTS play;
+
+CREATE TABLE IF NOT EXISTS play.rooms (
+    id uuid PRIMARY KEY,
+    created_at timestamp NOT null DEFAULT now(),
+    name text NOT null
+);
+
+-- =====
+
+CREATE TYPE room_user_permision AS ENUM ('OWNER', 'GAME_MASTER', 'PLAYER');
+CREATE TABLE IF NOT EXISTS room_users (
+    room_id uuid REFERENCES play.rooms (id) ON DELETE CASCADE,
+    user_id uuid REFERENCES accounts.users (id) ON DELETE CASCADE, 
+    permisions room_user_permision[] NOT NULL
+);

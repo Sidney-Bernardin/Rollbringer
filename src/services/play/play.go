@@ -3,8 +3,6 @@ package play
 import (
 	"context"
 	"fmt"
-	"maps"
-	"slices"
 
 	"rollbringer/src"
 	"rollbringer/src/services/play/models"
@@ -43,7 +41,7 @@ func (svc *service) CreateRoom(ctx context.Context, room *models.Room) error {
 		return errors.New("room must have at least 1 user")
 	}
 
-	for i, user := range slices.Collect(maps.Values(room.Users)) {
+	for i, user := range room.Users {
 		if len(user.Permisions) < 1 {
 			return errors.New(fmt.Sprintf("room user[%d] must have at least 1 permision", i))
 		}

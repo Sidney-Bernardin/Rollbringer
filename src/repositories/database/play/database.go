@@ -1,8 +1,7 @@
 package play
 
 import (
-	"embed"
-
+	"context"
 	"rollbringer/src"
 	"rollbringer/src/repositories/database"
 	"rollbringer/src/services/play"
@@ -10,20 +9,15 @@ import (
 	"github.com/pkg/errors"
 )
 
-//go:embed migrations/*.sql
-var migrations embed.FS
-
 type playDatabase struct {
 	*database.Database
 }
 
-func NewDatabase(config *src.Config) (play.Database, error) {
-	database, err := database.NewDatabase(config.PostgresPlayURL, &migrations)
+func NewDatabase(ctx context.Context, config *src.Config) (play.Database, error) {
+	db, err := database.NewDatabase(ctx, config.PostgresPlayURL)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot create database")
 	}
 
-	return &playDatabase{
-		Database: database,
-	}, nil
+	return &playDatabase{db}, nil
 }

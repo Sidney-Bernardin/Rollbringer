@@ -7,7 +7,7 @@ import (
 )
 
 type User struct {
-	UserID src.UUID
+	ID src.UUID
 
 	GoogleID   *string
 	GoogleUser *GoogleUser
@@ -21,7 +21,7 @@ type User struct {
 
 func NewUser(googleUser *GoogleUser, spotifyUser *SpotifyUser) (user *User, err error) {
 	user = &User{
-		UserID:         src.NewUUID(),
+		ID:             src.NewUUID(),
 		ProfilePicture: "/static/favicon.png",
 	}
 
@@ -67,9 +67,9 @@ const ExternalErrorTypeInvalidUsername src.ExternalErrorType = "invalid_username
 func ParseUsername(str string) (Username, error) {
 	if len(str) == 0 || 25 < len(str) {
 		return "", &src.ExternalError{
-			Type:        ExternalErrorTypeInvalidUsername,
-			Description: "Must be between 1 and 25 characters",
-			Details:     map[string]any{"username": str},
+			Type:    ExternalErrorTypeInvalidUsername,
+			Msg:     "Must be between 1 and 25 characters",
+			Details: map[string]any{"username": str},
 		}
 	}
 

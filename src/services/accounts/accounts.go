@@ -36,7 +36,7 @@ func (svc *service) Run(ctx context.Context) error {
 	return nil
 }
 
-func (svc *service) GoogleLogin(ctx context.Context, oauthCode string, newAccount bool) (sessionID *src.UUID, err error) {
+func (svc *service) GoogleLogin(ctx context.Context, oauthCode string, newAccount bool) (*src.UUID, error) {
 
 	// Get the google-user from Google.
 	googleUser, err := svc.google.GetGoogleUser(ctx, oauthCode)
@@ -47,7 +47,11 @@ func (svc *service) GoogleLogin(ctx context.Context, oauthCode string, newAccoun
 	if !newAccount {
 
 		// Signin.
-		sessionID, err = svc.db.GoogleSignin(ctx, googleUser)
+		sessionID, err := svc.db.GoogleSignin(ctx, googleUser)
+		if errors.Is(err, src.ErrNoEntitiesEffected) {
+			return nil, &src.ExternalError{Type: ExternalErrorTypeProviderNotLinked, Msg: "The Google account is not linked with a Rollbringer account."}
+		}
+
 		return sessionID, errors.Wrap(err, "database cannot signin")
 	}
 
@@ -58,11 +62,15 @@ func (svc *service) GoogleLogin(ctx context.Context, oauthCode string, newAccoun
 	}
 
 	// Signup.
-	sessionID, err = svc.db.GoogleSignup(ctx, user)
+	sessionID, err := svc.db.GoogleSignup(ctx, user)
+	if errors.Is(err, src.ErrEntityConflict) {
+		return nil, &src.ExternalError{Type: ExternalErrorTypeProviderNotLinked, Msg: "The Google account is already linked with a Rollbringer account."}
+	}
+
 	return sessionID, errors.Wrap(err, "database cannot signup")
 }
 
-func (svc *service) SpotifyLogin(ctx context.Context, oauthCode string, newAccount bool) (sessionID *src.UUID, err error) {
+func (svc *service) SpotifyLogin(ctx context.Context, oauthCode string, newAccount bool) (*src.UUID, error) {
 
 	// Get the spotify-user from Spotify.
 	spotifyUser, err := svc.spotify.GetSpotifyUser(ctx, oauthCode)
@@ -73,7 +81,10 @@ func (svc *service) SpotifyLogin(ctx context.Context, oauthCode string, newAccou
 	if !newAccount {
 
 		// Signin.
-		sessionID, err = svc.db.SpotifySignin(ctx, spotifyUser)
+		sessionID, err := svc.db.SpotifySignin(ctx, spotifyUser)
+		if errors.Is(err, src.ErrNoEntitiesEffected) {
+			return nil, &src.ExternalError{Type: ExternalErrorTypeProviderNotLinked, Msg: "The Spotify account is not linked with a Rollbringer account."}
+		}
 		return sessionID, errors.Wrap(err, "database cannot signin")
 	}
 
@@ -84,7 +95,10 @@ func (svc *service) SpotifyLogin(ctx context.Context, oauthCode string, newAccou
 	}
 
 	// Signup.
-	sessionID, err = svc.db.SpotifySignup(ctx, user)
+	sessionID, err := svc.db.SpotifySignup(ctx, user)
+	if errors.Is(err, src.ErrEntityConflict) {
+		return nil, &src.ExternalError{Type: ExternalErrorTypeProviderNotLinked, Msg: "The Google account is already linked with a Rollbringer account."}
+	}
 	return sessionID, errors.Wrap(err, "database cannot signup")
 }
 

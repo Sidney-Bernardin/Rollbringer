@@ -41,13 +41,13 @@ func main() {
 
 	/////
 
-	accountsDB, err := accounts_db.NewDatabase(config)
+	accountsDB, err := accounts_db.NewDatabase(ctx, config)
 	if err != nil {
 		log.Log(ctx, src.LevelFatal, "Cannot create accounts-database", "err", err.Error())
 		return
 	}
 
-	playDB, err := play_db.NewDatabase(config)
+	playDB, err := play_db.NewDatabase(ctx, config)
 	if err != nil {
 		log.Log(ctx, src.LevelFatal, "Cannot create play-database", "err", err.Error())
 		return

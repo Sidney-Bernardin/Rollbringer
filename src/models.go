@@ -14,13 +14,13 @@ const (
 )
 
 type ExternalError struct {
-	Type        ExternalErrorType `json:"type"`
-	Description string            `json:"description,omitempty"`
-	Details     map[string]any    `json:"attrs,omitempty"`
+	Type    ExternalErrorType `json:"type"`
+	Msg     string            `json:"description,omitempty"`
+	Details map[string]any    `json:"attrs,omitempty"`
 }
 
 func (err *ExternalError) Error() string {
-	return fmt.Sprintf("%s: %s", err.Type, err.Description)
+	return fmt.Sprintf("%s: %s", err.Type, err.Msg)
 }
 
 /////
@@ -37,9 +37,9 @@ func ParseUUID(str string) (UUID, error) {
 	id, err := uuid.Parse(str)
 	if err != nil {
 		return UUID(uuid.Nil), &ExternalError{
-			Type:        ExternalErrorTypeInvalidUUID,
-			Description: err.Error(),
-			Details:     map[string]any{"uuid": str},
+			Type:    ExternalErrorTypeInvalidUUID,
+			Msg:     err.Error(),
+			Details: map[string]any{"uuid": str},
 		}
 	}
 
@@ -49,3 +49,18 @@ func ParseUUID(str string) (UUID, error) {
 func (id UUID) String() string {
 	return uuid.UUID(id).String()
 }
+
+/////
+
+type RoomUser struct {
+	UserID     UUID                `json:"user_id"`
+	Permisions []RoomUserPermision `json:"permisions"`
+}
+
+type RoomUserPermision string
+
+const (
+	RoomUserPermisionOwner      RoomUserPermision = "OWNER"
+	RoomUserPermisionGameMaster RoomUserPermision = "GAME_MASTER"
+	RoomUserPermisionPlayer     RoomUserPermision = "PLAYER"
+)

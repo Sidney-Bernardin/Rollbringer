@@ -1,2 +1,13 @@
+body {
+  margin: 0;
+  padding: 0;
+}
 
+.rooms {
+  list-style-type: none;
+}
+
+.rooms li {
+  display: flex;
+}
 /*# sourceMappingURL=home.css.map */

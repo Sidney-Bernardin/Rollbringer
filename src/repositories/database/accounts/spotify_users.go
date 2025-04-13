@@ -3,11 +3,11 @@ package accounts
 import (
 	"context"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/pkg/errors"
 
 	"rollbringer/src"
 	"rollbringer/src/repositories/database"
-	"rollbringer/src/services/accounts"
 	"rollbringer/src/services/accounts/models"
 )
 
@@ -19,92 +19,73 @@ type spotifyUser struct {
 	ProfilePicture *string `db:"profile_picture"`
 }
 
-/////
+func (db *accountsDatabase) SpotifySignup(ctx context.Context, user *models.User) (*src.UUID, error) {
+	var sessionID = src.NewUUID()
 
-const qInsertUserAndSpotifyUser = `
-	WITH inserted_spoitfy_user AS (
-		INSERT INTO accounts.spotify_users (spotify_id, display_name, email, profile_picture)
-		VALUES ($4, $5, $6, $7)
-	)
-	INSERT INTO accounts.users (id, spotify_id, username, profile_picture)
-	VALUES ($1, $4, $2, $3)`
+	err := db.Transaction(ctx, func(tx pgx.Tx) error {
 
-func (db *accountsDatabase) SpotifySignup(ctx context.Context, user *models.User) (sessionID *src.UUID, err error) {
-	err = db.Transaction(ctx, func(db *database.Database) error {
-		tx := &accountsDatabase{Database: db}
-
-		// Insert the user and user spotify-user.
-		err = tx.Insert(ctx, nil, qInsertUserAndSpotifyUser,
-			user.UserID, user.Username, user.ProfilePicture,
+		// Insert the user and it's spotify-user.
+		err := database.Insert(ctx, tx, `
+			WITH inserted_spotify_user AS (
+				INSERT INTO accounts.spotify_users (spotify_id, display_name, email, profile_picture)
+				VALUES ($4, $5, $6, $7)
+			)
+			INSERT INTO accounts.users (id, spotify_id, username, profile_picture)
+			VALUES ($1, $4, $2, $3)
+		`,
+			user.ID, user.Username, user.ProfilePicture,
 			user.SpotifyUser.SpotifyID, user.SpotifyUser.DisplayName, user.SpotifyUser.Email, user.SpotifyUser.ProfilePicture)
 		if err != nil {
-			if errors.Is(err, src.ErrEntityConflict) {
-				return &src.ExternalError{
-					Type:        accounts.ExternalErrorTypeProviderAlreadyLinked,
-					Description: "The Spotify account is already linked with a Rollbringer account.",
-				}
-			}
-
-			return errors.Wrap(err, "cannot insert spotify-user")
+			return errors.Wrap(err, "cannot insert user and spotify-user")
 		}
 
-		// Upsert a new session.
-		sID := src.NewUUID()
-		err = tx.Insert(ctx, nil, qUspertSession,
-			sID, user.UserID, models.NewCSRFToken())
-		if err != nil {
-			return errors.Wrap(err, "cannot upsert session")
-		}
-
-		sessionID = &sID
-		return nil
+		// Upsert a new session for the user.
+		err = database.Insert(ctx, tx, `
+			INSERT INTO accounts.sessions (id, user_id, csrf_token)
+			VALUES ($1, $2, $3)
+			ON CONFLICT (user_id) DO UPDATE SET
+				id = EXCLUDED.id,
+				csrf_token = EXCLUDED.csrf_token
+		`,
+			sessionID, user.ID, models.NewCSRFToken())
+		return errors.Wrap(err, "cannot upsert session")
 	})
 
-	return sessionID, errors.Wrap(err, "transaction failed")
+	return &sessionID, errors.Wrap(err, "transaction failed")
 }
 
-/////
-
-const (
-	qUpdateSpotifyUserBySpotifyID = `
-		UPDATE accounts.spotify_users 
-		SET display_name = $2, email = $3, profile_picture = $4
-		WHERE spotify_id = $1`
-
-	qSelectUserBySpotifyID = `
-		SELECT users.id FROM accounts.users
-		WHERE users.spotify_id = $1`
-)
-
 func (db *accountsDatabase) SpotifySignin(ctx context.Context, spotifyUser *models.SpotifyUser) (*src.UUID, error) {
+	var sessionID = src.NewUUID()
 
 	// Update the spotify-user.
-	err := db.Update(ctx, nil, qUpdateSpotifyUserBySpotifyID,
+	err := database.Update(ctx, db.Tx, `
+		UPDATE accounts.spotify_users 
+			SET display_name = $2, email = $3, profile_picture = $4
+			WHERE spotify_id = $1
+	`,
 		spotifyUser.SpotifyID, spotifyUser.DisplayName, spotifyUser.Email, spotifyUser.ProfilePicture)
 	if err != nil {
-		if errors.Is(err, src.ErrNoEntitiesEffected) {
-			return nil, &src.ExternalError{
-				Type:        accounts.ExternalErrorTypeProviderNotLinked,
-				Description: "The Spotify account is not linked with a Rollbringer account.",
-			}
-		}
-
 		return nil, errors.Wrap(err, "cannot update spotify-user by ID")
 	}
 
-	// Get the user.
-	var u user
-	if err = db.SelectOne(ctx, &u, qSelectUserBySpotifyID, spotifyUser.SpotifyID); err != nil {
+	// Get spotify-user's user.
+	user, err := database.Get[userRow](ctx, db.Tx, `
+		SELECT users.id AS "users.id"
+		FROM accounts.users
+		WHERE users.spotify_id = $1
+	`, spotifyUser.SpotifyID)
+	if err != nil {
 		return nil, errors.Wrap(err, "cannot select user by spotify-ID")
 	}
 
-	// Upsert a new session.
-	sessionID := src.NewUUID()
-	err = db.Insert(ctx, nil, qUspertSession,
-		sessionID, u.ID, models.NewCSRFToken())
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot upsert session")
-	}
-
-	return &sessionID, nil
+	// Upsert a new session for the user.
+	err = database.Insert(ctx, db.Tx, `
+		INSERT INTO accounts.sessions (id, user_id, csrf_token)
+		VALUES ($1, $2, $3)
+		ON CONFLICT (user_id) DO UPDATE SET
+			id = EXCLUDED.id,
+			csrf_token = EXCLUDED.csrf_token
+	`,
+		sessionID, user.ID, models.NewCSRFToken())
+	return &sessionID, errors.Wrap(err, "cannot upsert session")
 }

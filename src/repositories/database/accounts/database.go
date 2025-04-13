@@ -1,7 +1,7 @@
 package accounts
 
 import (
-	"embed"
+	"context"
 
 	"github.com/pkg/errors"
 
@@ -10,20 +10,15 @@ import (
 	"rollbringer/src/services/accounts"
 )
 
-//go:embed migrations/*.sql
-var migrations embed.FS
-
 type accountsDatabase struct {
 	*database.Database
 }
 
-func NewDatabase(config *src.Config) (accounts.Database, error) {
-	database, err := database.NewDatabase(config.PostgresAccountsURL, &migrations)
+func NewDatabase(ctx context.Context, config *src.Config) (accounts.Database, error) {
+	db, err := database.NewDatabase(ctx, config.PostgresAccountsURL)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot create database")
 	}
 
-	return &accountsDatabase{
-		Database: database,
-	}, nil
+	return &accountsDatabase{db}, nil
 }

@@ -1,12 +1,15 @@
 package views
 
 import (
-	"fmt"
-
-	"rollbringer/src/services/play/models"
+	accountsModels "rollbringer/src/services/accounts/models"
+	playModels "rollbringer/src/services/play/models"
 )
 
-templ RoomCard(room *models.Room) {
-	<h1>{ string(room.Name) }</h1>
-	<p>{ fmt.Sprint(room.Users) }</p>
+templ RoomCard(room *playModels.Room, users []*accountsModels.User) {
+	<li>
+		<a href={ templ.URL("/play?r=" + string(room.Name)) }>{ string(room.Name) }</a>
+		for _, user := range users {
+			<img src={ user.ProfilePicture } alt={ string(user.Username) } referrerpolicy="no-referrer"/>
+		}
+	</li>
 }

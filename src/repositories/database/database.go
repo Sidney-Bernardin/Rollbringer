@@ -8,29 +8,39 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
-	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 
 	"rollbringer/src"
 )
 
+//go:embed Migrations/*.sql
+var migrations embed.FS
+
 type Database struct {
-	DB *sqlx.DB
-	TX sqlx.ExtContext
+	Pool *pgxpool.Pool
+	Tx   Transaction
 }
 
-func NewDatabase(dbURL string, migrations *embed.FS) (*Database, error) {
+type Transaction interface {
+	Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error)
+	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+}
+
+func NewDatabase(ctx context.Context, dbURL string) (*Database, error) {
 
 	// Connect to Postgres.
-	db, err := sqlx.Connect("pgx", dbURL)
+	pool, err := pgxpool.New(ctx, dbURL)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot connect to Postgres server")
 	}
 
 	// Create migration source.
-	migrationSrc, err := iofs.New(migrations, "migrations")
+	migrationSrc, err := iofs.New(migrations, "Migrations")
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot create migration source")
 	}
@@ -46,41 +56,34 @@ func NewDatabase(dbURL string, migrations *embed.FS) (*Database, error) {
 		return nil, errors.Wrap(err, "cannot migrate")
 	}
 
-	return &Database{db, db}, nil
+	return &Database{pool, pool}, nil
 }
 
-func (db *Database) Close() error {
-	err := db.DB.Close()
-	return errors.Wrap(err, "cannot close database")
+func (db *Database) Close() {
+	db.Pool.Reset()
 }
 
-func (db *Database) Transaction(ctx context.Context, txFunc func(txDB *Database) error) error {
+func (db *Database) Transaction(ctx context.Context, txFunc func(tx pgx.Tx) error) error {
 
 	// Begin transaction.
-	tx, err := db.DB.BeginTxx(ctx, nil)
+	tx, err := db.Pool.Begin(ctx)
 	if err != nil {
 		return errors.Wrap(err, "cannot begin transaction")
 	}
-	defer tx.Rollback()
+	defer tx.Rollback(ctx)
 
 	// Do transaction callback.
-	if err := txFunc(&Database{TX: tx}); err != nil {
+	if err := txFunc(tx); err != nil {
 		return errors.Wrap(err, "transaction failed")
 	}
 
 	// Commit transaction.
-	err = tx.Commit()
+	err = tx.Commit(ctx)
 	return errors.Wrap(err, "cannot commit transaction")
 }
 
-func (db *Database) Insert(ctx context.Context, view any, query string, args ...any) (err error) {
-	if view == nil {
-		_, err = db.TX.ExecContext(ctx, query, args...)
-	} else {
-		err = sqlx.GetContext(ctx, db.TX, view, query, args...)
-	}
-
-	if err != nil {
+func Insert(ctx context.Context, tx Transaction, query string, args ...any) error {
+	if _, err := tx.Exec(ctx, query, args...); err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == "23505" {
@@ -88,45 +91,65 @@ func (db *Database) Insert(ctx context.Context, view any, query string, args ...
 			}
 		}
 
-		return errors.Wrap(err, "cannot insert row")
+		return errors.Wrap(err, "cannot insert")
 	}
 
 	return nil
 }
 
-func (db *Database) SelectOne(ctx context.Context, view any, query string, args ...any) error {
-	if err := sqlx.GetContext(ctx, db.TX, view, query, args...); err != nil {
+func Get[T any](ctx context.Context, tx Transaction, query string, args ...any) (*T, error) {
+	rows, err := tx.Query(ctx, query, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot query")
+	}
+
+	res, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByNameLax[T])
+	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return src.ErrEntityNotFound
+			return nil, src.ErrEntityNotFound
 		}
 
-		return errors.Wrap(err, "cannot get row")
+		return nil, errors.Wrap(err, "cannot get row")
 	}
 
-	return nil
+	return &res, nil
 }
 
-func (db *Database) SelectMany(ctx context.Context, view any, query string, args ...any) error {
-	if err := sqlx.SelectContext(ctx, db.TX, view, query, args...); err != nil {
-		return errors.Wrap(err, "cannot get rows")
+func Gets[T any](ctx context.Context, tx Transaction, query string, args ...any) ([]*T, error) {
+	rows, err := tx.Query(ctx, query, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot query")
 	}
-	return nil
+
+	res, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByNameLax[T])
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, src.ErrEntityNotFound
+		}
+
+		return nil, errors.Wrap(err, "cannot get rows")
+	}
+
+	return res, nil
 }
 
-func (db *Database) Update(ctx context.Context, view any, query string, args ...any) error {
-	result, err := db.TX.ExecContext(ctx, query, args...)
+func Update(ctx context.Context, tx Transaction, query string, args ...any) error {
+	result, err := tx.Exec(ctx, query, args...)
 	if err != nil {
-		return errors.Wrap(err, "cannot update row")
+		return errors.Wrap(err, "cannot update")
 	}
 
-	affected, err := result.RowsAffected()
-	if err != nil {
-		return errors.Wrap(err, "cannot get affected rows")
-	}
-
-	if affected <= 0 {
+	if result.RowsAffected() < 1 {
 		return src.ErrNoEntitiesEffected
 	}
 
 	return nil
+}
+
+func Domains[R interface{ Domain() D }, D any](rows []R) []D {
+	ret := make([]D, len(rows))
+	for i, row := range rows {
+		ret[i] = row.Domain()
+	}
+	return ret
 }

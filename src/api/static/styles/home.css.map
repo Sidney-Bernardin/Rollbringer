@@ -1,1 +1,1 @@
-{"mappings":"","sources":[],"sourcesContent":[],"names":[],"version":3,"file":"home.css.map","sourceRoot":"../../../../"}
+{"mappings":"AAAA;;;;;AAKA;;;;AAGE","sources":["web/styles/home.scss"],"sourcesContent":["body {\n  margin: 0;\n  padding: 0;\n}\n\n.rooms {\n  list-style-type: none;\n\n  li {\n    display: flex;\n  }\n}\n"],"names":[],"version":3,"file":"home.css.map","sourceRoot":"../../../../"}

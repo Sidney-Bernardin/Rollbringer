@@ -1,6 +1,6 @@
 [build]
 pre_cmd = ["templ generate -path ./src/api"]
 cmd = 'go build -o ./tmp/main ./cmd'
-include_ext = ["go", "templ"]
-exclude_dir = ["Docker", "tmp", "web", "node_modules"]
+include_ext = ["go", "templ", "js", "css"]
+exclude_dir = ["Docker", "tmp", "node_modules"]
 exclude_regex = [".*_templ.go"]

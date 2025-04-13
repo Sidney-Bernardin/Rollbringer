@@ -4,86 +4,69 @@ import (
 	"context"
 
 	"rollbringer/src"
+	"rollbringer/src/repositories/database"
 	"rollbringer/src/services/accounts/models"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
 
-type session struct {
-	ID uuid.UUID `db:"id"`
+type sessionRow struct {
+	ID uuid.UUID `db:"sessions.id"`
 
-	UserID uuid.UUID `db:"user_id"`
-	User   *user     `db:"user"`
+	UserID uuid.UUID `db:"sessions.user_id"`
+	userRow
 
-	CSRFToken string `db:"csrf_token"`
+	CSRFToken string `db:"sessions.csrf_token"`
 }
 
-func (s *session) domain() *models.Session {
+func (r *sessionRow) Domain() *models.Session {
+	if r == nil {
+		return nil
+	}
+
 	return &models.Session{
-		SessionID: src.UUID(s.ID),
-		UserID:    src.UUID(s.UserID),
-		CSRFToken: models.CSRFToken(s.CSRFToken),
-		User: &models.User{
-			UserID:    src.UUID(s.User.ID),
-			GoogleID:  s.User.GoogleID,
-			SpotifyID: s.User.SpotifyID,
-			Username:  models.Username(s.User.Username),
-		},
+		ID:        src.UUID(r.ID),
+		UserID:    src.UUID(r.UserID),
+		User:      r.userRow.Domain(),
+		CSRFToken: models.CSRFToken(r.CSRFToken),
 	}
 }
-
-const qUspertSession = `
-	INSERT INTO accounts.sessions (id, user_id, csrf_token)
-	VALUES ($1, $2, $3)
-	ON CONFLICT (user_id) DO UPDATE SET
-		id = EXCLUDED.id,
-		csrf_token = EXCLUDED.csrf_token`
-
-/////
-
-const (
-	qSelectSessionBySessionID = `
-		SELECT 
-			sessions.id, sessions.user_id, sessions.csrf_token,
-			users.id AS "user.id",
-			users.google_id AS "user.google_id",
-			users.spotify_id AS "user.spotify_id",
-			users.username AS "user.username",
-			users.profile_picture AS "user.profile_picture"
-		FROM accounts.sessions
-		LEFT JOIN accounts.users ON sessions.user_id = users.id
-		WHERE sessions.id = $1`
-
-	qSelectSessionBySessionIDAndCSRFToken = `
-		SELECT
-			sessions.id, sessions.user_id, sessions.csrf_token,
-			users.id AS "user.id",
-			users.google_id AS "user.google_id",
-			users.spotify_id AS "user.spotify_id",
-			users.username AS "user.username",
-			users.profile_picture AS "user.profile_picture"
-		FROM accounts.sessions
-		LEFT JOIN accounts.users ON sessions.user_id = users.id
-		WHERE sessions.id = $1 AND sessions.csrf_token = $2`
-)
 
 func (db *accountsDatabase) GetSessionByID(ctx context.Context, sessionID src.UUID) (*models.Session, error) {
+	session, err := database.Get[sessionRow](ctx, db.Tx, `
+		SELECT 
+			sessions.id AS "sessions.id",
+			sessions.user_id AS "sessions.user_id",
+			sessions.csrf_token AS "sessions.csrf_token",
+			users.id AS "users.id",
+			users.google_id AS "users.google_id",
+			users.spotify_id AS "users.spotify_id",
+			users.username AS "users.username",
+			users.profile_picture AS "users.profile_picture"
+		FROM accounts.sessions
+		LEFT JOIN accounts.users ON sessions.user_id = users.id
+		WHERE sessions.id = $1
+	`, sessionID)
 
-	var s session
-	if err := db.SelectOne(ctx, &s, qSelectSessionBySessionID, sessionID); err != nil {
-		return nil, errors.Wrap(err, "cannot select session by ID")
-	}
-
-	return s.domain(), nil
+	return session.Domain(), errors.Wrap(err, "cannot select session by ID")
 }
 
 func (db *accountsDatabase) GetSessionByIDAndCSRFToken(ctx context.Context, sessionID src.UUID, csrfToken models.CSRFToken) (*models.Session, error) {
+	session, err := database.Get[sessionRow](ctx, db.Tx, `
+		SELECT
+			sessions.id AS "sessions.id",
+			sessions.user_id AS "sessions.user_id",
+			sessions.csrf_token AS "sessions.csrf_token",
+			users.id AS "users.id",
+			users.google_id AS "users.google_id",
+			users.spotify_id AS "users.spotify_id",
+			users.username AS "users.username",
+			users.profile_picture AS "users.profile_picture"
+		FROM accounts.sessions
+		LEFT JOIN accounts.users ON sessions.user_id = users.id
+		WHERE sessions.id = $1 AND sessions.csrf_token = $2
+	`, sessionID, csrfToken)
 
-	var s session
-	if err := db.SelectOne(ctx, &s, qSelectSessionBySessionIDAndCSRFToken, sessionID, csrfToken); err != nil {
-		return nil, errors.Wrap(err, "cannot select session by ID")
-	}
-
-	return s.domain(), nil
+	return session.Domain(), errors.Wrap(err, "cannot select session by ID and CSRF-token")
 }
