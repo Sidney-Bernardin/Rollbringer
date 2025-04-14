@@ -1,12 +1,27 @@
-body {
+* {
   margin: 0;
   padding: 0;
 }
 
 .rooms {
+  display: flex;
+  flex-direction: column;
   list-style-type: none;
 
   li {
+    position: relative;
     display: flex;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    align-items: center;
+
+    &:hover {
+      backdrop-filter: brightness(0.75);
+    }
+
+    img {
+      height: 2rem;
+      border-radius: 50%;
+    }
   }
 }

@@ -38,6 +38,7 @@ templ Home(page *HomeData) {
 				<a href="/login/spotify?login-type=signin">Sign-In with Spotify</a>
 			} else {
 				<p>{ string(page.Session.User.Username) }</p>
+				<hr/>
 				<h2>Rooms</h2>
 				<ul class="rooms">
 					for _, room := range page.Rooms {

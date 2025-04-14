@@ -9,7 +9,7 @@ templ RoomCard(room *playModels.Room, users []*accountsModels.User) {
 	<li>
 		<a href={ templ.URL("/play?r=" + string(room.Name)) }>{ string(room.Name) }</a>
 		for _, user := range users {
-			<img src={ user.ProfilePicture } alt={ string(user.Username) } referrerpolicy="no-referrer"/>
+			<img src={ user.ProfilePicture } title={ string(user.Username) } referrerpolicy="no-referrer"/>
 		}
 	</li>
 }
