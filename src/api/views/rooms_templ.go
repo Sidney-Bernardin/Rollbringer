@@ -38,7 +38,7 @@ func RoomCard(room *playModels.Room, users []*accountsModels.User) templ.Compone
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var2 templ.SafeURL = templ.URL("/play?r=" + string(room.Name))
+		var templ_7745c5c3_Var2 templ.SafeURL = templ.URL("/play?r=" + room.ID.String())
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var2)))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -50,7 +50,7 @@ func RoomCard(room *playModels.Room, users []*accountsModels.User) templ.Compone
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(string(room.Name))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/rooms.templ`, Line: 10, Col: 75}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/rooms.templ`, Line: 10, Col: 74}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {

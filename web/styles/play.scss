@@ -1,0 +1,63 @@
+body {
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+.layout {
+  display: grid;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  grid-template-rows: auto 8px 2fr 8px 1fr;
+  grid-template-columns: 2fr 8px 2fr 8px 100px;
+  grid-template-areas:
+    "  nav  nav  nav     nav  nav "
+    "  g1   g1    g1     g1   g1  "
+    "viewer g2  boards   g3 social"
+    "viewer g2    g4     g3 social"
+    "viewer g2 materials g3 social";
+
+  .nav-bar {
+    grid-area: nav;
+  }
+
+  .viewer {
+    grid-area: viewer;
+  }
+
+  .boards {
+    grid-area: boards;
+  }
+
+  .materials {
+    grid-area: materials;
+  }
+
+  .social {
+    grid-area: social;
+  }
+
+  .gutter {
+    cursor: pointer;
+    background: lightgray;
+
+    &.g1 {
+      cursor: unset;
+      grid-area: g1;
+    }
+
+    &.g2 {
+      grid-area: g2;
+    }
+
+    &.g3 {
+      grid-area: g3;
+    }
+
+    &.g4 {
+      grid-area: g4;
+    }
+  }
+}

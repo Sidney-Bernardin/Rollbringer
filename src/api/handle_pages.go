@@ -55,10 +55,24 @@ func (svr *server) handlePageHome() http.Handler {
 
 func (svr *server) handlePagePlay() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var session, _ = r.Context().Value("session").(*accountModels.Session)
 
-		svr.respond(w, r, http.StatusOK, pages.Play(&pages.PlayData{
-			Session: session,
-		}))
+		var (
+			session, _ = r.Context().Value("session").(*accountModels.Session)
+			page       = &pages.PlayData{Session: session}
+		)
+
+		roomID, err := src.ParseUUID(r.URL.Query().Get("r"))
+		if err != nil {
+			svr.err(w, r, errors.Wrap(err, "cannot parse room-ID"))
+			return
+		}
+
+		page.Room, err = svr.playDB.GetRoomByRoomID(r.Context(), roomID)
+		if err != nil {
+			svr.err(w, r, errors.Wrap(err, "cannot get room by room-ID"))
+			return
+		}
+
+		svr.respond(w, r, http.StatusOK, pages.Play(page))
 	})
 }

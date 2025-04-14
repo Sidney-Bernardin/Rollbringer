@@ -7,7 +7,7 @@ import (
 
 templ RoomCard(room *playModels.Room, users []*accountsModels.User) {
 	<li>
-		<a href={ templ.URL("/play?r=" + string(room.Name)) }>{ string(room.Name) }</a>
+		<a href={ templ.URL("/play?r=" + room.ID.String()) }>{ string(room.Name) }</a>
 		for _, user := range users {
 			<img src={ user.ProfilePicture } title={ string(user.Username) } referrerpolicy="no-referrer"/>
 		}

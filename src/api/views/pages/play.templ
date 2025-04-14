@@ -1,9 +1,11 @@
 package pages
 
-import "rollbringer/src/services/accounts/models"
+import accountsModels "rollbringer/src/services/accounts/models"
+import playModels "rollbringer/src/services/play/models"
 
 type PlayData struct {
-	Session *models.Session
+	Session *accountsModels.Session
+	Room    *playModels.Room
 }
 
 templ Play(page *PlayData) {
@@ -11,14 +13,31 @@ templ Play(page *PlayData) {
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-			<title>Play | Rollbringer</title>
+			<title>{ string(page.Room.Name) } | Rollbringer</title>
 			<link rel="icon" type="image/x-icon" href="/static/favicon.png"/>
 			<link rel="stylesheet" type="text/css" href="/static/styles/play.css"/>
 			<script src="/static/play.js" defer></script>
 		</head>
-		<body>
-			<h1>Play</h1>
-			<p>{ string(page.Session.User.Username) }</p>
+		<body
+			if page.Session != nil {
+				hx-headers={ templ.JSONString(map[string]any{"CSRF-Token": page.Session.CSRFToken}) }
+			}
+		>
+			<div class="layout">
+				<div class="nav-bar">
+					<a href="/">Home</a>
+				</div>
+				//
+				<div class="document-viewer"></div>
+				<div class="boards"></div>
+				<div class="materials"></div>
+				<div class="social"></div>
+				//
+				<span class="gutter g1"></span>
+				<span class="gutter g2"></span>
+				<span class="gutter g3"></span>
+				<span class="gutter g4"></span>
+			</div>
 		</body>
 	</html>
 }

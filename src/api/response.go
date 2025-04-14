@@ -48,6 +48,7 @@ var errCodes = map[src.ExternalErrorType]int{
 
 	src.ExternalErrorTypeInternalError: http.StatusInternalServerError,
 	src.ExternalErrorTypeUnauthorized:  http.StatusUnauthorized,
+	src.ExternalErrorTypeInvalidUUID:   http.StatusUnprocessableEntity,
 
 	accountModels.ExternalErrorTypeInvalidUsername:  http.StatusBadRequest,
 	accounts.ExternalErrorTypeProviderNotLinked:     http.StatusBadRequest,

@@ -1,0 +1,62 @@
+body {
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+.layout {
+  box-sizing: border-box;
+  grid-template: "nav nav nav nav nav"
+                 "g1 g1 g1 g1 g1" 8px
+                 "viewer g2 boards g3 social" 2fr
+                 "viewer g2 g4 g3 social" 8px
+                 "viewer g2 materials g3 social" 1fr
+                 / 2fr 8px 2fr 8px 100px;
+  width: 100%;
+  height: 100%;
+  display: grid;
+}
+
+.layout .nav-bar {
+  grid-area: nav;
+}
+
+.layout .viewer {
+  grid-area: viewer;
+}
+
+.layout .boards {
+  grid-area: boards;
+}
+
+.layout .materials {
+  grid-area: materials;
+}
+
+.layout .social {
+  grid-area: social;
+}
+
+.layout .gutter {
+  cursor: pointer;
+  background: #d3d3d3;
+}
+
+.layout .gutter.g1 {
+  cursor: unset;
+  grid-area: g1;
+}
+
+.layout .gutter.g2 {
+  grid-area: g2;
+}
+
+.layout .gutter.g3 {
+  grid-area: g3;
+}
+
+.layout .gutter.g4 {
+  grid-area: g4;
+}
+/*# sourceMappingURL=play.css.map */
