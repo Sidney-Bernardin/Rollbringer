@@ -1,12 +1,21 @@
 services:
 
   database:
-    container_name: database
-    image: postgres:latest
+    container_name: "database"
+    image: "postgres:latest"
     environment:
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: "password"
     volumes:
-      - ./tmp/pg-data:/var/lib/postgresql/data
-      - ./Docker/database-entrypoint:/docker-entrypoint-initdb.d
+      - "./tmp/pg-data:/var/lib/postgresql/data"
+      - "./Docker/database-entrypoint:/docker-entrypoint-initdb.d"
     ports:
-      - 5432:5432
+      - "5432:5432"
+
+  boker:
+    container_name: "broker"
+    image: "nats:latest"
+    volumes:
+      - "./tmp/nats:/tmp/nats"
+    ports:
+      - "4222:4222"
+    command: "-js"

@@ -1,11 +1,14 @@
 package pages
 
-import accountsModels "rollbringer/src/services/accounts/models"
-import playModels "rollbringer/src/services/play/models"
+import (
+	account_models "rollbringer/src/services/accounts/models"
+	play_models "rollbringer/src/services/play/models"
+)
 
 type PlayData struct {
-	Session *accountsModels.Session
-	Room    *playModels.Room
+	Session   *account_models.Session
+	Room      *play_models.Room
+	RoomUsers []*account_models.User
 }
 
 templ Play(page *PlayData) {
@@ -19,6 +22,8 @@ templ Play(page *PlayData) {
 			<script src="/static/play.js" defer></script>
 		</head>
 		<body
+			hx-ext="ws"
+			ws-connect={ "/play/ws?r=" + page.Room.ID.String() }
 			if page.Session != nil {
 				hx-headers={ templ.JSONString(map[string]any{"CSRF-Token": page.Session.CSRFToken}) }
 			}
@@ -31,7 +36,33 @@ templ Play(page *PlayData) {
 				<div class="document-viewer"></div>
 				<div class="boards"></div>
 				<div class="materials"></div>
-				<div class="social"></div>
+				//
+				// --- Social ---//
+				<div class="social">
+					//
+					// --- Users --- //
+					<div class="users">
+						for _, user := range page.RoomUsers {
+							<div class="user">
+								<img src={ user.ProfilePicture } title={ string(user.Username) } referrerpolicy="no-referrer"/>
+								<p>{ string(user.Username) }</p>
+							</div>
+						}
+					</div>
+					//
+					// --- Chat --- //
+					<div class="chat">
+						<div class="messages">
+							<div class="inner"></div>
+						</div>
+						//
+						<form ws-send>
+							<input type="hidden" name="operation" value="chat"/>
+							<input type="text" name="message" placeholder="Hello, World!"/>
+							<button>Send</button>
+						</form>
+					</div>
+				</div>
 				//
 				<span class="gutter g1"></span>
 				<span class="gutter g2"></span>

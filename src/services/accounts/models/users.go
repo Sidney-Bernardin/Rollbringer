@@ -1,9 +1,8 @@
 package models
 
 import (
+	"errors"
 	"rollbringer/src"
-
-	"github.com/pkg/errors"
 )
 
 type User struct {

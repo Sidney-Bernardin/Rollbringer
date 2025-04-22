@@ -2,51 +2,30 @@ package play
 
 import (
 	"context"
-	"fmt"
 
 	"rollbringer/src"
+	"rollbringer/src/services"
 	"rollbringer/src/services/play/models"
-
-	"github.com/pkg/errors"
 )
 
-type Service interface {
-	CreateRoom(context.Context, *models.Room) error
-}
+type (
+	Database interface {
+		CreateRoom(ctx context.Context, room *models.Room) error
+		GetRoomByRoomID(ctx context.Context, roomID src.UUID) (*models.Room, error)
+		GetRoomsByUserID(ctx context.Context, roomID src.UUID) ([]*models.Room, error)
+		RoomExists(ctx context.Context, roomID src.UUID) (bool, error)
+	}
+)
+
+type Service interface{}
 
 type service struct {
 	config *src.Config
 
-	db  Database
-	bkr Broker
-
-	canvasesUsed chan *models.EventCanvasUsed
+	broker   services.Broker
+	database Database
 }
 
-func NewService(config *src.Config, db Database, bkr Broker) Service {
-	return &service{
-		config:       config,
-		db:           db,
-		bkr:          bkr,
-		canvasesUsed: make(chan *models.EventCanvasUsed),
-	}
-}
-
-func (svc *service) Run(ctx context.Context) error {
-	return nil
-}
-
-func (svc *service) CreateRoom(ctx context.Context, room *models.Room) error {
-	if len(room.Users) < 1 {
-		return errors.New("room must have at least 1 user")
-	}
-
-	for i, user := range room.Users {
-		if len(user.Permisions) < 1 {
-			return errors.New(fmt.Sprintf("room user[%d] must have at least 1 permision", i))
-		}
-	}
-
-	err := svc.db.CreateRoom(ctx, room)
-	return errors.Wrap(err, "database cannot create room")
+func NewService(config *src.Config, broker services.Broker, database Database) Service {
+	return &service{config, broker, database}
 }

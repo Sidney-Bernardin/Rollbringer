@@ -14,17 +14,19 @@ import (
 	"github.com/pkg/errors"
 )
 
-var (
-	ErrEntityConflict     = errors.New("entity conflict")
-	ErrEntityNotFound     = errors.New("entity not found")
-	ErrNoEntitiesEffected = errors.New("no entities effected")
-
+const (
 	LevelTrace slog.Level = -8
 	LevelDebug slog.Level = -4
 	LevelInfo  slog.Level = 0
 	LevelWarn  slog.Level = 4
 	LevelError slog.Level = 8
 	LevelFatal slog.Level = 12
+)
+
+var (
+	ErrEntityConflict     = errors.New("entity conflict")
+	ErrEntityNotFound     = errors.New("entity not found")
+	ErrNoEntitiesEffected = errors.New("no entities effected")
 )
 
 type Config struct {
@@ -46,6 +48,8 @@ type Config struct {
 
 	PostgresAccountsURL string `required:"true" split_words:"true"`
 	PostgresPlayURL     string `required:"true" split_words:"true"`
+
+	NatsURL string `required:"true" split_words:"true"`
 }
 
 func NewConfig() (*Config, error) {

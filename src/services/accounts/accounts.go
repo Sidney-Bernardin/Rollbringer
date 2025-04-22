@@ -4,14 +4,45 @@ import (
 	"context"
 
 	"rollbringer/src"
+	"rollbringer/src/services"
 	"rollbringer/src/services/accounts/models"
-
-	"github.com/pkg/errors"
 )
 
 const (
 	ExternalErrorTypeProviderNotLinked     src.ExternalErrorType = "provider_not_linked"
 	ExternalErrorTypeProviderAlreadyLinked src.ExternalErrorType = "provider_already_linked"
+)
+
+type (
+	Database interface {
+		DatabaseCommands
+		DatabaseQueries
+	}
+
+	DatabaseCommands interface {
+		GoogleSignup(ctx context.Context, user *models.User) (sessionID *src.UUID, err error)
+		GoogleSignin(ctx context.Context, googleUser *models.GoogleUser) (sessionID *src.UUID, err error)
+
+		SpotifySignup(ctx context.Context, user *models.User) (sessionID *src.UUID, err error)
+		SpotifySignin(ctx context.Context, spotifUser *models.SpotifyUser) (sessionID *src.UUID, err error)
+	}
+
+	DatabaseQueries interface {
+		GetSessionByID(ctx context.Context, sessionID src.UUID) (*models.Session, error)
+		GetSessionByIDAndCSRFToken(ctx context.Context, sessionID src.UUID, csrfToken models.CSRFToken) (*models.Session, error)
+		GetUsersByRoomID(ctx context.Context, roomID src.UUID) ([]*models.User, error)
+		GetUsersByRoomIDs(ctx context.Context, roomIDs ...src.UUID) (map[src.UUID][]*models.User, error)
+	}
+
+	Google interface {
+		ConsentURL() (consentURL string, state string)
+		GetGoogleUser(ctx context.Context, oauthCode string) (*models.GoogleUser, error)
+	}
+
+	Spotify interface {
+		ConsentURL() (consentURL string, state string)
+		GetSpotifyUser(ctx context.Context, oauthCode string) (*models.SpotifyUser, error)
+	}
 )
 
 type Service interface {
@@ -23,108 +54,12 @@ type Service interface {
 type service struct {
 	config *src.Config
 
-	db      Database
-	google  Google
-	spotify Spotify
+	broker   services.Broker
+	database Database
+	google   Google
+	spotify  Spotify
 }
 
-func NewService(config *src.Config, db Database, google Google, spotify Spotify) Service {
-	return &service{config, db, google, spotify}
-}
-
-func (svc *service) Run(ctx context.Context) error {
-	return nil
-}
-
-func (svc *service) GoogleLogin(ctx context.Context, oauthCode string, newAccount bool) (*src.UUID, error) {
-
-	// Get the google-user from Google.
-	googleUser, err := svc.google.GetGoogleUser(ctx, oauthCode)
-	if err != nil {
-		return nil, errors.Wrap(err, "google cannot get google-user")
-	}
-
-	if !newAccount {
-
-		// Signin.
-		sessionID, err := svc.db.GoogleSignin(ctx, googleUser)
-		if errors.Is(err, src.ErrNoEntitiesEffected) {
-			return nil, &src.ExternalError{Type: ExternalErrorTypeProviderNotLinked, Msg: "The Google account is not linked with a Rollbringer account."}
-		}
-
-		return sessionID, errors.Wrap(err, "database cannot signin")
-	}
-
-	// Create a user.
-	user, err := models.NewUser(googleUser, nil)
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot create user")
-	}
-
-	// Signup.
-	sessionID, err := svc.db.GoogleSignup(ctx, user)
-	if errors.Is(err, src.ErrEntityConflict) {
-		return nil, &src.ExternalError{Type: ExternalErrorTypeProviderNotLinked, Msg: "The Google account is already linked with a Rollbringer account."}
-	}
-
-	return sessionID, errors.Wrap(err, "database cannot signup")
-}
-
-func (svc *service) SpotifyLogin(ctx context.Context, oauthCode string, newAccount bool) (*src.UUID, error) {
-
-	// Get the spotify-user from Spotify.
-	spotifyUser, err := svc.spotify.GetSpotifyUser(ctx, oauthCode)
-	if err != nil {
-		return nil, errors.Wrap(err, "spotify cannot get spotify-user")
-	}
-
-	if !newAccount {
-
-		// Signin.
-		sessionID, err := svc.db.SpotifySignin(ctx, spotifyUser)
-		if errors.Is(err, src.ErrNoEntitiesEffected) {
-			return nil, &src.ExternalError{Type: ExternalErrorTypeProviderNotLinked, Msg: "The Spotify account is not linked with a Rollbringer account."}
-		}
-		return sessionID, errors.Wrap(err, "database cannot signin")
-	}
-
-	// Create a user.
-	user, err := models.NewUser(nil, spotifyUser)
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot create user")
-	}
-
-	// Signup.
-	sessionID, err := svc.db.SpotifySignup(ctx, user)
-	if errors.Is(err, src.ErrEntityConflict) {
-		return nil, &src.ExternalError{Type: ExternalErrorTypeProviderNotLinked, Msg: "The Google account is already linked with a Rollbringer account."}
-	}
-	return sessionID, errors.Wrap(err, "database cannot signup")
-}
-
-func (svc *service) Auth(ctx context.Context, sessionIDStr string, csrfToken *string) (*models.Session, error) {
-
-	// Parse the sessionID.
-	sessionID, err := src.ParseUUID(sessionIDStr)
-	if err != nil {
-		return nil, nil
-	}
-
-	// Get the session.
-	var session *models.Session
-	if csrfToken == nil {
-		session, err = svc.db.GetSessionByID(ctx, sessionID)
-	} else {
-		session, err = svc.db.GetSessionByIDAndCSRFToken(ctx, sessionID, models.CSRFToken(*csrfToken))
-	}
-
-	if err != nil {
-		if errors.Is(err, src.ErrEntityNotFound) {
-			return nil, nil
-		}
-
-		return nil, errors.Wrap(err, "cannot get session")
-	}
-
-	return session, nil
+func NewService(config *src.Config, broker services.Broker, database Database, google Google, spotify Spotify) Service {
+	return &service{config, broker, database, google, spotify}
 }

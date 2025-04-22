@@ -1,0 +1,15 @@
+package views
+
+import "rollbringer/src/services"
+
+templ ChatMessage(chat *services.EventChat) {
+	<div hx-swap-oob="beforeend:.chat .messages .inner">
+		<div class="message">
+			<img src={ chat.ProfilePicture } title={ string(chat.Username) } referrerpolicy="no-referrer"/>
+			<p>
+				<strong class="username">{ string(chat.Username) }</strong>
+				<strong class="message">{ chat.Message }</strong>
+			</p>
+		</div>
+	</div>
+}

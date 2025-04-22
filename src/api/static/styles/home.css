@@ -14,7 +14,6 @@
   gap: .5rem;
   padding: .5rem;
   display: flex;
-  position: relative;
 }
 
 .rooms li:hover {

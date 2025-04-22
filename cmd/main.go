@@ -9,6 +9,7 @@ import (
 
 	"rollbringer/src"
 	"rollbringer/src/api"
+	"rollbringer/src/repositories/broker"
 	accounts_db "rollbringer/src/repositories/database/accounts"
 	play_db "rollbringer/src/repositories/database/play"
 	"rollbringer/src/repositories/google"
@@ -39,28 +40,40 @@ func main() {
 		return
 	}
 
-	/////
-
-	accountsDB, err := accounts_db.NewDatabase(ctx, config)
+	broker, err := broker.New(ctx, config, log)
 	if err != nil {
-		log.Log(ctx, src.LevelFatal, "Cannot create accounts-database", "err", err.Error())
+		log.Log(ctx, src.LevelFatal, "Cannot create play-broker", "err", err.Error())
 		return
 	}
 
-	playDB, err := play_db.NewDatabase(ctx, config)
+	/////
+
+	accountsDatabase, err := accounts_db.NewDatabase(ctx, config)
 	if err != nil {
-		log.Log(ctx, src.LevelFatal, "Cannot create play-database", "err", err.Error())
+		log.Log(ctx, src.LevelFatal, "Cannot create accounts-database", "err", err.Error())
 		return
 	}
 
 	google := google.New(config)
 	spotify := spotify.New(config)
 
-	svr := api.NewServer(log, config,
-		accounts.NewService(config, accountsDB, google, spotify), accountsDB, google, spotify,
-		play.NewService(config, playDB, nil), playDB)
+	accountsSvc := accounts.NewService(config, broker, accountsDatabase, google, spotify)
 
 	/////
+
+	playDatabase, err := play_db.NewDatabase(ctx, config)
+	if err != nil {
+		log.Log(ctx, src.LevelFatal, "Cannot create play-database", "err", err.Error())
+		return
+	}
+
+	playSvc := play.NewService(config, broker, playDatabase)
+
+	/////
+
+	svr := api.NewServer(log, config, broker,
+		accountsSvc, accountsDatabase, google, spotify,
+		playSvc, playDatabase)
 
 	go func() {
 		log.Log(ctx, src.LevelInfo, "Listening", "address", config.APIAddr)

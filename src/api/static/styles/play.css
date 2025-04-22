@@ -1,8 +1,11 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
 body {
   width: 100%;
   height: 100vh;
-  margin: 0;
-  padding: 0;
 }
 
 .layout {
@@ -12,7 +15,7 @@ body {
                  "viewer g2 boards g3 social" 2fr
                  "viewer g2 g4 g3 social" 8px
                  "viewer g2 materials g3 social" 1fr
-                 / 2fr 8px 2fr 8px 100px;
+                 / 3fr 8px 2fr 8px 1fr;
   width: 100%;
   height: 100%;
   display: grid;
@@ -36,6 +39,74 @@ body {
 
 .layout .social {
   grid-area: social;
+  display: flex;
+}
+
+.layout .social .users {
+  border-right: 2px dotted gray;
+  flex-direction: column;
+  display: flex;
+}
+
+.layout .social .users .user {
+  align-items: center;
+  gap: .5rem;
+  padding: .5rem;
+  display: flex;
+}
+
+.layout .social .users .user:hover {
+  backdrop-filter: brightness(.75);
+}
+
+.layout .social .users .user img {
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+}
+
+.layout .social .chat {
+  flex: 2;
+}
+
+.layout .social .chat .messages {
+  flex-direction: column-reverse;
+  display: flex;
+  overflow-y: auto;
+}
+
+.layout .social .chat .messages .inner {
+  flex-direction: column;
+  display: flex;
+}
+
+.layout .social .chat .messages .inner .message {
+  gap: .5rem;
+  padding: .5rem;
+  display: flex;
+}
+
+.layout .social .chat .messages .inner .message:hover {
+  backdrop-filter: brightness(.75);
+}
+
+.layout .social .chat .messages .inner .message img {
+  border-radius: 2rem;
+  width: 2rem;
+  height: 2rem;
+}
+
+.layout .social .chat .messages .inner .message p {
+  overflow-wrap: anywhere;
+  align-self: center;
+}
+
+.layout .social .chat .messages .inner .message p .username {
+  line-height: 2rem;
+}
+
+.layout .social .chat .messages .inner .message p .message {
+  padding: 0;
 }
 
 .layout .gutter {

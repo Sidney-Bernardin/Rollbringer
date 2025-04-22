@@ -3,10 +3,13 @@ package api
 import (
 	"context"
 	"embed"
+	"encoding/json"
 	"log/slog"
 	"net/http"
+	"reflect"
 
 	"rollbringer/src"
+	"rollbringer/src/services"
 	"rollbringer/src/services/accounts"
 	"rollbringer/src/services/play"
 )
@@ -23,31 +26,33 @@ type server struct {
 
 	log    *slog.Logger
 	config *src.Config
+	broker services.Broker
 
-	accounts   accounts.Service
-	accountsDB accounts.DatabaseQueries
-	google     accounts.Google
-	spotify    accounts.Spotify
+	accounts         accounts.Service
+	accountsDatabase accounts.DatabaseQueries
+	google           accounts.Google
+	spotify          accounts.Spotify
 
-	play   play.Service
-	playDB play.DatabaseQueries
+	play         play.Service
+	playDatabase play.Database
 }
 
 func NewServer(
 	log *slog.Logger,
 	config *src.Config,
+	broker services.Broker,
 	accountsSvc accounts.Service,
 	accountsDB accounts.DatabaseQueries,
 	google accounts.Google,
 	spotify accounts.Spotify,
 	playSvc play.Service,
-	playDB play.DatabaseQueries,
+	playDB play.Database,
 ) *server {
 	svr := &server{
 		&http.Server{
 			Addr: config.APIAddr,
 		},
-		log, config,
+		log, config, broker,
 		accountsSvc, accountsDB, google, spotify,
 		playSvc, playDB,
 	}
@@ -62,6 +67,7 @@ func NewServer(
 
 	r.Handle("GET /", mw(svr.mwAuth(false, false, "/"))(svr.handlePageHome()))
 	r.Handle("GET /play", mw(svr.mwAuth(true, false, "/"))(svr.handlePagePlay()))
+	r.Handle("GET /play/ws", mw(svr.mwAuth(true, false, ""))(svr.handlePagePlayWebSocket()))
 
 	svr.Server.Handler = mw(svr.mwLog)(r)
 	return svr
@@ -69,4 +75,26 @@ func NewServer(
 
 func (api *server) logServerError(ctx context.Context, err error) {
 	api.log.Log(ctx, src.LevelError, "Internal Server Error", "err", err.Error())
+}
+
+func decodeEvent(bEvent []byte, events map[string]any) any {
+	var head struct {
+		Operation string `json:"operation"`
+	}
+
+	if err := json.Unmarshal(bEvent, &head); err != nil {
+		return nil
+	}
+
+	event, ok := events[head.Operation]
+	if !ok {
+		return nil
+	}
+	event = reflect.New(reflect.ValueOf(event).Elem().Type()).Interface()
+
+	if err := json.Unmarshal(bEvent, event); err != nil {
+		return nil
+	}
+
+	return event
 }

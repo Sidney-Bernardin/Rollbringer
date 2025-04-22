@@ -84,3 +84,11 @@ func (db *playDatabase) GetRoomsByUserID(ctx context.Context, userID src.UUID) (
 
 	return database.Domains(rooms), errors.Wrap(err, "cannot select rooms by user-ID")
 }
+
+func (db *playDatabase) RoomExists(ctx context.Context, roomID src.UUID) (exists bool, err error) {
+	err = db.Tx.QueryRow(ctx, `
+		SELECT EXISTS (SELECT * FROM play.rooms WHERE id = $1)
+	`, roomID).Scan(&exists)
+
+	return exists, errors.Wrap(err, "cannot select room by room-ID")
+}

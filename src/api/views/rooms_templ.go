@@ -9,11 +9,11 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	accountsModels "rollbringer/src/services/accounts/models"
-	playModels "rollbringer/src/services/play/models"
+	accounts_models "rollbringer/src/services/accounts/models"
+	play_models "rollbringer/src/services/play/models"
 )
 
-func RoomCard(room *playModels.Room, users []*accountsModels.User) templ.Component {
+func RoomCard(room *play_models.Room, users []*accounts_models.User) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {

@@ -12,14 +12,14 @@ import (
 	"rollbringer/src"
 	"rollbringer/src/api/views"
 
-	accountsModels "rollbringer/src/services/accounts/models"
-	playModels "rollbringer/src/services/play/models"
+	accounts_models "rollbringer/src/services/accounts/models"
+	play_models "rollbringer/src/services/play/models"
 )
 
 type HomeData struct {
-	Session   *accountsModels.Session
-	Rooms     []*playModels.Room
-	RoomUsers map[src.UUID][]*accountsModels.User
+	Session   *accounts_models.Session
+	Rooms     []*play_models.Room
+	RoomUsers map[src.UUID][]*accounts_models.User
 }
 
 func Home(page *HomeData) templ.Component {

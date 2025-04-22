@@ -61,9 +61,9 @@ func (r *usersByRoomRow) Domain() []*models.User {
 }
 
 func (db *accountsDatabase) GetUsersByRoomIDs(ctx context.Context, roomIDs ...src.UUID) (map[src.UUID][]*models.User, error) {
-	var res = map[src.UUID][]*models.User{}
+	var ret = map[src.UUID][]*models.User{}
 	if len(roomIDs) < 1 {
-		return res, nil
+		return ret, nil
 	}
 
 	rows, err := database.Gets[usersByRoomRow](ctx, db.Tx, `
@@ -84,7 +84,28 @@ func (db *accountsDatabase) GetUsersByRoomIDs(ctx context.Context, roomIDs ...sr
 	}
 
 	for _, row := range rows {
-		res[src.UUID(row.RoomID.Bytes)] = row.Domain()
+		ret[src.UUID(row.RoomID.Bytes)] = row.Domain()
 	}
-	return res, nil
+
+	return ret, nil
+}
+
+func (db *accountsDatabase) GetUsersByRoomID(ctx context.Context, roomID src.UUID) ([]*models.User, error) {
+	rows, err := database.Gets[userRow](ctx, db.Tx, `
+		SELECT
+			users.id AS "users.id",
+			users.google_id AS "users.google_id",
+			users.spotify_id AS "users.spotify_id",
+			users.username AS "users.username",
+			users.profile_picture AS "users.profile_picture"
+		FROM accounts.users
+		WHERE EXISTS (
+			SELECT * FROM room_users WHERE users.id = room_users.user_id AND room_users.room_id = $1
+		)
+	`, roomID)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot select users by room-IDs")
+	}
+
+	return database.Domains(rows), nil
 }

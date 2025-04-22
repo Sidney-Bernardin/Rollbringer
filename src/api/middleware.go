@@ -21,8 +21,6 @@ func mw(mm ...middleware) middleware {
 	}
 }
 
-/////
-
 func (svr *server) mwLog(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		svr.log.Log(r.Context(), src.LevelInfo, "New request",
@@ -32,8 +30,6 @@ func (svr *server) mwLog(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
-
-/////
 
 func (svr *server) mwAuth(required, checkCSRF bool, redirectURL string) middleware {
 	return func(next http.Handler) http.Handler {
