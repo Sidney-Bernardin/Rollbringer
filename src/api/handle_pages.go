@@ -74,7 +74,7 @@ func (svr *server) handlePagePlay() http.Handler {
 			return
 		}
 
-		page.Room, err = svr.playDatabase.GetRoomByRoomID(ctx, roomID)
+		page.Room, err = svr.play.JoinRoom(ctx, session.UserID, roomID)
 		if err != nil {
 			svr.err(w, r, errors.Wrap(err, "cannot get room by room-ID"))
 			return
@@ -135,6 +135,7 @@ func (svr *server) handlePagePlayWebSocket() websocket.Handler {
 
 			switch event := decodeEvent(msg, events).(type) {
 			case *services.EventChat:
+				event.RoomID = roomID
 				event.Username = session.User.Username
 				event.ProfilePicture = session.User.ProfilePicture
 

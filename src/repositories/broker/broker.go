@@ -59,7 +59,7 @@ func (b *broker) SubRoom(ctx context.Context, roomID src.UUID, callback func(eve
 
 		// Create consumer.
 		consumer, err := b.chatStream.CreateConsumer(ctx, jetstream.ConsumerConfig{
-			FilterSubject: "rooms.*.chat",
+			FilterSubject: fmt.Sprintf("rooms.%s.chat", roomID),
 		})
 
 		if err != nil {

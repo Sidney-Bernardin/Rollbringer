@@ -53,8 +53,13 @@ func (db *playDatabase) CreateRoom(ctx context.Context, room *models.Room) error
 	return errors.Wrap(err, "cannot create room")
 }
 
-func (db *playDatabase) GetRoomByRoomID(ctx context.Context, roomID src.UUID) (*models.Room, error) {
-	room, err := database.Get[roomRow](ctx, db.Tx, `
+func (db *playDatabase) JoinRoom(ctx context.Context, roomUser *src.RoomUser) (room *models.Room, err error) {
+	row, err := database.Get[roomRow](ctx, db.Tx, `
+		WITH inserted_room_user AS (
+			INSERT INTO room_users (room_id, user_id, permisions)
+			VALUES ($1, $2, $3)
+			ON CONFLICT (room_id, user_id) DO NOTHING
+		)
 		SELECT
 			rooms.id AS "rooms.id",
 			rooms.name AS "rooms.name",
@@ -64,9 +69,9 @@ func (db *playDatabase) GetRoomByRoomID(ctx context.Context, roomID src.UUID) (*
 		LEFT JOIN room_users ON rooms.id = room_users.room_id
 		WHERE rooms.id = $1
 		GROUP BY rooms.id
-	`, roomID)
+	`, roomUser.RoomID, roomUser.UserID, pq.Array(roomUser.Permisions))
 
-	return room.Domain(), errors.Wrap(err, "cannot select room by room-ID")
+	return row.Domain(), errors.Wrap(err, "cannot run query")
 }
 
 func (db *playDatabase) GetRoomsByUserID(ctx context.Context, userID src.UUID) ([]*models.Room, error) {

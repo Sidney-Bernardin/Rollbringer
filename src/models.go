@@ -53,6 +53,7 @@ func (id UUID) String() string {
 /////
 
 type RoomUser struct {
+	RoomID     UUID                `json:"room_id"`
 	UserID     UUID                `json:"user_id"`
 	Permisions []RoomUserPermision `json:"permisions"`
 }

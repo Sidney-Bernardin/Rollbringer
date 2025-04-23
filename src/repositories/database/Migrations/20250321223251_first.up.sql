@@ -63,5 +63,7 @@ CREATE TYPE room_user_permision AS ENUM ('OWNER', 'GAME_MASTER', 'PLAYER');
 CREATE TABLE IF NOT EXISTS room_users (
     room_id uuid REFERENCES play.rooms (id) ON DELETE CASCADE,
     user_id uuid REFERENCES accounts.users (id) ON DELETE CASCADE, 
-    permisions room_user_permision[] NOT NULL
+    permisions room_user_permision[] NOT NULL,
+
+    UNIQUE(room_id, user_id)
 );
