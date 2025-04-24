@@ -1,0 +1,40 @@
+package views
+
+import (
+	accounts_models "rollbringer/src/services/accounts/models"
+	play_models "rollbringer/src/services/play/models"
+)
+
+templ BoardCard(board *play_models.Board, users []*accounts_models.User) {
+	<div class="board">
+		<img class="logo" src="https://static-00.iconduck.com/assets.00/dungeons-and-dragons-icon-512x492-vw90341y.png" alt=""/>
+		<p>
+			<strong>{ string(board.Name) }</strong>
+			<button>
+				<iconify-icon icon="material-symbols:more-vert"></iconify-icon>
+			</button>
+		</p>
+		<div class="users">
+			for _, user := range users {
+				<img src={ user.ProfilePicture } title={ string(user.Username) } referrerpolicy="no-referrer"/>
+				<img src={ user.ProfilePicture } title={ string(user.Username) } referrerpolicy="no-referrer"/>
+				<img src={ user.ProfilePicture } title={ string(user.Username) } referrerpolicy="no-referrer"/>
+				<img src={ user.ProfilePicture } title={ string(user.Username) } referrerpolicy="no-referrer"/>
+				<img src={ user.ProfilePicture } title={ string(user.Username) } referrerpolicy="no-referrer"/>
+				<img src={ user.ProfilePicture } title={ string(user.Username) } referrerpolicy="no-referrer"/>
+				<img src={ user.ProfilePicture } title={ string(user.Username) } referrerpolicy="no-referrer"/>
+				<img src={ user.ProfilePicture } title={ string(user.Username) } referrerpolicy="no-referrer"/>
+				<img src={ user.ProfilePicture } title={ string(user.Username) } referrerpolicy="no-referrer"/>
+				<img src={ user.ProfilePicture } title={ string(user.Username) } referrerpolicy="no-referrer"/>
+				<img src={ user.ProfilePicture } title={ string(user.Username) } referrerpolicy="no-referrer"/>
+				<img src={ user.ProfilePicture } title={ string(user.Username) } referrerpolicy="no-referrer"/>
+				<img src={ user.ProfilePicture } title={ string(user.Username) } referrerpolicy="no-referrer"/>
+				<img src={ user.ProfilePicture } title={ string(user.Username) } referrerpolicy="no-referrer"/>
+				<img src={ user.ProfilePicture } title={ string(user.Username) } referrerpolicy="no-referrer"/>
+				<img src={ user.ProfilePicture } title={ string(user.Username) } referrerpolicy="no-referrer"/>
+				<img src={ user.ProfilePicture } title={ string(user.Username) } referrerpolicy="no-referrer"/>
+				<img src={ user.ProfilePicture } title={ string(user.Username) } referrerpolicy="no-referrer"/>
+			}
+		</div>
+	</div>
+}

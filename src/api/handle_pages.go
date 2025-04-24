@@ -74,15 +74,36 @@ func (svr *server) handlePagePlay() http.Handler {
 			return
 		}
 
+		// Join the room.
 		page.Room, err = svr.play.JoinRoom(ctx, session.UserID, roomID)
 		if err != nil {
 			svr.err(w, r, errors.Wrap(err, "cannot get room by room-ID"))
 			return
 		}
 
+		// Get the room's users.
 		page.RoomUsers, err = svr.accountsDatabase.GetUsersByRoomID(ctx, roomID)
 		if err != nil {
 			svr.err(w, r, errors.Wrap(err, "cannot get users by room-ID"))
+			return
+		}
+
+		// Get the user's boards.
+		page.Boards, err = svr.playDatabase.GetBoardsByUserID(ctx, session.UserID)
+		if err != nil {
+			svr.err(w, r, errors.Wrap(err, "cannot get boards by user-ID"))
+			return
+		}
+
+		boardIDs := make([]src.UUID, 0, len(page.Boards))
+		for _, board := range page.Boards {
+			boardIDs = append(boardIDs, board.ID)
+		}
+
+		// Get users for each board.
+		page.BoardUsers, err = svr.accountsDatabase.GetUsersByBoardIDs(ctx, boardIDs...)
+		if err != nil {
+			svr.err(w, r, errors.Wrap(err, "cannot get users by board-IDs"))
 			return
 		}
 

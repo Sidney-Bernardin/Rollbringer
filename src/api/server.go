@@ -29,7 +29,7 @@ type server struct {
 	broker services.Broker
 
 	accounts         accounts.Service
-	accountsDatabase accounts.DatabaseQueries
+	accountsDatabase accounts.BasicDatabase
 	google           accounts.Google
 	spotify          accounts.Spotify
 
@@ -42,7 +42,7 @@ func NewServer(
 	config *src.Config,
 	broker services.Broker,
 	accountsSvc accounts.Service,
-	accountsDB accounts.DatabaseQueries,
+	accountsDB accounts.BasicDatabase,
 	google accounts.Google,
 	spotify accounts.Spotify,
 	playSvc play.Service,
@@ -64,6 +64,7 @@ func NewServer(
 	r.Handle("GET /login/{provider}/callback", svr.handleOAuthCallback())
 
 	r.Handle("POST /rooms", mw(svr.mwAuth(true, true, ""))(svr.handleRoomCreate()))
+	r.Handle("POST /boards", mw(svr.mwAuth(true, true, ""))(svr.handleBoardCreate()))
 
 	r.Handle("GET /", mw(svr.mwAuth(false, false, "/"))(svr.handlePageHome()))
 	r.Handle("GET /play", mw(svr.mwAuth(true, false, "/"))(svr.handlePagePlay()))

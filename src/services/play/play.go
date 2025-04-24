@@ -20,7 +20,11 @@ type (
 
 	BasicDatabase interface {
 		CreateRoom(ctx context.Context, room *models.Room) error
+		CreateBoard(ctx context.Context, board *models.Board) error
+
 		GetRoomsByUserID(ctx context.Context, roomID src.UUID) ([]*models.Room, error)
+		GetBoardsByUserID(ctx context.Context, boardID src.UUID) ([]*models.Board, error)
+
 		RoomExists(ctx context.Context, roomID src.UUID) (bool, error)
 	}
 

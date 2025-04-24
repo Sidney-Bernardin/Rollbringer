@@ -13,8 +13,9 @@ import (
 )
 
 type roomRow struct {
-	ID             pgtype.UUID               `db:"rooms.id"`
-	Name           string                    `db:"rooms.name"`
+	ID   pgtype.UUID `db:"rooms.id"`
+	Name string      `db:"rooms.name"`
+
 	UserIDs        []pgtype.UUID             `db:"room_users.user_ids"`
 	UserPermisions [][]src.RoomUserPermision `db:"room_users.permisions"`
 }
@@ -47,8 +48,7 @@ func (db *playDatabase) CreateRoom(ctx context.Context, room *models.Room) error
 		)
 		INSERT INTO room_users (room_id, user_id, permisions)
 		VALUES ($1, $3, $4)
-	`,
-		room.ID, room.Name, room.Users[0].UserID, pq.Array(room.Users[0].Permisions))
+	`, room.ID, room.Name, room.Users[0].UserID, pq.Array(room.Users[0].Permisions))
 
 	return errors.Wrap(err, "cannot create room")
 }

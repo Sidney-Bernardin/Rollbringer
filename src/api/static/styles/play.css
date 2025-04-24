@@ -1,4 +1,5 @@
 * {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
@@ -8,8 +9,17 @@ body {
   height: 100vh;
 }
 
+button {
+  cursor: pointer;
+  align-items: center;
+  display: flex;
+}
+
+.profile-picture {
+  cursor: pointer;
+}
+
 .layout {
-  box-sizing: border-box;
   grid-template: "nav nav nav nav nav"
                  "g1 g1 g1 g1 g1" 8px
                  "viewer g2 boards g3 social" 2fr
@@ -27,32 +37,98 @@ body {
 
 .layout .viewer {
   grid-area: viewer;
+  overflow: auto;
 }
 
 .layout .boards {
   grid-area: boards;
+  overflow: auto;
 }
 
 .layout .materials {
   grid-area: materials;
+  overflow: auto;
 }
 
-.layout .social {
-  grid-area: social;
-  display: flex;
-}
-
-.layout .social .users {
-  border-right: 2px dotted gray;
+.layout .materials .boards {
   flex-direction: column;
+  height: 100%;
   display: flex;
 }
 
-.layout .social .users .user {
-  align-items: center;
+.layout .materials .boards .tool-bar {
+  text-wrap: nowrap;
+  border-bottom: 2px dotted gray;
   gap: .5rem;
   padding: .5rem;
   display: flex;
+  overflow-x: auto;
+}
+
+.layout .materials .boards .grid {
+  flex: 1;
+  grid-template-columns: repeat(auto-fill, minmax(min(10rem, 100%), 1fr));
+  display: grid;
+  overflow-y: auto;
+}
+
+.layout .materials .boards .grid .board {
+  cursor: pointer;
+  flex-direction: column;
+  align-items: center;
+  gap: .25rem;
+  padding: .5rem;
+  display: flex;
+  position: relative;
+}
+
+.layout .materials .boards .grid .board:hover {
+  backdrop-filter: brightness(.75);
+}
+
+.layout .materials .boards .grid .board .logo {
+  width: 100%;
+}
+
+.layout .materials .boards .grid .board p {
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  display: flex;
+}
+
+.layout .materials .boards .grid .board p button {
+  font-size: 1.5rem;
+}
+
+.layout .materials .boards .grid .board .users {
+  gap: .25rem;
+  width: 100%;
+  display: flex;
+  overflow: hidden;
+}
+
+.layout .materials .boards .grid .board .users img {
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+}
+
+.layout .social {
+  flex-direction: column;
+  grid-area: social;
+  display: flex;
+  overflow: auto;
+}
+
+.layout .social .users {
+  border-bottom: 2px dotted gray;
+  display: flex;
+  overflow-x: auto;
+}
+
+.layout .social .users .user {
+  padding: .5rem;
 }
 
 .layout .social .users .user:hover {
@@ -66,11 +142,13 @@ body {
 }
 
 .layout .social .chat {
-  flex: 2;
+  height: 100%;
+  overflow-y: hidden;
 }
 
 .layout .social .chat .messages {
   flex-direction: column-reverse;
+  height: 100%;
   display: flex;
   overflow-y: auto;
 }
@@ -78,6 +156,15 @@ body {
 .layout .social .chat .messages .inner {
   flex-direction: column;
   display: flex;
+}
+
+.layout .social .chat .messages .inner * {
+  overflow-anchor: none;
+}
+
+.layout .social .chat .messages .inner .anchor {
+  overflow-anchor: auto;
+  height: 1px;
 }
 
 .layout .social .chat .messages .inner .message {
@@ -107,6 +194,20 @@ body {
 
 .layout .social .chat .messages .inner .message p .message {
   padding: 0;
+  font-weight: normal;
+}
+
+.layout .social form {
+  display: flex;
+}
+
+.layout .social form input {
+  width: 100%;
+  padding: .5rem;
+}
+
+.layout .social form button {
+  padding: .5rem;
 }
 
 .layout .gutter {

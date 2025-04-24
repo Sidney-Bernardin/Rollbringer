@@ -65,3 +65,18 @@ const (
 	RoomUserPermisionGameMaster RoomUserPermision = "GAME_MASTER"
 	RoomUserPermisionPlayer     RoomUserPermision = "PLAYER"
 )
+
+/////
+
+type BoardUser struct {
+	BoardID    UUID                 `json:"board_id"`
+	UserID     UUID                 `json:"user_id"`
+	Permisions []BoardUserPermision `json:"permisions"`
+}
+
+type BoardUserPermision string
+
+const (
+	BoardUserPermisionOwner BoardUserPermision = "OWNER"
+	BoardUserPermisionEdit  BoardUserPermision = "EDIT"
+)

@@ -15,23 +15,26 @@ const (
 
 type (
 	Database interface {
-		DatabaseCommands
-		DatabaseQueries
+		ServiceDatabase
+		BasicDatabase
 	}
 
-	DatabaseCommands interface {
+	BasicDatabase interface {
+		GetSessionByID(ctx context.Context, sessionID src.UUID) (*models.Session, error)
+		GetSessionByIDAndCSRFToken(ctx context.Context, sessionID src.UUID, csrfToken models.CSRFToken) (*models.Session, error)
+
+		GetUsersByRoomID(ctx context.Context, roomID src.UUID) ([]*models.User, error)
+
+		GetUsersByRoomIDs(ctx context.Context, roomIDs ...src.UUID) (map[src.UUID][]*models.User, error)
+		GetUsersByBoardIDs(ctx context.Context, boardIDs ...src.UUID) (map[src.UUID][]*models.User, error)
+	}
+
+	ServiceDatabase interface {
 		GoogleSignup(ctx context.Context, user *models.User) (sessionID *src.UUID, err error)
 		GoogleSignin(ctx context.Context, googleUser *models.GoogleUser) (sessionID *src.UUID, err error)
 
 		SpotifySignup(ctx context.Context, user *models.User) (sessionID *src.UUID, err error)
 		SpotifySignin(ctx context.Context, spotifUser *models.SpotifyUser) (sessionID *src.UUID, err error)
-	}
-
-	DatabaseQueries interface {
-		GetSessionByID(ctx context.Context, sessionID src.UUID) (*models.Session, error)
-		GetSessionByIDAndCSRFToken(ctx context.Context, sessionID src.UUID, csrfToken models.CSRFToken) (*models.Session, error)
-		GetUsersByRoomID(ctx context.Context, roomID src.UUID) ([]*models.User, error)
-		GetUsersByRoomIDs(ctx context.Context, roomIDs ...src.UUID) (map[src.UUID][]*models.User, error)
 	}
 
 	Google interface {

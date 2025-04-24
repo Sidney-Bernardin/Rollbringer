@@ -122,15 +122,7 @@ func Gets[T any](ctx context.Context, tx Transaction, query string, args ...any)
 	}
 
 	res, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByNameLax[T])
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, src.ErrEntityNotFound
-		}
-
-		return nil, errors.Wrap(err, "cannot get rows")
-	}
-
-	return res, nil
+	return res, errors.Wrap(err, "cannot get rows")
 }
 
 func Update(ctx context.Context, tx Transaction, query string, args ...any) error {

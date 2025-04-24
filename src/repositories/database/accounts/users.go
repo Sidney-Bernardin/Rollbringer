@@ -32,8 +32,7 @@ func (r *userRow) Domain() *models.User {
 	}
 }
 
-type usersByRoomRow struct {
-	RoomID          pgtype.UUID   `db:"room_users.room_id"`
+type usersRow struct {
 	UserIDs         []pgtype.UUID `db:"users.user_ids"`
 	GoogleIDs       []*string     `db:"users.google_ids"`
 	SpotifyIDs      []*string     `db:"users.spotify_ids"`
@@ -41,7 +40,7 @@ type usersByRoomRow struct {
 	ProfilePictures []string      `db:"users.profile_pictures"`
 }
 
-func (r *usersByRoomRow) Domain() []*models.User {
+func (r *usersRow) Domain() []*models.User {
 	if r == nil {
 		return nil
 	}
@@ -58,36 +57,6 @@ func (r *usersByRoomRow) Domain() []*models.User {
 	}
 
 	return users
-}
-
-func (db *accountsDatabase) GetUsersByRoomIDs(ctx context.Context, roomIDs ...src.UUID) (map[src.UUID][]*models.User, error) {
-	var ret = map[src.UUID][]*models.User{}
-	if len(roomIDs) < 1 {
-		return ret, nil
-	}
-
-	rows, err := database.Gets[usersByRoomRow](ctx, db.Tx, `
-		SELECT
-			room_users.room_id AS "room_users.room_id",
-			json_agg(users.id) AS "users.user_ids",
-			json_agg(users.google_id) AS "users.google_ids",
-			json_agg(users.spotify_id) AS "users.spotify_ids",
-			json_agg(users.username) AS "users.usernames",
-			json_agg(users.profile_picture) AS "users.profile_pictures"
-		FROM accounts.users
-		LEFT JOIN room_users ON users.id = room_users.user_id
-		WHERE room_users.room_id = ANY($1)
-		GROUP BY room_users.room_id
-	`, roomIDs)
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot select users by room-IDs")
-	}
-
-	for _, row := range rows {
-		ret[src.UUID(row.RoomID.Bytes)] = row.Domain()
-	}
-
-	return ret, nil
 }
 
 func (db *accountsDatabase) GetUsersByRoomID(ctx context.Context, roomID src.UUID) ([]*models.User, error) {
@@ -108,4 +77,74 @@ func (db *accountsDatabase) GetUsersByRoomID(ctx context.Context, roomID src.UUI
 	}
 
 	return database.Domains(rows), nil
+}
+
+func (db *accountsDatabase) GetUsersByRoomIDs(ctx context.Context, roomIDs ...src.UUID) (map[src.UUID][]*models.User, error) {
+	var ret = map[src.UUID][]*models.User{}
+	if len(roomIDs) < 1 {
+		return ret, nil
+	}
+
+	type rowModel struct {
+		RoomID pgtype.UUID `db:"room_users.room_id"`
+		usersRow
+	}
+
+	rows, err := database.Gets[rowModel](ctx, db.Tx, `
+		SELECT
+			room_users.room_id AS "room_users.room_id",
+			json_agg(users.id) AS "users.user_ids",
+			json_agg(users.google_id) AS "users.google_ids",
+			json_agg(users.spotify_id) AS "users.spotify_ids",
+			json_agg(users.username) AS "users.usernames",
+			json_agg(users.profile_picture) AS "users.profile_pictures"
+		FROM accounts.users
+		LEFT JOIN room_users ON users.id = room_users.user_id
+		WHERE room_users.room_id = ANY($1)
+		GROUP BY room_users.room_id
+	`, roomIDs)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot select users by room-IDs")
+	}
+
+	for _, row := range rows {
+		ret[src.UUID(row.RoomID.Bytes)] = row.usersRow.Domain()
+	}
+
+	return ret, nil
+}
+
+func (db *accountsDatabase) GetUsersByBoardIDs(ctx context.Context, boardIDs ...src.UUID) (map[src.UUID][]*models.User, error) {
+	var ret = map[src.UUID][]*models.User{}
+	if len(boardIDs) < 1 {
+		return ret, nil
+	}
+
+	type rowModel struct {
+		BoardID pgtype.UUID `db:"board_users.board_id"`
+		usersRow
+	}
+
+	rows, err := database.Gets[rowModel](ctx, db.Tx, `
+		SELECT
+			board_users.board_id AS "board_users.board_id",
+			json_agg(users.id) AS "users.user_ids",
+			json_agg(users.google_id) AS "users.google_ids",
+			json_agg(users.spotify_id) AS "users.spotify_ids",
+			json_agg(users.username) AS "users.usernames",
+			json_agg(users.profile_picture) AS "users.profile_pictures"
+		FROM accounts.users
+		LEFT JOIN board_users ON users.id = board_users.user_id
+		WHERE board_users.board_id = ANY($1)
+		GROUP BY board_users.board_id
+	`, boardIDs)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot select users by board-IDs")
+	}
+
+	for _, row := range rows {
+		ret[src.UUID(row.BoardID.Bytes)] = row.usersRow.Domain()
+	}
+
+	return ret, nil
 }

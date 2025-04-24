@@ -41,7 +41,6 @@ CREATE TABLE IF NOT EXISTS accounts.sessions (
     created_at timestamp NOT null DEFAULT now(),
 
     user_id uuid REFERENCES accounts.users (id) ON DELETE CASCADE,
-
     csrf_token text NOT null,
 
     UNIQUE(user_id)
@@ -57,6 +56,14 @@ CREATE TABLE IF NOT EXISTS play.rooms (
     name text NOT null
 );
 
+CREATE TABLE IF NOT EXISTS play.boards (
+    id uuid PRIMARY KEY,
+    created_at timestamp NOT null DEFAULT now(),
+
+    name text NOT null,
+    canvas jsonb NOT null
+);
+
 -- =====
 
 CREATE TYPE room_user_permision AS ENUM ('OWNER', 'GAME_MASTER', 'PLAYER');
@@ -66,4 +73,13 @@ CREATE TABLE IF NOT EXISTS room_users (
     permisions room_user_permision[] NOT NULL,
 
     UNIQUE(room_id, user_id)
+);
+
+CREATE TYPE board_user_permision AS ENUM ('OWNER', 'EDIT');
+CREATE TABLE IF NOT EXISTS board_users (
+    board_id uuid REFERENCES play.boards (id) ON DELETE CASCADE,
+    user_id uuid REFERENCES accounts.users (id) ON DELETE CASCADE, 
+    permisions board_user_permision[] NOT NULL,
+
+    UNIQUE(board_id, user_id)
 );

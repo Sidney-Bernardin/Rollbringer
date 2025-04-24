@@ -1,6 +1,8 @@
 package pages
 
 import (
+	"rollbringer/src"
+	"rollbringer/src/api/views"
 	account_models "rollbringer/src/services/accounts/models"
 	play_models "rollbringer/src/services/play/models"
 )
@@ -9,6 +11,9 @@ type PlayData struct {
 	Session   *account_models.Session
 	Room      *play_models.Room
 	RoomUsers []*account_models.User
+
+	Boards     []*play_models.Board
+	BoardUsers map[src.UUID][]*account_models.User
 }
 
 templ Play(page *PlayData) {
@@ -35,7 +40,36 @@ templ Play(page *PlayData) {
 				//
 				<div class="document-viewer"></div>
 				<div class="boards"></div>
-				<div class="materials"></div>
+				//
+				// --- Materials --- //
+				<div class="materials">
+					//
+					// --- Boards --- ///
+					<div class="boards">
+						<div class="tool-bar">
+							<button
+								hx-post="/boards"
+								hx-prompt="Name"
+								hx-target="next .grid"
+								hx-swap="beforeend"
+							>
+								<iconify-icon icon="material-symbols:add"></iconify-icon>
+								Create Board
+							</button>
+							<button>foo</button>
+							<button>foo</button>
+							<button>foo</button>
+							<button>foo</button>
+							<button>foo</button>
+						</div>
+						//
+						<div class="grid">
+							for _, board := range page.Boards {
+								@views.BoardCard(board, page.BoardUsers[board.ID])
+							}
+						</div>
+					</div>
+				</div>
 				//
 				// --- Social ---//
 				<div class="social">
@@ -45,7 +79,6 @@ templ Play(page *PlayData) {
 						for _, user := range page.RoomUsers {
 							<div class="user">
 								<img src={ user.ProfilePicture } title={ string(user.Username) } referrerpolicy="no-referrer"/>
-								<p>{ string(user.Username) }</p>
 							</div>
 						}
 					</div>
@@ -53,15 +86,18 @@ templ Play(page *PlayData) {
 					// --- Chat --- //
 					<div class="chat">
 						<div class="messages">
-							<div class="inner"></div>
+							<div class="inner">
+								<div class="anchor"></div>
+							</div>
 						</div>
-						//
-						<form ws-send>
-							<input type="hidden" name="operation" value="chat"/>
-							<input type="text" name="message" placeholder="Hello, World!"/>
-							<button>Send</button>
-						</form>
 					</div>
+					//
+					// -- Chat Form -- //
+					<form ws-send>
+						<input type="hidden" name="operation" value="chat"/>
+						<input type="text" name="message" placeholder="Hello, World!"/>
+						<button>Send</button>
+					</form>
 				</div>
 				//
 				<span class="gutter g1"></span>
