@@ -64,7 +64,6 @@ func NewServer(
 	r.Handle("GET /login/{provider}/callback", svr.handleOAuthCallback())
 
 	r.Handle("POST /rooms", mw(svr.mwAuth(true, true, ""))(svr.handleRoomCreate()))
-	r.Handle("POST /boards", mw(svr.mwAuth(true, true, ""))(svr.handleBoardCreate()))
 
 	r.Handle("GET /", mw(svr.mwAuth(false, false, "/"))(svr.handlePageHome()))
 	r.Handle("GET /play", mw(svr.mwAuth(true, false, "/"))(svr.handlePagePlay()))

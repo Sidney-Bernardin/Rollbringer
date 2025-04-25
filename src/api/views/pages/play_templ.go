@@ -58,14 +58,14 @@ func Play(page *PlayData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " | Rollbringer</title><link rel=\"icon\" type=\"image/x-icon\" href=\"/static/favicon.png\"><link rel=\"stylesheet\" type=\"text/css\" href=\"/static/styles/play.css\"><script src=\"/static/play.js\" defer></script></head><body hx-ext=\"ws\" ws-connect=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " | Rollbringer</title><link rel=\"icon\" type=\"image/x-icon\" href=\"/static/favicon.png\"><link rel=\"stylesheet\" type=\"text/css\" href=\"/static/styles/play.css\"><script src=\"/static/play.js\" defer></script></head><body x-data hx-ext=\"ws\" ws-connect=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs("/play/ws?r=" + page.Room.ID.String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/play.templ`, Line: 31, Col: 53}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/play.templ`, Line: 32, Col: 53}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -83,7 +83,7 @@ func Play(page *PlayData) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(templ.JSONString(map[string]any{"CSRF-Token": page.Session.CSRFToken}))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/play.templ`, Line: 33, Col: 87}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/play.templ`, Line: 34, Col: 87}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -94,7 +94,7 @@ func Play(page *PlayData) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "><div class=\"layout\"><div class=\"nav-bar\"><a href=\"/\">Home</a></div><div class=\"document-viewer\"></div><div class=\"boards\"></div><div class=\"materials\"><div class=\"boards\"><div class=\"tool-bar\"><button hx-post=\"/boards\" hx-prompt=\"Name\" hx-target=\"next .grid\" hx-swap=\"beforeend\"><iconify-icon icon=\"material-symbols:add\"></iconify-icon> Create Board</button></div><div class=\"grid\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "><div class=\"layout\"><div class=\"nav-bar\"><a href=\"/\">Home</a></div><div class=\"document-viewer\"></div><div class=\"boards\"></div><div class=\"materials\"><div class=\"boards\"><div class=\"tool-bar\"><button @click=\"$refs.createBoard.showModal()\"><iconify-icon icon=\"material-symbols:add\"></iconify-icon> Create Board</button></div><div class=\"grid\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -116,7 +116,7 @@ func Play(page *PlayData) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(user.ProfilePicture)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/play.templ`, Line: 76, Col: 38}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/play.templ`, Line: 72, Col: 38}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -129,7 +129,7 @@ func Play(page *PlayData) templ.Component {
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(string(user.Username))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/play.templ`, Line: 76, Col: 70}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/play.templ`, Line: 72, Col: 70}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -140,7 +140,7 @@ func Play(page *PlayData) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</div><div class=\"chat\"><div class=\"messages\"><div class=\"inner\"><div class=\"anchor\"></div></div></div></div><form ws-send><input type=\"hidden\" name=\"operation\" value=\"chat\"> <input type=\"text\" name=\"message\" placeholder=\"Hello, World!\"> <button><iconify-icon icon=\"material-symbols:send\"></iconify-icon> Send</button></form></div><span class=\"gutter g1\"></span> <span class=\"gutter g2\"></span> <span class=\"gutter g3\"></span> <span class=\"gutter g4\"></span></div></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</div><div class=\"chat\"><div class=\"messages\"><div class=\"inner\"><div class=\"anchor\"></div></div></div></div><form ws-send><input type=\"hidden\" name=\"operation\" value=\"chat\"> <input type=\"text\" name=\"message\" placeholder=\"Hello, World!\"> <button><iconify-icon icon=\"material-symbols:send\"></iconify-icon> Send</button></form></div><span class=\"gutter g1\"></span> <span class=\"gutter g2\"></span> <span class=\"gutter g3\"></span> <span class=\"gutter g4\"></span><dialog class=\"create-board\" x-ref=\"createBoard\"><header><h1>Create Board</h1><button @click=\"$refs.createBoard.close()\"><iconify-icon icon=\"material-symbols:close\"></iconify-icon> Close</button></header><hr><form ws-send><input type=\"hidden\" name=\"operation\" value=\"create_board\"> <input type=\"text\" name=\"name\" placeholder=\"Name\"> <button>Create</button></form></dialog></div></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

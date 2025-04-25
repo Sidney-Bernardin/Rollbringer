@@ -113,7 +113,8 @@ func (svr *server) handlePagePlay() http.Handler {
 
 func (svr *server) handlePagePlayWebSocket() websocket.Handler {
 	var events = map[string]any{
-		"chat": &services.EventChat{},
+		"chat":         &services.EventChat{},
+		"create_board": &views.CreateBoardRequest{},
 	}
 
 	return websocket.Handler(func(conn *websocket.Conn) {
@@ -162,6 +163,18 @@ func (svr *server) handlePagePlayWebSocket() websocket.Handler {
 
 				err = svr.broker.PubChat(event)
 				svr.err(conn, r, errors.Wrap(err, "cannot publish chat event"))
+
+			case *views.CreateBoardRequest:
+				board, err := play_models.NewBoard(session.UserID, event.Name)
+				if err != nil {
+					svr.err(conn, r, errors.Wrap(err, "cannot create board"))
+					return
+				}
+
+				if err = svr.playDatabase.CreateBoard(r.Context(), board); err != nil {
+					svr.err(conn, r, errors.Wrap(err, "cannot create board"))
+					return
+				}
 			}
 		}
 	})

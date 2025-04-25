@@ -27,6 +27,7 @@ templ Play(page *PlayData) {
 			<script src="/static/play.js" defer></script>
 		</head>
 		<body
+			x-data
 			hx-ext="ws"
 			ws-connect={ "/play/ws?r=" + page.Room.ID.String() }
 			if page.Session != nil {
@@ -47,12 +48,7 @@ templ Play(page *PlayData) {
 					// --- Boards --- ///
 					<div class="boards">
 						<div class="tool-bar">
-							<button
-								hx-post="/boards"
-								hx-prompt="Name"
-								hx-target="next .grid"
-								hx-swap="beforeend"
-							>
+							<button @click="$refs.createBoard.showModal()">
 								<iconify-icon icon="material-symbols:add"></iconify-icon>
 								Create Board
 							</button>
@@ -102,6 +98,22 @@ templ Play(page *PlayData) {
 				<span class="gutter g2"></span>
 				<span class="gutter g3"></span>
 				<span class="gutter g4"></span>
+				//
+				<dialog class="create-board" x-ref="createBoard">
+					<header>
+						<h1>Create Board</h1>
+						<button @click="$refs.createBoard.close()">
+							<iconify-icon icon="material-symbols:close"></iconify-icon>
+							Close
+						</button>
+					</header>
+					<hr/>
+					<form ws-send>
+						<input type="hidden" name="operation" value="create_board"/>
+						<input type="text" name="name" placeholder="Name"/>
+						<button>Create</button>
+					</form>
+				</dialog>
 			</div>
 		</body>
 	</html>

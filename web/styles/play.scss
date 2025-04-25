@@ -26,6 +26,33 @@ button {
   }
 }
 
+dialog {
+  border: 5px outset lightgray;
+  margin: auto;
+  padding: 1rem;
+
+  header {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  hr {
+    margin: 1rem 0;
+  }
+
+  form {
+    display: flex;
+    gap: 1rem;
+    flex-direction: column;
+
+    button {
+      justify-content: center;
+    }
+  }
+}
+
 .profile-picture {
   cursor: pointer;
 }
@@ -45,6 +72,7 @@ button {
 
   .nav-bar {
     grid-area: nav;
+    padding: 0.5rem;
   }
 
   .viewer {
@@ -69,7 +97,7 @@ button {
       .tool-bar {
         display: flex;
         gap: 0.5rem;
-        border-bottom: 2px dotted gray;
+        border-bottom: 2px dashed lightgray;
         min-height: fit-content;
         padding: 0.5rem;
         overflow-x: auto;
@@ -130,7 +158,7 @@ button {
 
     .users {
       display: flex;
-      border-bottom: 2px dotted gray;
+      border-bottom: 2px dashed lightgray;
       overflow-x: auto;
 
       .user {
@@ -219,7 +247,6 @@ button {
   }
 
   .gutter {
-    cursor: pointer;
     background: lightgray;
 
     &.g1 {
@@ -228,14 +255,17 @@ button {
     }
 
     &.g2 {
+      cursor: col-resize;
       grid-area: g2;
     }
 
     &.g3 {
+      cursor: col-resize;
       grid-area: g3;
     }
 
     &.g4 {
+      cursor: row-resize;
       grid-area: g4;
     }
   }

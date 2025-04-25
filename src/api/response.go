@@ -65,15 +65,12 @@ func (svr *server) err(w io.Writer, r *http.Request, err error) {
 	var externalErr *src.ExternalError
 	if !errors.As(err, &externalErr) {
 		svr.logServerError(ctx, err)
-		svr.respond(w, r, http.StatusInternalServerError, &src.ExternalError{
-			Type: src.ExternalErrorTypeInternalError,
-		})
-		return
+		externalErr = &src.ExternalError{Type: src.ExternalErrorTypeInternalError}
 	}
 
 	switch w.(type) {
 	case *websocket.Conn:
-		svr.respond(w, r, 0, views.WebSocketResponse{
+		svr.respond(w, r, 0, &views.WebSocketResponse{
 			Operation: "error",
 			Payload:   externalErr,
 		})
