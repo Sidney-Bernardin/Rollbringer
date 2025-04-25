@@ -140,7 +140,7 @@ func Play(page *PlayData) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</div><div class=\"chat\"><div class=\"messages\"><div class=\"inner\"><div class=\"anchor\"></div></div></div></div><form ws-send><input type=\"hidden\" name=\"operation\" value=\"chat\"> <input type=\"text\" name=\"message\" placeholder=\"Hello, World!\"> <button>Send</button></form></div><span class=\"gutter g1\"></span> <span class=\"gutter g2\"></span> <span class=\"gutter g3\"></span> <span class=\"gutter g4\"></span></div></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</div><div class=\"chat\"><div class=\"messages\"><div class=\"inner\"><div class=\"anchor\"></div></div></div></div><form ws-send><input type=\"hidden\" name=\"operation\" value=\"chat\"> <input type=\"text\" name=\"message\" placeholder=\"Hello, World!\"> <button><iconify-icon icon=\"material-symbols:send\"></iconify-icon> Send</button></form></div><span class=\"gutter g1\"></span> <span class=\"gutter g2\"></span> <span class=\"gutter g3\"></span> <span class=\"gutter g4\"></span></div></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -1,7 +1,6 @@
 * {
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
 }
 
 body {
@@ -9,10 +8,22 @@ body {
   height: 100vh;
 }
 
+input,
+button {
+  box-sizing: content-box;
+  height: 1em;
+  padding: 0.5em;
+}
+
 button {
   display: flex;
   cursor: pointer;
+  gap: 0.5em;
   align-items: center;
+
+  iconify-icon {
+    font-size: 1.5em;
+  }
 }
 
 .profile-picture {
@@ -59,6 +70,7 @@ button {
         display: flex;
         gap: 0.5rem;
         border-bottom: 2px dotted gray;
+        min-height: fit-content;
         padding: 0.5rem;
         overflow-x: auto;
         text-wrap: nowrap;
@@ -91,10 +103,6 @@ button {
             width: 100%;
             justify-content: space-between;
             align-items: center;
-
-            button {
-              font-size: 1.5rem;
-            }
           }
 
           .users {
@@ -201,11 +209,11 @@ button {
 
       input {
         width: 100%;
-        padding: 0.5rem;
+        font-size: 1.25rem;
       }
 
       button {
-        padding: 0.5rem;
+        font-size: 1.25rem;
       }
     }
   }
