@@ -98,6 +98,31 @@ func (b *broker) SubRoom(ctx context.Context, roomID src.UUID, callback func(eve
 		}
 	})
 
+	// Subscribe to room.
+	// errs.Go(func() error {
+	// 	sub, err := b.conn.Subscribe(fmt.Sprintf("rooms.%s.chat", roomID), func(msg *nats.Msg) {
+	// 		var event any
+	// 		switch msg.Header.Get("event_type") {
+	// 		case services.EventBoardCreated:
+	// 			event = &services.EventBoardCreated{}
+	// 		}
+	//
+	// 		if err := json.Unmarshal(msg.Data, event); err != nil {
+	// 			b.log.Log(ctx, src.LevelError, "Cannot unmarshal message", "err", err.Error())
+	// 			return
+	// 		}
+	//
+	// 		callback(event)
+	// 	})
+	//
+	// 	if err != nil {
+	// 		return errors.Wrap(err, "cannot subscribe")
+	// 	}
+	//
+	// 	<-ctx.Done()
+	// 	return errors.Wrap(sub.Unsubscribe(), "cannot unsubscribe")
+	// })
+
 	return errors.Wrap(errs.Wait(), "cannot consume room")
 }
 

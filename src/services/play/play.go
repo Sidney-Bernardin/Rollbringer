@@ -29,7 +29,7 @@ type (
 	}
 
 	ServiceDatabase interface {
-		JoinRoom(ctx context.Context, roomUser *src.RoomUser) (*models.Room, error)
+		JoinRoom(ctx context.Context, userID, roomID src.UUID, permisions ...src.RoomUserPermision) (*models.Room, error)
 	}
 )
 
@@ -68,12 +68,7 @@ func (svc *service) Chat(ctx context.Context, event *services.EventChat) error {
 	return errors.Wrap(err, "broker cannot publish to chat")
 }
 
-func (svc *service) JoinRoom(ctx context.Context, userID src.UUID, roomID src.UUID) (*models.Room, error) {
-	room, err := svc.database.JoinRoom(ctx, &src.RoomUser{
-		UserID:     userID,
-		RoomID:     roomID,
-		Permisions: []src.RoomUserPermision{src.RoomUserPermisionPlayer},
-	})
-
+func (svc *service) JoinRoom(ctx context.Context, userID, roomID src.UUID) (*models.Room, error) {
+	room, err := svc.database.JoinRoom(ctx, userID, roomID, src.RoomUserPermisionPlayer)
 	return room, errors.Wrap(err, "cannot join room")
 }

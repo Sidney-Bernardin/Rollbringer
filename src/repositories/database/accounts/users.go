@@ -69,7 +69,7 @@ func (db *accountsDatabase) GetUsersByRoomID(ctx context.Context, roomID src.UUI
 			users.profile_picture AS "users.profile_picture"
 		FROM accounts.users
 		WHERE EXISTS (
-			SELECT * FROM room_users WHERE users.id = room_users.user_id AND room_users.room_id = $1
+			SELECT * FROM room_user_permisions WHERE users.id = room_user_permisions.user_id AND room_user_permisions.room_id = $1
 		)
 	`, roomID)
 	if err != nil {
@@ -86,22 +86,22 @@ func (db *accountsDatabase) GetUsersByRoomIDs(ctx context.Context, roomIDs ...sr
 	}
 
 	type rowModel struct {
-		RoomID pgtype.UUID `db:"room_users.room_id"`
+		RoomID pgtype.UUID `db:"room_user_permisions.room_id"`
 		usersRow
 	}
 
 	rows, err := database.Gets[rowModel](ctx, db.Tx, `
 		SELECT
-			room_users.room_id AS "room_users.room_id",
+			room_user_permisions.room_id AS "room_user_permisions.room_id",
 			json_agg(users.id) AS "users.user_ids",
 			json_agg(users.google_id) AS "users.google_ids",
 			json_agg(users.spotify_id) AS "users.spotify_ids",
 			json_agg(users.username) AS "users.usernames",
 			json_agg(users.profile_picture) AS "users.profile_pictures"
 		FROM accounts.users
-		LEFT JOIN room_users ON users.id = room_users.user_id
-		WHERE room_users.room_id = ANY($1)
-		GROUP BY room_users.room_id
+		LEFT JOIN room_user_permisions ON users.id = room_user_permisions.user_id
+		WHERE room_user_permisions.room_id = ANY($1)
+		GROUP BY room_user_permisions.room_id
 	`, roomIDs)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot select users by room-IDs")
@@ -121,22 +121,22 @@ func (db *accountsDatabase) GetUsersByBoardIDs(ctx context.Context, boardIDs ...
 	}
 
 	type rowModel struct {
-		BoardID pgtype.UUID `db:"board_users.board_id"`
+		BoardID pgtype.UUID `db:"board_user_permisions.board_id"`
 		usersRow
 	}
 
 	rows, err := database.Gets[rowModel](ctx, db.Tx, `
 		SELECT
-			board_users.board_id AS "board_users.board_id",
+			board_user_permisions.board_id AS "board_user_permisions.board_id",
 			json_agg(users.id) AS "users.user_ids",
 			json_agg(users.google_id) AS "users.google_ids",
 			json_agg(users.spotify_id) AS "users.spotify_ids",
 			json_agg(users.username) AS "users.usernames",
 			json_agg(users.profile_picture) AS "users.profile_pictures"
 		FROM accounts.users
-		LEFT JOIN board_users ON users.id = board_users.user_id
-		WHERE board_users.board_id = ANY($1)
-		GROUP BY board_users.board_id
+		LEFT JOIN board_user_permisions ON users.id = board_user_permisions.user_id
+		WHERE board_user_permisions.board_id = ANY($1)
+		GROUP BY board_user_permisions.board_id
 	`, boardIDs)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot select users by board-IDs")

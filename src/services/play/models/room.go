@@ -11,9 +11,9 @@ const (
 )
 
 type Room struct {
-	ID    src.UUID        `json:"id"`
-	Name  RoomName        `json:"name"`
-	Users []*src.RoomUser `json:"users"`
+	ID             src.UUID                             `json:"id"`
+	Name           RoomName                             `json:"name"`
+	UserPermisions map[src.UUID][]src.RoomUserPermision `json:"user_permisions"`
 }
 
 func NewRoom(creatorID src.UUID, name string) (*Room, error) {
@@ -25,11 +25,8 @@ func NewRoom(creatorID src.UUID, name string) (*Room, error) {
 	return &Room{
 		ID:   src.NewUUID(),
 		Name: roomName,
-		Users: []*src.RoomUser{
-			{
-				UserID:     creatorID,
-				Permisions: []src.RoomUserPermision{src.RoomUserPermisionOwner, src.RoomUserPermisionGameMaster},
-			},
+		UserPermisions: map[src.UUID][]src.RoomUserPermision{
+			creatorID: {src.RoomUserPermisionOwner, src.RoomUserPermisionGameMaster},
 		},
 	}, nil
 }

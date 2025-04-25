@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS play.boards (
 -- =====
 
 CREATE TYPE room_user_permision AS ENUM ('OWNER', 'GAME_MASTER', 'PLAYER');
-CREATE TABLE IF NOT EXISTS room_users (
+CREATE TABLE IF NOT EXISTS room_user_permisions (
     room_id uuid REFERENCES play.rooms (id) ON DELETE CASCADE,
     user_id uuid REFERENCES accounts.users (id) ON DELETE CASCADE, 
     permisions room_user_permision[] NOT NULL,
@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS room_users (
 );
 
 CREATE TYPE board_user_permision AS ENUM ('OWNER', 'EDIT');
-CREATE TABLE IF NOT EXISTS board_users (
+CREATE TABLE IF NOT EXISTS board_user_permisions (
     board_id uuid REFERENCES play.boards (id) ON DELETE CASCADE,
     user_id uuid REFERENCES accounts.users (id) ON DELETE CASCADE, 
     permisions board_user_permision[] NOT NULL,

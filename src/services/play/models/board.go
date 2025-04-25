@@ -11,10 +11,10 @@ const (
 )
 
 type Board struct {
-	ID     src.UUID         `json:"id"`
-	Name   BoardName        `json:"name"`
-	Canvas []byte           `json:"canvas"`
-	Users  []*src.BoardUser `json:"users"`
+	ID             src.UUID                              `json:"id"`
+	Name           BoardName                             `json:"name"`
+	Canvas         []byte                                `json:"canvas"`
+	UserPermisions map[src.UUID][]src.BoardUserPermision `json:"user_permisions"`
 }
 
 func NewBoard(creatorID src.UUID, name string) (*Board, error) {
@@ -27,11 +27,8 @@ func NewBoard(creatorID src.UUID, name string) (*Board, error) {
 		ID:     src.NewUUID(),
 		Name:   boardName,
 		Canvas: []byte(`{}`),
-		Users: []*src.BoardUser{
-			{
-				UserID:     creatorID,
-				Permisions: []src.BoardUserPermision{src.BoardUserPermisionOwner, src.BoardUserPermisionEdit},
-			},
+		UserPermisions: map[src.UUID][]src.BoardUserPermision{
+			creatorID: {src.BoardUserPermisionOwner},
 		},
 	}, nil
 }

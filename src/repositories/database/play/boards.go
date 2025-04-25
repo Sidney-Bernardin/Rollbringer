@@ -2,9 +2,11 @@ package play
 
 import (
 	"context"
+	"maps"
 	"rollbringer/src"
 	"rollbringer/src/repositories/database"
 	"rollbringer/src/services/play/models"
+	"slices"
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/lib/pq"
@@ -16,8 +18,8 @@ type boardRow struct {
 	Name   string      `db:"boards.name"`
 	Canvas []byte      `db:"boards.canvas"`
 
-	UserIDs        []pgtype.UUID              `db:"board_users.user_ids"`
-	UserPermisions [][]src.BoardUserPermision `db:"board_users.permisions"`
+	UserIDs        []pgtype.UUID              `db:"board_user_permisions.user_ids"`
+	UserPermisions [][]src.BoardUserPermision `db:"board_user_permisions.permisions"`
 }
 
 func (r *boardRow) Domain() *models.Board {
@@ -25,31 +27,30 @@ func (r *boardRow) Domain() *models.Board {
 		return nil
 	}
 
-	users := make([]*src.BoardUser, len(r.UserIDs))
+	users := make(map[src.UUID][]src.BoardUserPermision, len(r.UserIDs))
 	for i, userID := range r.UserIDs {
-		users[i] = &src.BoardUser{
-			UserID:     src.UUID(userID.Bytes),
-			Permisions: r.UserPermisions[i],
-		}
+		users[src.UUID(userID.Bytes)] = r.UserPermisions[i]
 	}
 
 	return &models.Board{
-		ID:     src.UUID(r.ID.Bytes),
-		Name:   models.BoardName(r.Name),
-		Canvas: r.Canvas,
-		Users:  users,
+		ID:             src.UUID(r.ID.Bytes),
+		Name:           models.BoardName(r.Name),
+		Canvas:         r.Canvas,
+		UserPermisions: users,
 	}
 }
 
 func (db *playDatabase) CreateBoard(ctx context.Context, board *models.Board) error {
+	creatorID := slices.Collect(maps.Keys(board.UserPermisions))[0]
+
 	err := database.Insert(ctx, db.Tx, `
 		WITH inserted_board AS (
 			INSERT INTO play.boards (id, name, canvas)
 			VALUES ($1, $2, $3)
 		)
-		INSERT INTO board_users (board_id, user_id, permisions)
+		INSERT INTO board_user_permisions (board_id, user_id, permisions)
 		VALUES ($1, $4, $5)
-	`, board.ID, board.Name, board.Canvas, board.Users[0].UserID, pq.Array(board.Users[0].Permisions))
+	`, board.ID, board.Name, board.Canvas, creatorID, pq.Array(board.UserPermisions[creatorID]))
 
 	return errors.Wrap(err, "cannot create board")
 }
@@ -73,11 +74,11 @@ func (db *playDatabase) GetBoardsByUserID(ctx context.Context, userID src.UUID) 
 			boards.id AS "boards.id",
 			boards.name AS "boards.name",
 			boards.canvas AS "boards.canvas",
-			json_agg(board_users.user_id) AS "board_users.user_ids",
-			json_agg(board_users.permisions) AS "board_users.permisions"
+			json_agg(board_user_permisions.user_id) AS "board_user_permisions.user_ids",
+			json_agg(board_user_permisions.permisions) AS "board_user_permisions.permisions"
 		FROM play.boards
-		LEFT JOIN board_users ON boards.id = board_users.board_id
-		WHERE board_users.user_id = $1
+		LEFT JOIN board_user_permisions ON boards.id = board_user_permisions.board_id
+		WHERE board_user_permisions.user_id = $1
 		GROUP BY boards.id
     `, userID)
 
