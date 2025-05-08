@@ -9,13 +9,13 @@ import (
 
 	"rollbringer/src"
 	"rollbringer/src/api"
-	"rollbringer/src/repositories/broker"
-	accounts_db "rollbringer/src/repositories/database/accounts"
-	play_db "rollbringer/src/repositories/database/play"
-	"rollbringer/src/repositories/google"
-	"rollbringer/src/repositories/spotify"
-	"rollbringer/src/services/accounts"
-	"rollbringer/src/services/play"
+	"rollbringer/src/domain/services/accounts"
+	"rollbringer/src/domain/services/play"
+	"rollbringer/src/repos/broker"
+	accounts_database "rollbringer/src/repos/database/accounts"
+	play_database "rollbringer/src/repos/database/play"
+	"rollbringer/src/repos/google"
+	"rollbringer/src/repos/spotify"
 )
 
 var (
@@ -40,15 +40,15 @@ func main() {
 		return
 	}
 
-	broker, err := broker.New(ctx, config, log)
+	publicBroker, err := broker.New(ctx, config, log)
 	if err != nil {
-		log.Log(ctx, src.LevelFatal, "Cannot create play-broker", "err", err.Error())
+		log.Log(ctx, src.LevelFatal, "Cannot create public-broker", "err", err.Error())
 		return
 	}
 
 	/////
 
-	accountsDatabase, err := accounts_db.NewDatabase(ctx, config)
+	accountsDatabase, err := accounts_database.NewDatabase(ctx, config)
 	if err != nil {
 		log.Log(ctx, src.LevelFatal, "Cannot create accounts-database", "err", err.Error())
 		return
@@ -57,23 +57,29 @@ func main() {
 	google := google.New(config)
 	spotify := spotify.New(config)
 
-	accountsSvc := accounts.NewService(config, broker, accountsDatabase, google, spotify)
+	accountsSvc := accounts.NewService(config, publicBroker, accountsDatabase, google, spotify)
 
 	/////
 
-	playDatabase, err := play_db.NewDatabase(ctx, config)
+	playBroker, err := broker.NewPlayBroker(ctx, publicBroker.(*broker.PublicBroker))
+	if err != nil {
+		log.Log(ctx, src.LevelFatal, "Cannot create play-broker", "err", err.Error())
+		return
+	}
+
+	playDatabase, err := play_database.NewDatabase(ctx, config)
 	if err != nil {
 		log.Log(ctx, src.LevelFatal, "Cannot create play-database", "err", err.Error())
 		return
 	}
 
-	playSvc := play.NewService(config, broker, playDatabase)
+	playSvc := play.NewService(config, log, playBroker, playDatabase)
 
 	/////
 
-	svr := api.NewServer(log, config, broker,
+	svr := api.NewServer(log, config, publicBroker,
 		accountsSvc, accountsDatabase, google, spotify,
-		playSvc, playDatabase)
+		playSvc, playBroker, playDatabase)
 
 	go func() {
 		log.Log(ctx, src.LevelInfo, "Listening", "address", config.APIAddr)

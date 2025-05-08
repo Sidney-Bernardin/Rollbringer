@@ -6,7 +6,7 @@ type WebSocketResponse struct {
 }
 
 type (
-	CreateBoardRequest struct {
-		Name string `json:"name"`
+	ReqChat struct {
+		Message string `json:"message"`
 	}
 )

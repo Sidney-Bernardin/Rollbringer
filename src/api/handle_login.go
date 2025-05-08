@@ -2,16 +2,17 @@ package api
 
 import (
 	"net/http"
+	"rollbringer/src/domain"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
-
-	"rollbringer/src"
 )
 
 func (svr *server) handleOAuthConsent() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
+		// Generate the consent URL.
 		var consentURL, state string
 		switch r.PathValue("provider") {
 		case "google":
@@ -19,7 +20,7 @@ func (svr *server) handleOAuthConsent() http.Handler {
 		case "spotify":
 			consentURL, state = svr.spotify.ConsentURL()
 		default:
-			svr.err(w, r, &src.ExternalError{Type: externalErrorTypeInvalidProvider})
+			svr.err(w, r, &domain.ExternalError{Type: "invalid_provider"})
 			return
 		}
 
@@ -45,27 +46,30 @@ func (svr *server) handleOAuthCallback() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var ctx = r.Context()
 
+		// Validate the OAuth state.
 		state, err := r.Cookie("OAUTH_STATE")
 		if err != nil || state.Value != r.FormValue("state") {
-			svr.err(w, r, &src.ExternalError{Type: src.ExternalErrorTypeUnauthorized})
+			svr.err(w, r, &domain.ExternalError{Type: domain.ExternalErrorTypeUnauthorized})
 			return
 		}
 
+		// Get the login type.
 		loginType, err := r.Cookie("OAUTH_LOGIN_TYPE")
 		if err != nil {
-			svr.err(w, r, &src.ExternalError{Type: src.ExternalErrorTypeUnauthorized})
+			svr.err(w, r, &domain.ExternalError{Type: domain.ExternalErrorTypeUnauthorized})
 			return
 		}
 		newAccount := loginType.Value == "signup"
 
-		var sessionID *src.UUID
+		// Login with the provider.
+		var sessionID uuid.UUID
 		switch r.PathValue("provider") {
 		case "google":
 			sessionID, err = svr.accounts.GoogleLogin(ctx, r.FormValue("code"), newAccount)
 		case "spotify":
 			sessionID, err = svr.accounts.SpotifyLogin(ctx, r.FormValue("code"), newAccount)
 		default:
-			err = &src.ExternalError{Type: externalErrorTypeInvalidProvider}
+			err = &domain.ExternalError{Type: externalErrorTypeInvalidProvider}
 		}
 
 		if err != nil {

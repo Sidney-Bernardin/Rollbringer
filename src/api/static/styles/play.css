@@ -26,7 +26,7 @@ button iconify-icon {
 }
 
 dialog {
-  border: 5px outset #d3d3d3;
+  border: .25rem outset #d3d3d3;
   margin: auto;
   padding: 1rem;
 }
@@ -161,15 +161,15 @@ dialog form button {
   overflow-x: auto;
 }
 
-.layout .social .users .user {
+.layout .social .users .user-bubble {
   padding: .5rem;
 }
 
-.layout .social .users .user:hover {
+.layout .social .users .user-bubble:hover {
   backdrop-filter: brightness(.75);
 }
 
-.layout .social .users .user img {
+.layout .social .users .user-bubble img {
   border-radius: 50%;
   width: 2rem;
   height: 2rem;

@@ -1,19 +1,16 @@
 package api
 
 import (
-	"io"
-	"net"
+	"maps"
 	"net/http"
+	"slices"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	"golang.org/x/net/websocket"
 
-	"rollbringer/src"
-	"rollbringer/src/api/views"
 	"rollbringer/src/api/views/pages"
-	"rollbringer/src/services"
-	account_models "rollbringer/src/services/accounts/models"
-	play_models "rollbringer/src/services/play/models"
+	"rollbringer/src/domain"
+	"rollbringer/src/domain/services/accounts"
 )
 
 func (svr *server) handlePageHome() http.Handler {
@@ -21,38 +18,41 @@ func (svr *server) handlePageHome() http.Handler {
 
 		var (
 			ctx        = r.Context()
-			session, _ = ctx.Value("session").(*account_models.Session)
-
-			err  error
-			page = &pages.HomeData{
-				Session:   session,
-				Rooms:     []*play_models.Room{},
-				RoomUsers: map[src.UUID][]*account_models.User{},
-			}
+			session, _ = ctx.Value("session").(*accounts.Session)
+			page       = &pages.HomeData{Session: session}
 		)
 
-		if session == nil {
-			svr.respond(w, r, http.StatusOK, pages.Home(page))
-			return
-		}
+		if session != nil {
+			var err error
 
-		// Get the user's rooms.
-		page.Rooms, err = svr.playDatabase.GetRoomsByUserID(ctx, session.UserID)
-		if err != nil {
-			svr.err(w, r, errors.Wrap(err, "cannot get rooms by user-ID"))
-			return
-		}
+			// Get the user's rooms.
+			page.Rooms, err = svr.playDatabase.GetRoomsByUserID(ctx, session.UserID)
+			if err != nil {
+				svr.err(w, r, errors.Wrap(err, "cannot get rooms by user-ID"))
+				return
+			}
 
-		roomIDs := make([]src.UUID, 0, len(page.Rooms))
-		for _, room := range page.Rooms {
-			roomIDs = append(roomIDs, room.ID)
-		}
+			// Get the user-IDs for each room.
+			roomsUserIDs := make([]uuid.UUID, 0, len(page.Rooms))
+			for _, room := range page.Rooms {
+				roomsUserIDs = append(roomsUserIDs, slices.Collect(maps.Keys(room.UserPermisions))...)
+			}
 
-		// Get users for each room.
-		page.RoomUsers, err = svr.accountsDatabase.GetUsersByRoomIDs(ctx, roomIDs...)
-		if err != nil {
-			svr.err(w, r, errors.Wrap(err, "cannot get users by room-IDs"))
-			return
+			// Get the users for each room.
+			roomsUsers, err := svr.accountsDatabase.GetUsersByUserIDs(ctx, roomsUserIDs...)
+			if err != nil {
+				svr.err(w, r, errors.Wrap(err, "cannot get users by room-IDs"))
+				return
+			}
+
+			page.RoomsUsers = map[uuid.UUID][]accounts.User{}
+			for _, room := range page.Rooms {
+				for _, user := range roomsUsers {
+					if _, ok := room.UserPermisions[user.ID]; ok {
+						page.RoomsUsers[room.ID] = append(page.RoomsUsers[room.ID], *user)
+					}
+				}
+			}
 		}
 
 		svr.respond(w, r, http.StatusOK, pages.Home(page))
@@ -64,25 +64,31 @@ func (svr *server) handlePagePlay() http.Handler {
 
 		var (
 			ctx        = r.Context()
-			session, _ = ctx.Value("session").(*account_models.Session)
+			session, _ = ctx.Value("session").(*accounts.Session)
 			page       = &pages.PlayData{Session: session}
 		)
 
-		roomID, err := src.ParseUUID(r.URL.Query().Get("r"))
+		// Parse the room-ID.
+		roomID, err := uuid.Parse(r.URL.Query().Get("r"))
 		if err != nil {
-			svr.err(w, r, errors.Wrap(err, "cannot parse room-ID"))
+			svr.err(w, r, &domain.ExternalError{Type: domain.ExternalErrorTypeInvalidUUID, Msg: err.Error()})
 			return
 		}
 
 		// Join the room.
-		page.Room, err = svr.play.JoinRoom(ctx, session.UserID, roomID)
+		page.Room, err = svr.play.JoinRoom(ctx, roomID, &domain.EventRoomJoinedNewcomer{
+			UserID:         session.User.ID.String(),
+			Username:       string(session.User.Username),
+			ProfilePicture: session.User.ProfilePicture,
+		})
+
 		if err != nil {
-			svr.err(w, r, errors.Wrap(err, "cannot get room by room-ID"))
+			svr.err(w, r, errors.Wrap(err, "cannot join room"))
 			return
 		}
 
 		// Get the room's users.
-		page.RoomUsers, err = svr.accountsDatabase.GetUsersByRoomID(ctx, roomID)
+		page.RoomUsers, err = svr.accountsDatabase.GetUsersByUserIDs(ctx, slices.Collect(maps.Keys(page.Room.UserPermisions))...)
 		if err != nil {
 			svr.err(w, r, errors.Wrap(err, "cannot get users by room-ID"))
 			return
@@ -95,87 +101,28 @@ func (svr *server) handlePagePlay() http.Handler {
 			return
 		}
 
-		boardIDs := make([]src.UUID, 0, len(page.Boards))
+		// Get the user-IDs for each board.
+		boardsUserIDs := make([]uuid.UUID, 0, len(page.Boards))
 		for _, board := range page.Boards {
-			boardIDs = append(boardIDs, board.ID)
+			boardsUserIDs = append(boardsUserIDs, slices.Collect(maps.Keys(board.UserPermisions))...)
 		}
 
-		// Get users for each board.
-		page.BoardUsers, err = svr.accountsDatabase.GetUsersByBoardIDs(ctx, boardIDs...)
+		// Get the users for each board.
+		boardsUsers, err := svr.accountsDatabase.GetUsersByUserIDs(ctx, boardsUserIDs...)
 		if err != nil {
 			svr.err(w, r, errors.Wrap(err, "cannot get users by board-IDs"))
 			return
 		}
 
+		page.BoardsUsers = map[uuid.UUID][]*accounts.User{}
+		for _, board := range page.Boards {
+			for _, user := range boardsUsers {
+				if _, ok := board.UserPermisions[user.ID]; ok {
+					page.BoardsUsers[board.ID] = append(page.BoardsUsers[board.ID], user)
+				}
+			}
+		}
+
 		svr.respond(w, r, http.StatusOK, pages.Play(page))
-	})
-}
-
-func (svr *server) handlePagePlayWebSocket() websocket.Handler {
-	var events = map[string]any{
-		"chat":         &services.EventChat{},
-		"create_board": &views.CreateBoardRequest{},
-	}
-
-	return websocket.Handler(func(conn *websocket.Conn) {
-
-		var (
-			r          = conn.Request()
-			ctx        = r.Context()
-			session, _ = ctx.Value("session").(*account_models.Session)
-		)
-
-		roomID, err := src.ParseUUID(r.URL.Query().Get("r"))
-		if err != nil {
-			svr.err(conn, r, errors.Wrap(err, "cannot parse room-ID"))
-			return
-		}
-
-		go func() {
-			err := svr.broker.SubRoom(ctx, roomID, func(event any) {
-				switch e := event.(type) {
-				case *services.EventChat:
-					svr.respond(conn, r, 0, views.ChatMessage(e))
-				}
-			})
-
-			svr.err(conn, r, errors.Wrap(err, "cannot subscribe to room"))
-			conn.Close()
-		}()
-
-		for {
-
-			var msg []byte
-			if err := websocket.Message.Receive(conn, &msg); err != nil {
-				if errors.Is(err, io.EOF) || errors.Is(err, net.ErrClosed) {
-					return
-				}
-
-				svr.err(conn, r, errors.Wrap(err, "cannot read from WebSocket connection"))
-				return
-			}
-
-			switch event := decodeEvent(msg, events).(type) {
-			case *services.EventChat:
-				event.RoomID = roomID
-				event.Username = session.User.Username
-				event.ProfilePicture = session.User.ProfilePicture
-
-				err = svr.broker.PubChat(event)
-				svr.err(conn, r, errors.Wrap(err, "cannot publish chat event"))
-
-			case *views.CreateBoardRequest:
-				board, err := play_models.NewBoard(session.UserID, event.Name)
-				if err != nil {
-					svr.err(conn, r, errors.Wrap(err, "cannot create board"))
-					return
-				}
-
-				if err = svr.playDatabase.CreateBoard(r.Context(), board); err != nil {
-					svr.err(conn, r, errors.Wrap(err, "cannot create board"))
-					return
-				}
-			}
-		}
 	})
 }

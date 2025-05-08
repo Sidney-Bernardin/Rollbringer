@@ -4,10 +4,12 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 
 	"rollbringer/src"
-	"rollbringer/src/services/accounts/models"
+	"rollbringer/src/domain"
+	"rollbringer/src/domain/services/accounts"
 )
 
 type middleware func(http.Handler) http.Handler
@@ -34,33 +36,49 @@ func (svr *server) mwLog(next http.Handler) http.Handler {
 func (svr *server) mwAuth(required, checkCSRF bool, redirectURL string) middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var ctx = r.Context()
 
-			var csrfToken *string
-			if checkCSRF {
-				h := r.Header.Get("CSRF-Token")
-				csrfToken = &h
-			}
+			var (
+				ctx     = r.Context()
+				session *accounts.Session
+			)
 
-			var session *models.Session
-			if sessionID, err := r.Cookie("SESSION_ID"); err == nil {
-				if session, err = svr.accounts.Auth(ctx, sessionID.Value, csrfToken); err != nil {
-					svr.err(w, r, errors.Wrap(err, "cannot authenticate"))
+			defer func() {
+				if session == nil && required {
+					if redirectURL != "" {
+						http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
+					} else {
+						svr.err(w, r, &domain.ExternalError{Type: domain.ExternalErrorTypeUnauthorized})
+					}
 					return
 				}
-			}
 
-			if session == nil && required {
-				if redirectURL != "" {
-					http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
-				} else {
-					svr.err(w, r, &src.ExternalError{Type: src.ExternalErrorTypeUnauthorized})
-				}
+				*r = *r.WithContext(context.WithValue(ctx, "session", session))
+				next.ServeHTTP(w, r)
+			}()
+
+			// Get the session-ID.
+			cSessionID, err := r.Cookie("SESSION_ID")
+			if err != nil {
 				return
 			}
 
-			*r = *r.WithContext(context.WithValue(ctx, "session", session))
-			next.ServeHTTP(w, r)
+			// Parse the session-ID.
+			sessionID, err := uuid.Parse(cSessionID.Value)
+			if err != nil {
+				return
+			}
+
+			// Get the session.
+			if csrfToken := r.Header.Get("CSRF-Token"); checkCSRF {
+				session, err = svr.accountsDatabase.GetSessionBySessionIDAndCSRFToken(ctx, sessionID, csrfToken)
+			} else {
+				session, err = svr.accountsDatabase.GetSessionBySessionID(ctx, sessionID)
+			}
+
+			if err != nil && !errors.Is(err, domain.ErrEntityNotFound) {
+				svr.err(w, r, errors.Wrap(err, "cannot authenticate"))
+				return
+			}
 		})
 	}
 }

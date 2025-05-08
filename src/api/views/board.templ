@@ -1,23 +1,45 @@
 package views
 
 import (
-	accounts_models "rollbringer/src/services/accounts/models"
-	play_models "rollbringer/src/services/play/models"
+	"github.com/google/uuid"
+	"rollbringer/src"
+	"rollbringer/src/domain"
+	"rollbringer/src/domain/services/accounts"
+	"rollbringer/src/domain/services/play"
 )
 
-templ BoardCard(board *play_models.Board, users []*accounts_models.User) {
-	<div class="board">
-		<img class="logo" src="https://static-00.iconduck.com/assets.00/dungeons-and-dragons-icon-512x492-vw90341y.png" alt=""/>
-		<p>
-			<strong>{ string(board.Name) }</strong>
-			<button>
-				<iconify-icon icon="material-symbols:more-vert"></iconify-icon>
-			</button>
-		</p>
-		<div class="users">
-			for _, user := range users {
-				<img src={ user.ProfilePicture } title={ string(user.Username) } referrerpolicy="no-referrer"/>
+templ NewBoardCard(event *domain.EventNewBoard) {
+	@BoardCard(
+		&play.Board{
+			ID:   uuid.MustParse(event.BoardID),
+			Name: play.BoardName(event.Name),
+		},
+		src.Map(event.Users, func(_ int, u domain.EventNewBoardUser) **accounts.User {
+			ret := &accounts.User{
+				ID:             uuid.MustParse(u.UserID),
+				Username:       accounts.Username(u.Username),
+				ProfilePicture: u.ProfilePicture,
 			}
+			return &ret
+		}),
+	)
+}
+
+templ BoardCard(board *play.Board, boardUsers []*accounts.User) {
+	<div hx-swap-oob="afterbegin:.boards .grid">
+		<div class="board">
+			<img class="logo" src="https://static-00.iconduck.com/assets.00/dungeons-and-dragons-icon-512x492-vw90341y.png" alt=""/>
+			<p>
+				<strong>{ string(board.Name) }</strong>
+				<button>
+					<iconify-icon icon="material-symbols:more-vert"></iconify-icon>
+				</button>
+			</p>
+			<div class="users">
+				for _, user := range boardUsers {
+					<img src={ user.ProfilePicture } title={ string(user.Username) } referrerpolicy="no-referrer"/>
+				}
+			</div>
 		</div>
 	</div>
 }

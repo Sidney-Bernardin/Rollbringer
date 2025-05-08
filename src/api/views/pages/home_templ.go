@@ -9,17 +9,16 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"rollbringer/src"
+	"github.com/google/uuid"
 	"rollbringer/src/api/views"
-
-	accounts_models "rollbringer/src/services/accounts/models"
-	play_models "rollbringer/src/services/play/models"
+	"rollbringer/src/domain/services/accounts"
+	"rollbringer/src/domain/services/play"
 )
 
 type HomeData struct {
-	Session   *accounts_models.Session
-	Rooms     []*play_models.Room
-	RoomUsers map[src.UUID][]*accounts_models.User
+	Session    *accounts.Session
+	Rooms      []*play.Room
+	RoomsUsers map[uuid.UUID][]accounts.User
 }
 
 func Home(page *HomeData) templ.Component {
@@ -55,7 +54,7 @@ func Home(page *HomeData) templ.Component {
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(templ.JSONString(map[string]any{"CSRF-Token": page.Session.CSRFToken}))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/home.templ`, Line: 29, Col: 87}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/home.templ`, Line: 28, Col: 87}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -83,7 +82,7 @@ func Home(page *HomeData) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(string(page.Session.User.Username))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/home.templ`, Line: 40, Col: 43}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/pages/home.templ`, Line: 39, Col: 43}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -94,7 +93,7 @@ func Home(page *HomeData) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			for _, room := range page.Rooms {
-				templ_7745c5c3_Err = views.RoomCard(room, page.RoomUsers[room.ID]).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = views.RoomCard(room, page.RoomsUsers[room.ID]).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

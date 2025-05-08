@@ -1,19 +1,21 @@
 package pages
 
 import (
-	"rollbringer/src"
+	"fmt"
+	"github.com/google/uuid"
 	"rollbringer/src/api/views"
-	account_models "rollbringer/src/services/accounts/models"
-	play_models "rollbringer/src/services/play/models"
+	"rollbringer/src/domain/services/accounts"
+	"rollbringer/src/domain/services/play"
 )
 
 type PlayData struct {
-	Session   *account_models.Session
-	Room      *play_models.Room
-	RoomUsers []*account_models.User
+	Session *accounts.Session
 
-	Boards     []*play_models.Board
-	BoardUsers map[src.UUID][]*account_models.User
+	Room      *play.Room
+	RoomUsers []*accounts.User
+
+	Boards      []*play.Board
+	BoardsUsers map[uuid.UUID][]*accounts.User
 }
 
 templ Play(page *PlayData) {
@@ -29,7 +31,7 @@ templ Play(page *PlayData) {
 		<body
 			x-data
 			hx-ext="ws"
-			ws-connect={ "/play/ws?r=" + page.Room.ID.String() }
+			ws-connect={ fmt.Sprintf("/rooms/%s/ws", page.Room.ID) }
 			if page.Session != nil {
 				hx-headers={ templ.JSONString(map[string]any{"CSRF-Token": page.Session.CSRFToken}) }
 			}
@@ -56,7 +58,7 @@ templ Play(page *PlayData) {
 						//
 						<div class="grid">
 							for _, board := range page.Boards {
-								@views.BoardCard(board, page.BoardUsers[board.ID])
+								@views.BoardCard(board, page.BoardsUsers[board.ID])
 							}
 						</div>
 					</div>
@@ -68,9 +70,7 @@ templ Play(page *PlayData) {
 					// --- Users --- //
 					<div class="users">
 						for _, user := range page.RoomUsers {
-							<div class="user">
-								<img src={ user.ProfilePicture } title={ string(user.Username) } referrerpolicy="no-referrer"/>
-							</div>
+							@views.UserBubble(user)
 						}
 					</div>
 					//
@@ -109,7 +109,7 @@ templ Play(page *PlayData) {
 					</header>
 					<hr/>
 					<form ws-send>
-						<input type="hidden" name="operation" value="create_board"/>
+						<input type="hidden" name="operation" value="create-board"/>
 						<input type="text" name="name" placeholder="Name"/>
 						<button>Create</button>
 					</form>

@@ -1,17 +1,16 @@
 package pages
 
 import (
-	"rollbringer/src"
+	"github.com/google/uuid"
 	"rollbringer/src/api/views"
-
-	accounts_models "rollbringer/src/services/accounts/models"
-	play_models "rollbringer/src/services/play/models"
+	"rollbringer/src/domain/services/accounts"
+	"rollbringer/src/domain/services/play"
 )
 
 type HomeData struct {
-	Session   *accounts_models.Session
-	Rooms     []*play_models.Room
-	RoomUsers map[src.UUID][]*accounts_models.User
+	Session    *accounts.Session
+	Rooms      []*play.Room
+	RoomsUsers map[uuid.UUID][]accounts.User
 }
 
 templ Home(page *HomeData) {
@@ -42,7 +41,7 @@ templ Home(page *HomeData) {
 				<h2>Rooms</h2>
 				<ul class="rooms">
 					for _, room := range page.Rooms {
-						@views.RoomCard(room, page.RoomUsers[room.ID])
+						@views.RoomCard(room, page.RoomsUsers[room.ID])
 					}
 				</ul>
 				<form hx-post="/rooms" hx-target=".rooms" hx-swap="beforeend">

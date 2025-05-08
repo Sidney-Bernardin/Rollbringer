@@ -27,7 +27,7 @@ button {
 }
 
 dialog {
-  border: 5px outset lightgray;
+  border: 0.25rem outset lightgray;
   margin: auto;
   padding: 1rem;
 
@@ -161,7 +161,7 @@ dialog {
       border-bottom: 2px dashed lightgray;
       overflow-x: auto;
 
-      .user {
+      .user-bubble {
         padding: 0.5rem;
 
         &:hover {

@@ -1,14 +1,12 @@
 package views
 
-import (
-	accounts_models "rollbringer/src/services/accounts/models"
-	play_models "rollbringer/src/services/play/models"
-)
+import "rollbringer/src/domain/services/play"
+import "rollbringer/src/domain/services/accounts"
 
-templ RoomCard(room *play_models.Room, users []*accounts_models.User) {
+templ RoomCard(room *play.Room, roomUsers []accounts.User) {
 	<li>
 		<a href={ templ.URL("/play?r=" + room.ID.String()) }>{ string(room.Name) }</a>
-		for _, user := range users {
+		for _, user := range roomUsers {
 			<img src={ user.ProfilePicture } title={ string(user.Username) } referrerpolicy="no-referrer"/>
 		}
 	</li>
