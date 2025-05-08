@@ -46,7 +46,8 @@ func main() {
 		return
 	}
 
-	/////
+	//
+	///// Accounts
 
 	accountsDatabase, err := accounts_database.NewDatabase(ctx, config)
 	if err != nil {
@@ -59,7 +60,8 @@ func main() {
 
 	accountsSvc := accounts.NewService(config, publicBroker, accountsDatabase, google, spotify)
 
-	/////
+	//
+	///// Play
 
 	playBroker, err := broker.NewPlayBroker(ctx, publicBroker.(*broker.PublicBroker))
 	if err != nil {
@@ -75,7 +77,8 @@ func main() {
 
 	playSvc := play.NewService(config, log, playBroker, playDatabase)
 
-	/////
+	//
+	///// Server
 
 	svr := api.NewServer(log, config, publicBroker,
 		accountsSvc, accountsDatabase, google, spotify,
@@ -91,7 +94,8 @@ func main() {
 	<-signalCtx.Done()
 	cancel()
 
-	/////
+	//
+	///// Shutdown
 
 	timeoutCtx, cancel := context.WithTimeout(ctx, config.GracfullShutdownTimeout)
 	if err := svr.Shutdown(timeoutCtx); err != nil {

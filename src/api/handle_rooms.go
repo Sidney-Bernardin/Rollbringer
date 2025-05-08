@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"io"
 	"net"
 	"net/http"
@@ -21,9 +20,11 @@ func (svr *server) handleRoomCreate() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var session, _ = r.Context().Value("session").(*accounts.Session)
 
-		room, err := svr.play.CreateRoom(r.Context(), session.User.ID, &play.CreateRoomOpts{
-			Name: r.FormValue("name"),
-		})
+		// Create the room.
+		room, err := svr.play.CreateRoom(r.Context(), session.User.ID,
+			&play.CreateRoomOpts{
+				Name: r.FormValue("name"),
+			})
 
 		if err != nil {
 			svr.err(w, r, errors.Wrap(err, "cannot create room"))
@@ -68,50 +69,51 @@ func (svr *server) handleRoomWebSocket() websocket.Handler {
 			return
 		}
 
-		go svr.subChat(conn, r, roomID)
-		go svr.subRoom(conn, r, roomID)
-		go svr.subUser(conn, r, session.User.ID)
+		// Subscribe to the room's events.
+		go func() {
+			err := svr.playBroker.SubRoom(ctx, roomID, svr.roomCallback(conn, r))
+			svr.err(conn, r, errors.Wrap(err, "cannot subscribe to room events"))
+			conn.Close()
+		}()
+
+		// Subscribe to the room's chat events.
+		go func() {
+			err := svr.playBroker.SubChat(ctx, roomID, svr.chatCallback(ctx, conn, r))
+			svr.err(conn, r, errors.Wrap(err, "cannot subscribe to chat events"))
+			conn.Close()
+		}()
+
+		// Subscribe to the user's events.
+		go func() {
+			err := svr.playBroker.SubUser(ctx, roomID, svr.userCallback(conn, r))
+			svr.err(conn, r, errors.Wrap(err, "cannot subscribe to user events"))
+			conn.Close()
+		}()
 
 		for {
 
-			// Receive next message.
-			var msg []byte
-			if err := websocket.Message.Receive(conn, &msg); err != nil {
-				if errors.Is(err, io.EOF) || errors.Is(err, net.ErrClosed) {
-					return
+			// Receive the next message.
+			event, err := svr.nextMessage(conn, func(operation string) any {
+				switch operation {
+				case "chat":
+					return &views.ReqChat{}
+				case "create-board":
+					return &play.CreateBoardOpts{}
+				default:
+					return nil
 				}
-
-				svr.err(conn, r, errors.Wrap(err, "cannot read from WebSocket connection"))
-				return
-			}
-
-			var head struct {
-				Operation string `json:"operation"`
-			}
-
-			// Decode the message's operation.
-			if err := json.Unmarshal(msg, &head); err != nil {
-				continue
-			}
-
-			// Set the message's schema based on it's operation.
-			var event any
-			switch head.Operation {
-			case "chat":
-				event = &views.ReqChat{}
-			case "create-board":
-				event = &play.CreateBoardOpts{}
-			}
-
-			// Decode the message.
-			if err := json.Unmarshal(msg, event); err != nil {
-				continue
-			}
+			})
 
 			switch e := event.(type) {
+			case error:
+				if !errors.Is(err, io.EOF) && !errors.Is(err, net.ErrClosed) {
+					svr.err(conn, r, errors.Wrap(err, "cannot read from WebSocket connection"))
+				}
+				return
+
 			case *views.ReqChat:
 
-				// Publish chat event.
+				// Publish the chat message.
 				svr.playBroker.Pub(ctx, &play.EventChat{
 					RoomID:   roomID.String(),
 					AuthorID: session.User.ID.String(),
@@ -131,14 +133,14 @@ func (svr *server) handleRoomWebSocket() websocket.Handler {
 					userIDs = append(userIDs, uID)
 				}
 
-				// Get the users.
+				// Get the board's users.
 				users, err := svr.accountsDatabase.GetUsersByUserIDs(ctx, userIDs...)
 				if err != nil {
-					svr.err(conn, r, errors.Wrap(err, "cannot get users by user-IDs"))
+					svr.err(conn, r, errors.Wrap(err, "cannot get users for new board"))
 					continue
 				}
 
-				// Create a board.
+				// Create the board.
 				_, err = svr.play.CreateBoard(ctx, e,
 					&domain.EventNewBoardUser{
 						UserID:         session.User.ID.String(),

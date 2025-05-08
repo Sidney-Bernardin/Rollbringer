@@ -43,6 +43,8 @@ func (svr *server) mwAuth(required, checkCSRF bool, redirectURL string) middlewa
 			)
 
 			defer func() {
+
+				// If unauthentication is required and failed, then redirect or error.
 				if session == nil && required {
 					if redirectURL != "" {
 						http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
@@ -69,14 +71,14 @@ func (svr *server) mwAuth(required, checkCSRF bool, redirectURL string) middlewa
 			}
 
 			// Get the session.
-			if csrfToken := r.Header.Get("CSRF-Token"); checkCSRF {
-				session, err = svr.accountsDatabase.GetSessionBySessionIDAndCSRFToken(ctx, sessionID, csrfToken)
+			if checkCSRF {
+				session, err = svr.accountsDatabase.GetSessionBySessionIDAndCSRFToken(ctx, sessionID, r.Header.Get("CSRF-Token"))
 			} else {
 				session, err = svr.accountsDatabase.GetSessionBySessionID(ctx, sessionID)
 			}
 
 			if err != nil && !errors.Is(err, domain.ErrEntityNotFound) {
-				svr.err(w, r, errors.Wrap(err, "cannot authenticate"))
+				svr.err(w, r, errors.Wrap(err, "cannot get user's session"))
 				return
 			}
 		})
