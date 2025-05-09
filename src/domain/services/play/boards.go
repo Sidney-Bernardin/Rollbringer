@@ -44,16 +44,11 @@ const (
 )
 
 type CreateBoardOpts struct {
-	Name  string   `json:"name"`
-	Users []string `json:"users"`
+	Name    string      `json:"name"`
+	UserIDs []uuid.UUID `json:"users_ids"`
 }
 
-func (svc *service) CreateBoard(ctx context.Context, args *CreateBoardOpts, creator *domain.EventNewBoardUser, users []domain.EventNewBoardUser) (*Board, error) {
-
-	creatorID, err := uuid.Parse(creator.UserID)
-	if err != nil {
-		return nil, &domain.ExternalError{Type: domain.ExternalErrorTypeInvalidUUID, Msg: err.Error()}
-	}
+func (svc *service) CreateBoard(ctx context.Context, args *CreateBoardOpts, creator *domain.PublicUser, users []domain.PublicUser) (*Board, error) {
 
 	name, err := ParseBoardName(args.Name)
 	if err != nil {
@@ -65,7 +60,7 @@ func (svc *service) CreateBoard(ctx context.Context, args *CreateBoardOpts, crea
 		Name:   name,
 		Canvas: []byte(`{}`),
 		UserPermisions: map[uuid.UUID][]BoardUserPermision{
-			creatorID: {BoardUserPermisionOwner},
+			creator.UserID: {BoardUserPermisionOwner},
 		},
 	}
 
@@ -74,7 +69,7 @@ func (svc *service) CreateBoard(ctx context.Context, args *CreateBoardOpts, crea
 	}
 
 	svc.broker.Pub(ctx, &domain.EventNewBoard{
-		BoardID: board.ID.String(),
+		BoardID: board.ID,
 		Name:    string(board.Name),
 		Users:   append(users, *creator),
 	})

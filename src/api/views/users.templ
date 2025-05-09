@@ -1,14 +1,13 @@
 package views
 
 import (
-	"github.com/google/uuid"
 	"rollbringer/src/domain"
 	"rollbringer/src/domain/services/accounts"
 )
 
 templ NewUserBubble(event *domain.EventRoomJoined) {
 	@UserBubble(&accounts.User{
-		ID:             uuid.MustParse(event.Newcomer.UserID),
+		ID:             event.Newcomer.UserID,
 		Username:       accounts.Username(event.Newcomer.Username),
 		ProfilePicture: event.Newcomer.ProfilePicture,
 	})

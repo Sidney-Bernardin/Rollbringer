@@ -1,7 +1,6 @@
 package views
 
 import (
-	"github.com/google/uuid"
 	"rollbringer/src"
 	"rollbringer/src/domain"
 	"rollbringer/src/domain/services/accounts"
@@ -11,12 +10,12 @@ import (
 templ NewBoardCard(event *domain.EventNewBoard) {
 	@BoardCard(
 		&play.Board{
-			ID:   uuid.MustParse(event.BoardID),
+			ID:   event.BoardID,
 			Name: play.BoardName(event.Name),
 		},
-		src.Map(event.Users, func(_ int, u domain.EventNewBoardUser) **accounts.User {
+		src.Map(event.Users, func(_ int, u domain.PublicUser) **accounts.User {
 			ret := &accounts.User{
-				ID:             uuid.MustParse(u.UserID),
+				ID:             u.UserID,
 				Username:       accounts.Username(u.Username),
 				ProfilePicture: u.ProfilePicture,
 			}

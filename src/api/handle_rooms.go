@@ -58,8 +58,8 @@ func (svr *server) handleRoomWebSocket() websocket.Handler {
 		}
 
 		// Join the room.
-		_, err = svr.play.JoinRoom(ctx, roomID, &domain.EventRoomJoinedNewcomer{
-			UserID:         session.User.ID.String(),
+		_, err = svr.play.JoinRoom(ctx, roomID, &domain.PublicUser{
+			UserID:         session.User.ID,
 			Username:       string(session.User.Username),
 			ProfilePicture: session.User.ProfilePicture,
 		})
@@ -85,7 +85,7 @@ func (svr *server) handleRoomWebSocket() websocket.Handler {
 
 		// Subscribe to the user's events.
 		go func() {
-			err := svr.playBroker.SubUser(ctx, roomID, svr.userCallback(conn, r))
+			err := svr.playBroker.SubUser(ctx, session.User.ID, svr.userCallback(conn, r))
 			svr.err(conn, r, errors.Wrap(err, "cannot subscribe to user events"))
 			conn.Close()
 		}()
@@ -93,7 +93,7 @@ func (svr *server) handleRoomWebSocket() websocket.Handler {
 		for {
 
 			// Receive the next message.
-			event, err := svr.nextMessage(conn, func(operation string) any {
+			message, err := svr.nextMessage(conn, func(operation string) any {
 				switch operation {
 				case "chat":
 					return &views.ReqChat{}
@@ -104,7 +104,7 @@ func (svr *server) handleRoomWebSocket() websocket.Handler {
 				}
 			})
 
-			switch e := event.(type) {
+			switch msg := message.(type) {
 			case error:
 				if !errors.Is(err, io.EOF) && !errors.Is(err, net.ErrClosed) {
 					svr.err(conn, r, errors.Wrap(err, "cannot read from WebSocket connection"))
@@ -117,39 +117,28 @@ func (svr *server) handleRoomWebSocket() websocket.Handler {
 				svr.playBroker.Pub(ctx, &play.EventChat{
 					RoomID:   roomID.String(),
 					AuthorID: session.User.ID.String(),
-					Message:  e.Message,
+					Message:  msg.Message,
 				})
 
 			case *play.CreateBoardOpts:
 
-				// Parse the user-IDs.
-				userIDs := make([]uuid.UUID, 0, len(e.Users))
-				for _, userID := range e.Users {
-					uID, err := uuid.Parse(userID)
-					if err != nil {
-						svr.err(conn, r, &domain.ExternalError{Type: domain.ExternalErrorTypeInvalidUUID, Msg: err.Error()})
-						continue
-					}
-					userIDs = append(userIDs, uID)
-				}
-
 				// Get the board's users.
-				users, err := svr.accountsDatabase.GetUsersByUserIDs(ctx, userIDs...)
+				users, err := svr.accountsDatabase.GetUsersByUserIDs(ctx, msg.UserIDs...)
 				if err != nil {
 					svr.err(conn, r, errors.Wrap(err, "cannot get users for new board"))
 					continue
 				}
 
 				// Create the board.
-				_, err = svr.play.CreateBoard(ctx, e,
-					&domain.EventNewBoardUser{
-						UserID:         session.User.ID.String(),
+				_, err = svr.play.CreateBoard(ctx, msg,
+					&domain.PublicUser{
+						UserID:         session.User.ID,
 						Username:       string(session.User.Username),
 						ProfilePicture: session.User.ProfilePicture,
 					},
-					src.Map(users, func(_ int, u *accounts.User) *domain.EventNewBoardUser {
-						return &domain.EventNewBoardUser{
-							UserID:         u.ID.String(),
+					src.Map(users, func(_ int, u *accounts.User) *domain.PublicUser {
+						return &domain.PublicUser{
+							UserID:         u.ID,
 							Username:       string(u.Username),
 							ProfilePicture: u.ProfilePicture,
 						}

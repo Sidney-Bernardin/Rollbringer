@@ -18,8 +18,8 @@ type EventChat struct {
 
 type Service interface {
 	CreateRoom(ctx context.Context, creatorID uuid.UUID, args *CreateRoomOpts) (*Room, error)
-	CreateBoard(ctx context.Context, opts *CreateBoardOpts, creator *domain.EventNewBoardUser, users []domain.EventNewBoardUser) (*Board, error)
-	JoinRoom(ctx context.Context, roomID uuid.UUID, newcomer *domain.EventRoomJoinedNewcomer) (*Room, error)
+	CreateBoard(ctx context.Context, opts *CreateBoardOpts, creator *domain.PublicUser, users []domain.PublicUser) (*Board, error)
+	JoinRoom(ctx context.Context, roomID uuid.UUID, newcomer *domain.PublicUser) (*Room, error)
 }
 
 type (

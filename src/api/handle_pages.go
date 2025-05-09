@@ -77,12 +77,11 @@ func (svr *server) handlePagePlay() http.Handler {
 		}
 
 		// Join the room.
-		page.Room, err = svr.play.JoinRoom(ctx, roomID,
-			&domain.EventRoomJoinedNewcomer{
-				UserID:         session.User.ID.String(),
-				Username:       string(session.User.Username),
-				ProfilePicture: session.User.ProfilePicture,
-			})
+		page.Room, err = svr.play.JoinRoom(ctx, roomID, &domain.PublicUser{
+			UserID:         session.User.ID,
+			Username:       string(session.User.Username),
+			ProfilePicture: session.User.ProfilePicture,
+		})
 
 		if err != nil {
 			svr.err(w, r, errors.Wrap(err, "cannot join room"))

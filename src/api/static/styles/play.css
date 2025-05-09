@@ -157,6 +157,7 @@ dialog form button {
 
 .layout .social .users {
   border-bottom: 2px dashed #d3d3d3;
+  min-height: fit-content;
   display: flex;
   overflow-x: auto;
 }
@@ -171,8 +172,8 @@ dialog form button {
 
 .layout .social .users .user-bubble img {
   border-radius: 50%;
-  width: 2rem;
-  height: 2rem;
+  width: 3rem;
+  height: 3rem;
 }
 
 .layout .social .chat {

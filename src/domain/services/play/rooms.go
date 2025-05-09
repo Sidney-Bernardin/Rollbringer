@@ -70,21 +70,16 @@ func (svc *service) CreateRoom(ctx context.Context, creatorID uuid.UUID, opts *C
 	return room, nil
 }
 
-func (svc *service) JoinRoom(ctx context.Context, roomID uuid.UUID, newcomer *domain.EventRoomJoinedNewcomer) (*Room, error) {
+func (svc *service) JoinRoom(ctx context.Context, roomID uuid.UUID, newcomer *domain.PublicUser) (*Room, error) {
 
-	newcomerID, err := uuid.Parse(newcomer.UserID)
-	if err != nil {
-		return nil, &domain.ExternalError{Type: domain.ExternalErrorTypeInvalidUUID, Msg: err.Error()}
-	}
-
-	room, newlyJoined, err := svc.database.JoinRoom(ctx, newcomerID, roomID, RoomUserPermisionPlayer)
+	room, newlyJoined, err := svc.database.JoinRoom(ctx, newcomer.UserID, roomID, RoomUserPermisionPlayer)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot join room")
 	}
 
 	if newlyJoined {
 		svc.broker.Pub(ctx, &domain.EventRoomJoined{
-			RoomID:   roomID.String(),
+			RoomID:   roomID,
 			Newcomer: *newcomer,
 		})
 	}

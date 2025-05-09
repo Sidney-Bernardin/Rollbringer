@@ -9,7 +9,6 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/google/uuid"
 	"rollbringer/src"
 	"rollbringer/src/domain"
 	"rollbringer/src/domain/services/accounts"
@@ -39,12 +38,12 @@ func NewBoardCard(event *domain.EventNewBoard) templ.Component {
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = BoardCard(
 			&play.Board{
-				ID:   uuid.MustParse(event.BoardID),
+				ID:   event.BoardID,
 				Name: play.BoardName(event.Name),
 			},
-			src.Map(event.Users, func(_ int, u domain.EventNewBoardUser) **accounts.User {
+			src.Map(event.Users, func(_ int, u domain.PublicUser) **accounts.User {
 				ret := &accounts.User{
-					ID:             uuid.MustParse(u.UserID),
+					ID:             u.UserID,
 					Username:       accounts.Username(u.Username),
 					ProfilePicture: u.ProfilePicture,
 				}
@@ -86,7 +85,7 @@ func BoardCard(board *play.Board, boardUsers []*accounts.User) templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(string(board.Name))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/board.templ`, Line: 33, Col: 32}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/board.templ`, Line: 32, Col: 32}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -104,7 +103,7 @@ func BoardCard(board *play.Board, boardUsers []*accounts.User) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(user.ProfilePicture)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/board.templ`, Line: 40, Col: 35}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/board.templ`, Line: 39, Col: 35}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -117,7 +116,7 @@ func BoardCard(board *play.Board, boardUsers []*accounts.User) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(string(user.Username))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/board.templ`, Line: 40, Col: 67}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/board.templ`, Line: 39, Col: 67}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
