@@ -26,7 +26,7 @@ templ Play(page *PlayData) {
 			<title>{ string(page.Room.Name) } | Rollbringer</title>
 			<link rel="icon" type="image/x-icon" href="/static/favicon.png"/>
 			<link rel="stylesheet" type="text/css" href="/static/styles/play.css"/>
-			<script src="/static/play.js" defer></script>
+			<script src="/static/pages/play.js" defer></script>
 		</head>
 		<body
 			x-data
@@ -42,13 +42,13 @@ templ Play(page *PlayData) {
 				</div>
 				//
 				<div class="document-viewer"></div>
-				<div class="boards"></div>
+				<div class="board"></div>
 				//
 				// --- Materials --- //
 				<div class="materials">
 					//
 					// --- Boards --- ///
-					<div class="boards">
+					<div class="board-cards">
 						<div class="tool-bar">
 							<button @click="$refs.createBoard.showModal()">
 								<iconify-icon icon="material-symbols:add"></iconify-icon>
@@ -110,6 +110,7 @@ templ Play(page *PlayData) {
 					<hr/>
 					<form ws-send>
 						<input type="hidden" name="operation" value="create-board"/>
+						<input type="hidden" name="canvas" :value="btoa(JSON.stringify(defaultBoardCanvas))"/>
 						<input type="text" name="name" placeholder="Name"/>
 						<button>Create</button>
 					</form>

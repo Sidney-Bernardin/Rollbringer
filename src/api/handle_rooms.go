@@ -99,6 +99,8 @@ func (svr *server) handleRoomWebSocket() websocket.Handler {
 					return &views.ReqChat{}
 				case "create-board":
 					return &play.CreateBoardOpts{}
+				case "open-board":
+					return &views.ReqGetBoard{}
 				default:
 					return nil
 				}
@@ -146,6 +148,17 @@ func (svr *server) handleRoomWebSocket() websocket.Handler {
 				)
 
 				svr.err(conn, r, errors.Wrap(err, "cannot create board"))
+
+			case *views.ReqGetBoard:
+
+				// Get the user's board.
+				board, err := svr.playDatabase.GetUserBoard(ctx, session.User.ID, msg.BoardID)
+				if err != nil {
+					svr.err(conn, r, errors.Wrap(err, "cannot get user's board"))
+					return
+				}
+
+				svr.respond(conn, r, 0, views.Board(board))
 			}
 		}
 	})

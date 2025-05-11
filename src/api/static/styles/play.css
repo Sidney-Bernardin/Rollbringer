@@ -88,13 +88,13 @@ dialog form button {
   overflow: auto;
 }
 
-.layout .materials .boards {
+.layout .materials .board-cards {
   flex-direction: column;
   height: 100%;
   display: flex;
 }
 
-.layout .materials .boards .tool-bar {
+.layout .materials .board-cards .tool-bar {
   text-wrap: nowrap;
   border-bottom: 2px dashed #d3d3d3;
   gap: .5rem;
@@ -104,13 +104,13 @@ dialog form button {
   overflow-x: auto;
 }
 
-.layout .materials .boards .grid {
+.layout .materials .board-cards .grid {
   grid-template-columns: repeat(auto-fill, minmax(min(10rem, 100%), 1fr));
   display: grid;
   overflow-y: auto;
 }
 
-.layout .materials .boards .grid .board {
+.layout .materials .board-cards .grid .board-card {
   cursor: pointer;
   flex-direction: column;
   align-items: center;
@@ -120,29 +120,29 @@ dialog form button {
   position: relative;
 }
 
-.layout .materials .boards .grid .board:hover {
+.layout .materials .board-cards .grid .board-card:hover {
   backdrop-filter: brightness(.75);
 }
 
-.layout .materials .boards .grid .board .logo {
+.layout .materials .board-cards .grid .board-card .logo {
   width: 100%;
 }
 
-.layout .materials .boards .grid .board p {
+.layout .materials .board-cards .grid .board-card p {
   justify-content: space-between;
   align-items: center;
   width: 100%;
   display: flex;
 }
 
-.layout .materials .boards .grid .board .users {
+.layout .materials .board-cards .grid .board-card .users {
   gap: .25rem;
   width: 100%;
   display: flex;
   overflow: hidden;
 }
 
-.layout .materials .boards .grid .board .users img {
+.layout .materials .board-cards .grid .board-card .users img {
   border-radius: 50%;
   width: 2rem;
   height: 2rem;

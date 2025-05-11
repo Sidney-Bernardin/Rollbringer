@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/pkg/errors"
 
+	"rollbringer/src/domain"
 	"rollbringer/src/domain/services/play"
 	"rollbringer/src/repos/database"
 )
@@ -74,7 +75,7 @@ func (db *playDatabase) CreateBoard(ctx context.Context, board *play.Board) erro
 	return errors.Wrap(err, "transaction failed")
 }
 
-func (db *playDatabase) GetBoardByBoardID(ctx context.Context, boardID uuid.UUID) (*play.Board, error) {
+func (db *playDatabase) GetUserBoard(ctx context.Context, userID, boardID uuid.UUID) (*play.Board, error) {
 	_, model, err := database.Get[board](ctx, db.Pool,
 		`
 			SELECT
@@ -85,12 +86,26 @@ func (db *playDatabase) GetBoardByBoardID(ctx context.Context, boardID uuid.UUID
 				json_agg(board_users.permisions) AS "board_users.permisions"
 			FROM play.boards
 			LEFT JOIN play.board_users ON boards.id = board_users.board_id
-			WHERE id = $1
+			WHERE boards.id = $1 AND board_users.user_id = $2
 			GROUP BY boards.id
 		`,
-		boardID)
+		boardID, userID)
 
-	return model, errors.Wrap(err, "cannot select board by board-ID")
+	if err != nil {
+		if errors.Is(err, domain.ErrEntityNotFound) {
+			return nil, &domain.ExternalError{
+				Type: play.ExternalErrorTypeBoardNotFound,
+				Details: map[string]any{
+					"user_id":  userID,
+					"board_id": boardID,
+				},
+			}
+		}
+
+		return nil, errors.Wrap(err, "cannot select board by board-ID and user-ID")
+	}
+
+	return model, nil
 }
 
 func (db *playDatabase) GetBoardsByUserID(ctx context.Context, userID uuid.UUID) ([]*play.Board, error) {

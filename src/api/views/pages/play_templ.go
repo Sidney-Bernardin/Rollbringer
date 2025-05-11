@@ -60,7 +60,7 @@ func Play(page *PlayData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " | Rollbringer</title><link rel=\"icon\" type=\"image/x-icon\" href=\"/static/favicon.png\"><link rel=\"stylesheet\" type=\"text/css\" href=\"/static/styles/play.css\"><script src=\"/static/play.js\" defer></script></head><body x-data hx-ext=\"ws\" ws-connect=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " | Rollbringer</title><link rel=\"icon\" type=\"image/x-icon\" href=\"/static/favicon.png\"><link rel=\"stylesheet\" type=\"text/css\" href=\"/static/styles/play.css\"><script src=\"/static/pages/play.js\" defer></script></head><body x-data hx-ext=\"ws\" ws-connect=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -96,7 +96,7 @@ func Play(page *PlayData) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "><div class=\"layout\"><div class=\"nav-bar\"><a href=\"/\">Home</a></div><div class=\"document-viewer\"></div><div class=\"boards\"></div><div class=\"materials\"><div class=\"boards\"><div class=\"tool-bar\"><button @click=\"$refs.createBoard.showModal()\"><iconify-icon icon=\"material-symbols:add\"></iconify-icon> Create Board</button></div><div class=\"grid\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "><div class=\"layout\"><div class=\"nav-bar\"><a href=\"/\">Home</a></div><div class=\"document-viewer\"></div><div class=\"board\"></div><div class=\"materials\"><div class=\"board-cards\"><div class=\"tool-bar\"><button @click=\"$refs.createBoard.showModal()\"><iconify-icon icon=\"material-symbols:add\"></iconify-icon> Create Board</button></div><div class=\"grid\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -116,7 +116,7 @@ func Play(page *PlayData) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div><div class=\"chat\"><div class=\"messages\"><div class=\"inner\"><div class=\"anchor\"></div></div></div></div><form ws-send><input type=\"hidden\" name=\"operation\" value=\"chat\"> <input type=\"text\" name=\"message\" placeholder=\"Hello, World!\"> <button><iconify-icon icon=\"material-symbols:send\"></iconify-icon> Send</button></form></div><span class=\"gutter g1\"></span> <span class=\"gutter g2\"></span> <span class=\"gutter g3\"></span> <span class=\"gutter g4\"></span><dialog class=\"create-board\" x-ref=\"createBoard\"><header><h1>Create Board</h1><button @click=\"$refs.createBoard.close()\"><iconify-icon icon=\"material-symbols:close\"></iconify-icon> Close</button></header><hr><form ws-send><input type=\"hidden\" name=\"operation\" value=\"create-board\"> <input type=\"text\" name=\"name\" placeholder=\"Name\"> <button>Create</button></form></dialog></div></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div><div class=\"chat\"><div class=\"messages\"><div class=\"inner\"><div class=\"anchor\"></div></div></div></div><form ws-send><input type=\"hidden\" name=\"operation\" value=\"chat\"> <input type=\"text\" name=\"message\" placeholder=\"Hello, World!\"> <button><iconify-icon icon=\"material-symbols:send\"></iconify-icon> Send</button></form></div><span class=\"gutter g1\"></span> <span class=\"gutter g2\"></span> <span class=\"gutter g3\"></span> <span class=\"gutter g4\"></span><dialog class=\"create-board\" x-ref=\"createBoard\"><header><h1>Create Board</h1><button @click=\"$refs.createBoard.close()\"><iconify-icon icon=\"material-symbols:close\"></iconify-icon> Close</button></header><hr><form ws-send><input type=\"hidden\" name=\"operation\" value=\"create-board\"> <input type=\"hidden\" name=\"canvas\" :value=\"btoa(JSON.stringify(defaultBoardCanvas))\"> <input type=\"text\" name=\"name\" placeholder=\"Name\"> <button>Create</button></form></dialog></div></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

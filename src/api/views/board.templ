@@ -7,38 +7,60 @@ import (
 	"rollbringer/src/domain/services/play"
 )
 
+templ Board(board *play.Board) {
+	<div hx-swap-oob="innerHTML:.board">
+		<div
+			x-data
+			x-init="Board.initStage()"
+			class="board"
+			data-board-id={ board.ID.String() }
+			data-board-name={ string(board.Name) }
+			data-canvas={ string(board.Canvas) }
+		>
+			<div class="stage-container"></div>
+		</div>
+	</div>
+}
+
 templ NewBoardCard(event *domain.EventNewBoard) {
-	@BoardCard(
-		&play.Board{
-			ID:   event.BoardID,
-			Name: play.BoardName(event.Name),
-		},
-		src.Map(event.Users, func(_ int, u domain.PublicUser) **accounts.User {
-			ret := &accounts.User{
-				ID:             u.UserID,
-				Username:       accounts.Username(u.Username),
-				ProfilePicture: u.ProfilePicture,
-			}
-			return &ret
-		}),
-	)
+	<div hx-swap-oob="afterbegin:.board-cards .grid">
+		@BoardCard(
+			&play.Board{
+				ID:   event.BoardID,
+				Name: play.BoardName(event.Name),
+			},
+			src.Map(event.Users, func(_ int, u domain.PublicUser) **accounts.User {
+				ret := &accounts.User{
+					ID:             u.UserID,
+					Username:       accounts.Username(u.Username),
+					ProfilePicture: u.ProfilePicture,
+				}
+				return &ret
+			}),
+		)
+	</div>
 }
 
 templ BoardCard(board *play.Board, boardUsers []*accounts.User) {
-	<div hx-swap-oob="afterbegin:.boards .grid">
-		<div class="board">
-			<img class="logo" src="https://static-00.iconduck.com/assets.00/dungeons-and-dragons-icon-512x492-vw90341y.png" alt=""/>
-			<p>
-				<strong>{ string(board.Name) }</strong>
-				<button>
-					<iconify-icon icon="material-symbols:more-vert"></iconify-icon>
-				</button>
-			</p>
-			<div class="users">
-				for _, user := range boardUsers {
-					<img src={ user.ProfilePicture } title={ string(user.Username) } referrerpolicy="no-referrer"/>
-				}
-			</div>
+	<div
+		class="board-card"
+		ws-send
+		hx-vals={ templ.JSONString(map[string]any{
+            "operation": "open-board",
+            "board_id": board.ID.String(),
+        }) }
+	>
+		<img class="logo" src="https://static-00.iconduck.com/assets.00/dungeons-and-dragons-icon-512x492-vw90341y.png" alt=""/>
+		<p>
+			<strong>{ string(board.Name) }</strong>
+			<button>
+				<iconify-icon icon="material-symbols:more-vert"></iconify-icon>
+			</button>
+		</p>
+		<div class="users">
+			for _, user := range boardUsers {
+				<img src={ user.ProfilePicture } title={ string(user.Username) } referrerpolicy="no-referrer"/>
+			}
 		</div>
 	</div>
 }

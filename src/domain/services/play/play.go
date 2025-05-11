@@ -32,6 +32,7 @@ type (
 
 	DatabaseCommon interface {
 		GetRoomsByUserID(ctx context.Context, userID uuid.UUID) ([]*Room, error)
+		GetUserBoard(ctx context.Context, userID, boardID uuid.UUID) (*Board, error)
 		GetBoardsByUserID(ctx context.Context, boardID uuid.UUID) ([]*Board, error)
 	}
 )

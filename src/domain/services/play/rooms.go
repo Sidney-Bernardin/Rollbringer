@@ -11,7 +11,6 @@ import (
 
 const (
 	ExternalErrorTypeInvalidRoomName domain.ExternalErrorType = "invalids-rooms-name"
-	ExternalErrorTypeRoomNotFound    domain.ExternalErrorType = "room-not-found"
 )
 
 type Room struct {

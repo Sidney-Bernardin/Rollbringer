@@ -11,6 +11,7 @@ import (
 
 const (
 	ExternalErrorTypeInvalidBoardName domain.ExternalErrorType = "invalid_board_name"
+	ExternalErrorTypeBoardNotFound    domain.ExternalErrorType = "board_not_found"
 )
 
 type Board struct {
@@ -46,6 +47,7 @@ const (
 type CreateBoardOpts struct {
 	Name    string      `json:"name"`
 	UserIDs []uuid.UUID `json:"users_ids"`
+	Canvas  []byte      `json:"canvas"`
 }
 
 func (svc *service) CreateBoard(ctx context.Context, args *CreateBoardOpts, creator *domain.PublicUser, users []domain.PublicUser) (*Board, error) {
@@ -58,7 +60,7 @@ func (svc *service) CreateBoard(ctx context.Context, args *CreateBoardOpts, crea
 	board := &Board{
 		ID:     uuid.New(),
 		Name:   name,
-		Canvas: []byte(`{}`),
+		Canvas: args.Canvas,
 		UserPermisions: map[uuid.UUID][]BoardUserPermision{
 			creator.UserID: {BoardUserPermisionOwner},
 		},

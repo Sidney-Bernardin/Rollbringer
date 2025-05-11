@@ -89,7 +89,7 @@ dialog {
     grid-area: materials;
     overflow: auto;
 
-    .boards {
+    .board-cards {
       display: flex;
       height: 100%;
       flex-direction: column;
@@ -109,7 +109,7 @@ dialog {
         grid-template-columns: repeat(auto-fill, minmax(min(10rem, 100%), 1fr));
         overflow-y: auto;
 
-        .board {
+        .board-card {
           position: relative;
           display: flex;
           cursor: pointer;
