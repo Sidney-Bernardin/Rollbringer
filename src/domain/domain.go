@@ -14,10 +14,12 @@ var (
 	ErrNoEntitiesEffected = errors.New("no entities effected")
 )
 
-type PublicBroker interface {
-	Pub(ctx context.Context, event any) bool
+type Broker interface {
+	Pub(ctx context.Context, event any)
 	SubUser(ctx context.Context, userID uuid.UUID, callback func(event any)) error
 	SubRoom(ctx context.Context, roomID uuid.UUID, callback func(event any)) error
+	SubChat(ctx context.Context, roomID uuid.UUID, callback func(event *EventChat)) error
+	SubCanvas(ctx context.Context, boardID uuid.UUID, callback func(event any)) error
 }
 
 type PublicUser struct {
@@ -28,7 +30,7 @@ type PublicUser struct {
 
 type ExternalError struct {
 	Type    ExternalErrorType `json:"type"`
-	Msg     string            `json:"description,omitempty"`
+	Msg     string            `json:"msg,omitempty"`
 	Details map[string]any    `json:"attrs,omitempty"`
 }
 

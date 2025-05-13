@@ -25,7 +25,7 @@ type server struct {
 
 	log    *slog.Logger
 	config *src.Config
-	broker domain.PublicBroker
+	broker domain.Broker
 
 	accounts         accounts.Service
 	accountsDatabase accounts.DatabaseCommon
@@ -33,14 +33,13 @@ type server struct {
 	spotify          accounts.Spotify
 
 	play         play.Service
-	playBroker   play.BrokerCommon
 	playDatabase play.Database
 }
 
 func NewServer(
 	log *slog.Logger,
 	config *src.Config,
-	broker domain.PublicBroker,
+	broker domain.Broker,
 
 	accountsSvc accounts.Service,
 	accountsDB accounts.DatabaseCommon,
@@ -48,7 +47,6 @@ func NewServer(
 	spotify accounts.Spotify,
 
 	playSvc play.Service,
-	playBroker play.BrokerCommon,
 	playDB play.Database,
 ) *server {
 	svr := &server{
@@ -57,7 +55,7 @@ func NewServer(
 		},
 		log, config, broker,
 		accountsSvc, accountsDB, google, spotify,
-		playSvc, playBroker, playDB,
+		playSvc, playDB,
 	}
 
 	r := http.NewServeMux()
@@ -85,8 +83,8 @@ func (svr *server) roomCallback(conn *websocket.Conn, r *http.Request) func(any)
 	}
 }
 
-func (svr *server) chatCallback(ctx context.Context, conn *websocket.Conn, r *http.Request) func(*play.EventChat) {
-	return func(event *play.EventChat) {
+func (svr *server) chatCallback(ctx context.Context, conn *websocket.Conn, r *http.Request) func(*domain.EventChat) {
+	return func(event *domain.EventChat) {
 
 		// Get the chat message's author.
 		author, err := svr.accounts.GetUserByUserID(ctx, uuid.MustParse(event.AuthorID))
@@ -108,6 +106,18 @@ func (svr *server) userCallback(conn *websocket.Conn, r *http.Request) func(any)
 		switch e := event.(type) {
 		case *domain.EventNewBoard:
 			svr.respond(conn, r, 0, views.NewBoardCard(e))
+		}
+	}
+}
+
+func (svr *server) canvasCallback(conn *websocket.Conn, r *http.Request) func(any) {
+	return func(event any) {
+		switch e := event.(type) {
+		case *domain.EventUpdateCanvasNode:
+			svr.respond(conn, r, 0, views.WebSocketResponse{
+				Operation: "update-canvas-node",
+				Payload:   e,
+			})
 		}
 	}
 }

@@ -15,4 +15,6 @@ type (
 	ReqGetBoard struct {
 		BoardID uuid.UUID `json:"board_id"`
 	}
+
+	ReqSubscribeToCanvas struct{}
 )

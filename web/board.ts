@@ -1,3 +1,4 @@
+import { KonvaEventObject } from "konva/lib/Node"
 import * as Models from "./models"
 import Konva from "konva"
 
@@ -7,7 +8,7 @@ export var stage: Konva.Stage | undefined
 export var layer: Konva.Layer | undefined
 
 export function initStage(): void {
-    board = document.querySelector(".board .board") as HTMLDivElement
+    board = document.querySelector(".boards .board") as HTMLDivElement
 
     stage = new Konva.Stage({
         container: board.querySelector(".stage-container") as HTMLDivElement,
@@ -26,33 +27,29 @@ export function initStage(): void {
             case "rect": shape = new Konva.Rect({})
             case "circle": shape = new Konva.Circle({})
         }
+
         updateShape(shape, node)
-        shape.on("dragmove", onKonvaDragMove)
+        shape.setAttr("draggable", true)
+        shape.on("dragmove", onShapeDragMove)
         layer.add(shape)
     }
 
-    window.wsSend(JSON.stringify({
-        operation: "board-subscribe",
-        payload: {
-            board_id: board.dataset.boardId,
-        }
-    }))
+    window.wsSend(JSON.stringify({ operation: "subscribe-to-canvas" }))
 }
 
 export function updateShape(shape: Konva.Shape, update: Models.CanvasNode) {
     for (let [k, v] of Object.entries(update)) {
+        if (k == "new_name") k = "name"
         if (k == "color") k = "fill"
         shape.setAttr(k, v)
     }
 }
 
-function onKonvaDragMove(e: Konva.KonvaPointerEvent): void {
+function onShapeDragMove(e: Konva.KonvaPointerEvent): void {
     window.wsSend(JSON.stringify({
-        operation: "canvas-node-update",
-        payload: {
-            name: e.target.name(),
-            x: e.target.x(),
-            y: e.target.y(),
-        },
+        operation: "update-canvas-node",
+        name: e.target.name(),
+        x: e.target.x(),
+        y: e.target.y(),
     }))
 }

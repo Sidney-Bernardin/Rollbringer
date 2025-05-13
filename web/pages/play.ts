@@ -38,7 +38,7 @@ window.addEventListener("htmx:wsBeforeMessage", (e: CustomEventInit) => {
     } catch { return }
 
     switch (msg.operation) {
-        case "canvas-node-update":
+        case "update-canvas-node":
             const shape: Konva.Shape = Board.layer?.findOne(`.${msg.payload.name}`)!
             Board.updateShape(shape, msg.payload)
             break

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"io"
 	"net"
 	"net/http"
@@ -48,6 +49,10 @@ func (svr *server) handleRoomWebSocket() websocket.Handler {
 			r          = conn.Request()
 			ctx        = r.Context()
 			session, _ = ctx.Value("session").(*accounts.Session)
+
+			board       *play.Board
+			boardCtx    context.Context
+			boardCancel context.CancelFunc = func() {}
 		)
 
 		// Parse the room-ID.
@@ -71,21 +76,21 @@ func (svr *server) handleRoomWebSocket() websocket.Handler {
 
 		// Subscribe to the room's events.
 		go func() {
-			err := svr.playBroker.SubRoom(ctx, roomID, svr.roomCallback(conn, r))
+			err := svr.broker.SubRoom(ctx, roomID, svr.roomCallback(conn, r))
 			svr.err(conn, r, errors.Wrap(err, "cannot subscribe to room events"))
 			conn.Close()
 		}()
 
 		// Subscribe to the room's chat events.
 		go func() {
-			err := svr.playBroker.SubChat(ctx, roomID, svr.chatCallback(ctx, conn, r))
+			err := svr.broker.SubChat(ctx, roomID, svr.chatCallback(ctx, conn, r))
 			svr.err(conn, r, errors.Wrap(err, "cannot subscribe to chat events"))
 			conn.Close()
 		}()
 
 		// Subscribe to the user's events.
 		go func() {
-			err := svr.playBroker.SubUser(ctx, session.User.ID, svr.userCallback(conn, r))
+			err := svr.broker.SubUser(ctx, session.User.ID, svr.userCallback(conn, r))
 			svr.err(conn, r, errors.Wrap(err, "cannot subscribe to user events"))
 			conn.Close()
 		}()
@@ -101,6 +106,10 @@ func (svr *server) handleRoomWebSocket() websocket.Handler {
 					return &play.CreateBoardOpts{}
 				case "open-board":
 					return &views.ReqGetBoard{}
+				case "subscribe-to-canvas":
+					return &views.ReqSubscribeToCanvas{}
+				case "update-canvas-node":
+					return &domain.EventUpdateCanvasNode{}
 				default:
 					return nil
 				}
@@ -116,7 +125,7 @@ func (svr *server) handleRoomWebSocket() websocket.Handler {
 			case *views.ReqChat:
 
 				// Publish the chat message.
-				svr.playBroker.Pub(ctx, &play.EventChat{
+				svr.broker.Pub(ctx, &domain.EventChat{
 					RoomID:   roomID.String(),
 					AuthorID: session.User.ID.String(),
 					Message:  msg.Message,
@@ -152,13 +161,39 @@ func (svr *server) handleRoomWebSocket() websocket.Handler {
 			case *views.ReqGetBoard:
 
 				// Get the user's board.
-				board, err := svr.playDatabase.GetUserBoard(ctx, session.User.ID, msg.BoardID)
+				board, err = svr.playDatabase.GetUserBoard(ctx, session.User.ID, msg.BoardID)
 				if err != nil {
 					svr.err(conn, r, errors.Wrap(err, "cannot get user's board"))
-					return
+					continue
 				}
 
 				svr.respond(conn, r, 0, views.Board(board))
+
+			case *views.ReqSubscribeToCanvas:
+				if board == nil {
+					continue
+				}
+
+				// Subscribe to the board's canvas events.
+				go func() {
+					boardCancel()
+					boardCtx, boardCancel = context.WithCancel(ctx)
+					err := svr.broker.SubCanvas(boardCtx, board.ID, svr.canvasCallback(conn, r))
+					svr.err(conn, r, errors.Wrap(err, "cannot subscribe to user events"))
+					boardCancel()
+				}()
+
+			case *domain.EventUpdateCanvasNode:
+				if board == nil {
+					continue
+				}
+
+				msg.BoardID = board.ID
+
+				svr.broker.Pub(ctx, msg)
+				svr.broker.Pub(ctx, &domain.EventSaveCanvas{
+					BoardID: msg.BoardID,
+				})
 			}
 		}
 	})

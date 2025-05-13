@@ -10,12 +10,6 @@ import (
 	"rollbringer/src/domain"
 )
 
-type EventChat struct {
-	RoomID   string `json:"room_id"`
-	AuthorID string `json:"author_id"`
-	Message  string `json:"message"`
-}
-
 type Service interface {
 	CreateRoom(ctx context.Context, creatorID uuid.UUID, args *CreateRoomOpts) (*Room, error)
 	CreateBoard(ctx context.Context, opts *CreateBoardOpts, creator *domain.PublicUser, users []domain.PublicUser) (*Board, error)
@@ -37,25 +31,14 @@ type (
 	}
 )
 
-type (
-	Broker interface {
-		BrokerCommon
-	}
-
-	BrokerCommon interface {
-		domain.PublicBroker
-		SubChat(ctx context.Context, roomID uuid.UUID, callback func(event *EventChat)) error
-	}
-)
-
 type service struct {
 	config *src.Config
 	log    *slog.Logger
 
-	broker   Broker
+	broker   domain.Broker
 	database Database
 }
 
-func NewService(config *src.Config, log *slog.Logger, broker Broker, database Database) Service {
+func NewService(config *src.Config, log *slog.Logger, broker domain.Broker, database Database) Service {
 	return &service{config, log, broker, database}
 }

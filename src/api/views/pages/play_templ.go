@@ -96,7 +96,7 @@ func Play(page *PlayData) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "><div class=\"layout\"><div class=\"nav-bar\"><a href=\"/\">Home</a></div><div class=\"document-viewer\"></div><div class=\"board\"></div><div class=\"materials\"><div class=\"board-cards\"><div class=\"tool-bar\"><button @click=\"$refs.createBoard.showModal()\"><iconify-icon icon=\"material-symbols:add\"></iconify-icon> Create Board</button></div><div class=\"grid\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "><div class=\"layout\"><div class=\"nav-bar\"><a href=\"/\">Home</a></div><div class=\"document-viewer\"></div><div class=\"boards\"></div><div class=\"materials\"><div class=\"board-cards\"><div class=\"tool-bar\"><button @click=\"$refs.createBoard.showModal()\"><iconify-icon icon=\"material-symbols:add\"></iconify-icon> Create Board</button></div><div class=\"grid\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

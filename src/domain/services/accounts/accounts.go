@@ -54,13 +54,13 @@ type (
 type service struct {
 	config *src.Config
 
-	publicBroker domain.PublicBroker
+	publicBroker domain.Broker
 
 	database Database
 	google   Google
 	spotify  Spotify
 }
 
-func NewService(config *src.Config, publicBroker domain.PublicBroker, database Database, google Google, spotify Spotify) Service {
+func NewService(config *src.Config, publicBroker domain.Broker, database Database, google Google, spotify Spotify) Service {
 	return &service{config, publicBroker, database, google, spotify}
 }

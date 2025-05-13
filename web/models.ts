@@ -1,6 +1,14 @@
 export type WebSocketResponse = {
-    operation: "canvas-node-update",
-    payload: CanvasNode,
+    operation: "error",
+    payload: Error,
+} | {
+    operation: "update-canvas-node"
+    payload: CanvasNode
+}
+
+export type Error = {
+    type: string,
+    msg: string,
 }
 
 export type Canvas = {

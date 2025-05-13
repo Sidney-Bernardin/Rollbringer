@@ -675,7 +675,7 @@ var board;
 var stage;
 var layer;
 function initStage() {
-    board = document.querySelector(".board .board");
+    board = document.querySelector(".boards .board");
     stage = new (0, _konvaDefault.default).Stage({
         container: board.querySelector(".stage-container"),
         width: 500,
@@ -695,30 +695,27 @@ function initStage() {
                 shape = new (0, _konvaDefault.default).Circle({});
         }
         updateShape(shape, node);
-        shape.on("dragmove", onKonvaDragMove);
+        shape.setAttr("draggable", true);
+        shape.on("dragmove", onShapeDragMove);
         layer.add(shape);
     }
     window.wsSend(JSON.stringify({
-        operation: "board-subscribe",
-        payload: {
-            board_id: board.dataset.boardId
-        }
+        operation: "subscribe-to-canvas"
     }));
 }
 function updateShape(shape, update) {
     for (let [k, v] of Object.entries(update)){
+        if (k == "new_name") k = "name";
         if (k == "color") k = "fill";
         shape.setAttr(k, v);
     }
 }
-function onKonvaDragMove(e) {
+function onShapeDragMove(e) {
     window.wsSend(JSON.stringify({
-        operation: "canvas-node-update",
-        payload: {
-            name: e.target.name(),
-            x: e.target.x(),
-            y: e.target.y()
-        }
+        operation: "update-canvas-node",
+        name: e.target.name(),
+        x: e.target.x(),
+        y: e.target.y()
     }));
 }
 

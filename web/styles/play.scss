@@ -81,8 +81,20 @@ dialog {
   }
 
   .boards {
+    background: gray;
     overflow: auto;
     grid-area: boards;
+
+    .board {
+      display: flex;
+      height: 100%;
+      justify-content: center;
+      align-items: center;
+
+      .stage-container {
+        background: #fff;
+      }
+    }
   }
 
   .materials {

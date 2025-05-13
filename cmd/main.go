@@ -40,9 +40,9 @@ func main() {
 		return
 	}
 
-	publicBroker, err := broker.New(ctx, config, log)
+	broker, err := broker.New(ctx, config, log)
 	if err != nil {
-		log.Log(ctx, src.LevelFatal, "Cannot create public-broker", "err", err.Error())
+		log.Log(ctx, src.LevelFatal, "Cannot create broker", "err", err.Error())
 		return
 	}
 
@@ -58,16 +58,10 @@ func main() {
 	google := google.New(config)
 	spotify := spotify.New(config)
 
-	accountsSvc := accounts.NewService(config, publicBroker, accountsDatabase, google, spotify)
+	accountsSvc := accounts.NewService(config, broker, accountsDatabase, google, spotify)
 
 	//
 	///// Play
-
-	playBroker, err := broker.NewPlayBroker(ctx, publicBroker.(*broker.PublicBroker))
-	if err != nil {
-		log.Log(ctx, src.LevelFatal, "Cannot create play-broker", "err", err.Error())
-		return
-	}
 
 	playDatabase, err := play_database.NewDatabase(ctx, config)
 	if err != nil {
@@ -75,14 +69,14 @@ func main() {
 		return
 	}
 
-	playSvc := play.NewService(config, log, playBroker, playDatabase)
+	playSvc := play.NewService(config, log, broker, playDatabase)
 
 	//
 	///// Server
 
-	svr := api.NewServer(log, config, publicBroker,
+	svr := api.NewServer(log, config, broker,
 		accountsSvc, accountsDatabase, google, spotify,
-		playSvc, playBroker, playDatabase)
+		playSvc, playDatabase)
 
 	go func() {
 		log.Log(ctx, src.LevelInfo, "Listening", "address", config.APIAddr)

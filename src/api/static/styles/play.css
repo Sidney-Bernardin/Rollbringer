@@ -79,8 +79,20 @@ dialog form button {
 }
 
 .layout .boards {
+  background: gray;
   grid-area: boards;
   overflow: auto;
+}
+
+.layout .boards .board {
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  display: flex;
+}
+
+.layout .boards .board .stage-container {
+  background: #fff;
 }
 
 .layout .materials {

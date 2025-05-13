@@ -8,7 +8,7 @@ import (
 )
 
 templ Board(board *play.Board) {
-	<div hx-swap-oob="innerHTML:.board">
+	<div hx-swap-oob="innerHTML:.boards">
 		<div
 			x-data
 			x-init="Board.initStage()"
