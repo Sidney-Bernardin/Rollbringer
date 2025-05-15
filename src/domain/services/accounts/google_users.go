@@ -25,7 +25,7 @@ func (svc *service) GoogleLogin(ctx context.Context, oauthCode string, newAccoun
 
 	if !newAccount {
 
-		sessionID, err := svc.database.GoogleSignin(ctx, googleUser)
+		sessionID, err := svc.db.GoogleSignin(ctx, googleUser)
 		if errors.Is(err, domain.ErrNoEntitiesEffected) {
 			return uuid.Nil, &domain.ExternalError{Type: ExternalErrorTypeProviderNotLinked, Msg: "The Google account is not linked with a Rollbringer account."}
 		}
@@ -33,7 +33,7 @@ func (svc *service) GoogleLogin(ctx context.Context, oauthCode string, newAccoun
 		return sessionID, errors.Wrap(err, "database cannot signin")
 	}
 
-	sessionID, err := svc.database.GoogleSignup(ctx, googleUser, &User{
+	sessionID, err := svc.db.GoogleSignup(ctx, googleUser, &User{
 		ID:             uuid.New(),
 		GoogleID:       &googleUser.GoogleID,
 		Username:       Username(googleUser.GivenName),

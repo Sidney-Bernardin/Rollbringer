@@ -66,7 +66,7 @@ func (svc *service) CreateBoard(ctx context.Context, args *CreateBoardOpts, crea
 		},
 	}
 
-	if err := svc.database.CreateBoard(ctx, board); err != nil {
+	if err := svc.db.CreateBoard(ctx, board); err != nil {
 		return nil, errors.Wrap(err, "database cannot create board")
 	}
 

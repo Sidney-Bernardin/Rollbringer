@@ -22,7 +22,7 @@ type Database struct {
 
 func NewDatabase(ctx context.Context, dbURL string) (*Database, error) {
 
-	// Connect to Postgres.
+	// Connect to the Postgres server.
 	pool, err := pgxpool.New(ctx, dbURL)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot connect to Postgres server")

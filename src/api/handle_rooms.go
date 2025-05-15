@@ -101,7 +101,7 @@ func (svr *server) handleRoomWebSocket() websocket.Handler {
 			message, err := svr.nextMessage(conn, func(operation string) any {
 				switch operation {
 				case "chat":
-					return &views.ReqChat{}
+					return &views.ReqChatMessage{}
 				case "create-board":
 					return &play.CreateBoardOpts{}
 				case "open-board":
@@ -122,10 +122,10 @@ func (svr *server) handleRoomWebSocket() websocket.Handler {
 				}
 				return
 
-			case *views.ReqChat:
+			case *views.ReqChatMessage:
 
-				// Publish the chat message.
-				svr.broker.Pub(ctx, &domain.EventChat{
+				// Publish a chat-message event.
+				svr.broker.Pub(ctx, &domain.EventChatMessage{
 					RoomID:   roomID.String(),
 					AuthorID: session.User.ID.String(),
 					Message:  msg.Message,
@@ -189,11 +189,7 @@ func (svr *server) handleRoomWebSocket() websocket.Handler {
 				}
 
 				msg.BoardID = board.ID
-
 				svr.broker.Pub(ctx, msg)
-				svr.broker.Pub(ctx, &domain.EventSaveCanvas{
-					BoardID: msg.BoardID,
-				})
 			}
 		}
 	})

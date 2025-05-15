@@ -689,6 +689,12 @@ window.addEventListener("htmx:wsBeforeMessage", (e)=>{
             break;
     }
 });
+window.addEventListener('htmx:wsClose', onHtmxWsClose);
+window.addEventListener('htmx:wsError', onHtmxWsClose);
+function onHtmxWsClose() {
+    document.querySelector(".board")?.remove();
+    document.querySelectorAll(".message").forEach((elem)=>elem.remove());
+}
 window.defaultBoardCanvas = {
     nodes: [
         {

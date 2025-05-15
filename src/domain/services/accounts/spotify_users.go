@@ -25,7 +25,7 @@ func (svc *service) SpotifyLogin(ctx context.Context, oauthCode string, newAccou
 
 	if !newAccount {
 
-		sessionID, err := svc.database.SpotifySignin(ctx, spotifyUser)
+		sessionID, err := svc.db.SpotifySignin(ctx, spotifyUser)
 		if errors.Is(err, domain.ErrNoEntitiesEffected) {
 			return uuid.Nil, &domain.ExternalError{Type: ExternalErrorTypeProviderNotLinked, Msg: "The Spotify account is not linked with a Rollbringer account."}
 		}
@@ -44,7 +44,7 @@ func (svc *service) SpotifyLogin(ctx context.Context, oauthCode string, newAccou
 		user.ProfilePicture = *spotifyUser.ProfilePicture
 	}
 
-	sessionID, err := svc.database.SpotifySignup(ctx, spotifyUser, user)
+	sessionID, err := svc.db.SpotifySignup(ctx, spotifyUser, user)
 	if errors.Is(err, domain.ErrEntityConflict) {
 		return uuid.Nil, &domain.ExternalError{Type: ExternalErrorTypeProviderNotLinked, Msg: "The Spotify account is already linked with a Rollbringer account."}
 	}

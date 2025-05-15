@@ -33,7 +33,7 @@ func (svr *server) respond(w io.Writer, r *http.Request, statusCode int, res any
 
 	default:
 		err = json.NewEncoder(w).Encode(res)
-		err = errors.Wrap(err, "cannot marshal response")
+		err = errors.Wrap(err, "cannot JSON encode response")
 	}
 
 	if err != nil && !errors.Is(err, io.EOF) && !errors.Is(err, net.ErrClosed) {
@@ -87,7 +87,7 @@ func (svr *server) nextMessage(conn *websocket.Conn, payloadCallback func(string
 		return nil, errors.Wrap(err, "cannot read from WebSocket connection")
 	}
 
-	// Decode the message's operation.
+	// JSON decode the message's operation.
 	var head struct {
 		Operation string `json:"operation"`
 	}
@@ -95,7 +95,7 @@ func (svr *server) nextMessage(conn *websocket.Conn, payloadCallback func(string
 		return nil, nil
 	}
 
-	// Decode the message's payload based on it's operation.
+	// JSON decode the message's payload based on it's operation.
 	payload := payloadCallback(head.Operation)
 	if err := json.Unmarshal(msg, payload); err != nil {
 		return nil, nil

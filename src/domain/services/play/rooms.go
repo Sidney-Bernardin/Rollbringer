@@ -62,7 +62,7 @@ func (svc *service) CreateRoom(ctx context.Context, creatorID uuid.UUID, opts *C
 		},
 	}
 
-	if err := svc.database.CreateRoom(ctx, room); err != nil {
+	if err := svc.db.CreateRoom(ctx, room); err != nil {
 		return nil, errors.Wrap(err, "database cannot create room")
 	}
 
@@ -71,7 +71,7 @@ func (svc *service) CreateRoom(ctx context.Context, creatorID uuid.UUID, opts *C
 
 func (svc *service) JoinRoom(ctx context.Context, roomID uuid.UUID, newcomer *domain.PublicUser) (*Room, error) {
 
-	room, newlyJoined, err := svc.database.JoinRoom(ctx, newcomer.UserID, roomID, RoomUserPermisionPlayer)
+	room, newlyJoined, err := svc.db.JoinRoom(ctx, newcomer.UserID, roomID, RoomUserPermisionPlayer)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot join room")
 	}

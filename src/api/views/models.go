@@ -8,7 +8,7 @@ type WebSocketResponse struct {
 }
 
 type (
-	ReqChat struct {
+	ReqChatMessage struct {
 		Message string `json:"message"`
 	}
 

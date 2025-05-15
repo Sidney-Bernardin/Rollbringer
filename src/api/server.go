@@ -83,8 +83,8 @@ func (svr *server) roomCallback(conn *websocket.Conn, r *http.Request) func(any)
 	}
 }
 
-func (svr *server) chatCallback(ctx context.Context, conn *websocket.Conn, r *http.Request) func(*domain.EventChat) {
-	return func(event *domain.EventChat) {
+func (svr *server) chatCallback(ctx context.Context, conn *websocket.Conn, r *http.Request) func(*domain.EventChatMessage) {
+	return func(event *domain.EventChatMessage) {
 
 		// Get the chat message's author.
 		author, err := svr.accounts.GetUserByUserID(ctx, uuid.MustParse(event.AuthorID))

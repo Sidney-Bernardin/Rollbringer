@@ -35,6 +35,6 @@ func ParseUsername(str string) (Username, error) {
 }
 
 func (svc *service) GetUserByUserID(ctx context.Context, userID uuid.UUID) (*User, error) {
-	user, err := svc.database.GetUserByUserID(ctx, userID)
+	user, err := svc.db.GetUserByUserID(ctx, userID)
 	return user, errors.Wrap(err, "cannot get user by user-ID")
 }

@@ -5,8 +5,8 @@ import (
 	"log/slog"
 
 	"github.com/google/uuid"
-	"rollbringer/src"
 
+	"rollbringer/src"
 	"rollbringer/src/domain"
 )
 
@@ -35,8 +35,8 @@ type service struct {
 	config *src.Config
 	log    *slog.Logger
 
-	broker   domain.Broker
-	database Database
+	broker domain.Broker
+	db     Database
 }
 
 func NewService(config *src.Config, log *slog.Logger, broker domain.Broker, database Database) Service {

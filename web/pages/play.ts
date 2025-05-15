@@ -45,6 +45,13 @@ window.addEventListener("htmx:wsBeforeMessage", (e: CustomEventInit) => {
     }
 })
 
+window.addEventListener('htmx:wsClose', onHtmxWsClose)
+window.addEventListener('htmx:wsError', onHtmxWsClose)
+function onHtmxWsClose(): void {
+    document.querySelector(".board")?.remove()
+    document.querySelectorAll(".message").forEach((elem: Element) => elem.remove())
+}
+
 window.defaultBoardCanvas = {
     nodes: [
         { type: "circle", name: "foo", radius: 50, color: "red" }

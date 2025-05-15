@@ -18,15 +18,31 @@ type Broker interface {
 	Pub(ctx context.Context, event any)
 	SubUser(ctx context.Context, userID uuid.UUID, callback func(event any)) error
 	SubRoom(ctx context.Context, roomID uuid.UUID, callback func(event any)) error
-	SubChat(ctx context.Context, roomID uuid.UUID, callback func(event *EventChat)) error
+	SubChat(ctx context.Context, roomID uuid.UUID, callback func(event *EventChatMessage)) error
 	SubCanvas(ctx context.Context, boardID uuid.UUID, callback func(event any)) error
 }
 
-type PublicUser struct {
-	UserID         uuid.UUID `json:"user_id"`
-	Username       string    `json:"username"`
-	ProfilePicture string    `json:"profile_picture"`
-}
+type (
+	PublicUser struct {
+		UserID         uuid.UUID `json:"user_id"`
+		Username       string    `json:"username"`
+		ProfilePicture string    `json:"profile_picture"`
+	}
+
+	CanvasNode struct {
+		Name string `json:"name"`
+
+		X int `json:"x,omitempty"`
+		Y int `json:"y,omitempty"`
+
+		Width  string `json:"width,omitempty"`
+		Height string `json:"height,omitempty"`
+
+		Color       string `json:"color,omitempty"`
+		BorderColor string `json:"border_color,omitempty"`
+		Image       string `json:"image,omitempty"`
+	}
+)
 
 type ExternalError struct {
 	Type    ExternalErrorType `json:"type"`

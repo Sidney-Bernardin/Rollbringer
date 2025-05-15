@@ -56,9 +56,9 @@ type service struct {
 
 	publicBroker domain.Broker
 
-	database Database
-	google   Google
-	spotify  Spotify
+	db      Database
+	google  Google
+	spotify Spotify
 }
 
 func NewService(config *src.Config, publicBroker domain.Broker, database Database, google Google, spotify Spotify) Service {
