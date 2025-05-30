@@ -1,0 +1,10 @@
+[build]
+bin = "tmp/main" 
+pre_cmd = ["go tool templ generate -path ./web"] 
+cmd = "go build -o tmp/main ./cmd" 
+include_ext = ["go", "templ", "js", "css"] 
+exclude_dir = ["Docker", ".tmp", "node_modules"] 
+exclude_regex = ["_templ.go"]
+
+[log]
+silent = true
