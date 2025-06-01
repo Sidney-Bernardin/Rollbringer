@@ -14,4 +14,10 @@ function migrate-postgres-create {
 
 ###
 
+function sqlc-generate {
+    sqlc generate -f server/repositories/sql/sqlc.yaml
+}
+
+###
+
 $@

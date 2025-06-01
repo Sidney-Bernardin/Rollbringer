@@ -1,9 +1,9 @@
 [build]
 bin = "tmp/main" 
-pre_cmd = ["go tool templ generate -path ./web"] 
+pre_cmd = ["sqlc generate -f server/repositories/sql/sqlc.yaml", "go tool templ generate -path ./web"] 
 cmd = "go build -o tmp/main ./cmd" 
-include_ext = ["go", "templ", "js", "css"] 
-exclude_dir = ["Docker", ".tmp", "node_modules"] 
+include_ext = ["go", "templ", "js", "css", "yaml"] 
+exclude_dir = ["Docker", ".tmp", "node_modules", "server/repositories/sql/queries"] 
 exclude_regex = ["_templ.go"]
 
 [log]

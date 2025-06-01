@@ -1,4 +1,4 @@
-CREATE TABLE rollbringer.users (
+CREATE TABLE users (
     id uuid PRIMARY KEY,
 
     created_at timestamp NOT null DEFAULT now(),

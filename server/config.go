@@ -1,0 +1,29 @@
+package server
+
+import (
+	"time"
+
+	"github.com/kelseyhightower/envconfig"
+	"github.com/pkg/errors"
+)
+
+type Config struct {
+	DevMode                 bool          `default:"true" split_words:"true"`
+	GracfullShutdownTimeout time.Duration `default:"3s" split_words:"true"`
+
+	HttpAddr string `required:"true" split_words:"true"`
+
+	NatsUrl        string   `required:"true" split_words:"true"`
+	PostgresUrl    string   `required:"true" split_words:"true"`
+	CassandraHosts []string `required:"true" split_words:"true"`
+
+	GoogleOauthClientId     string `required:"true" split_words:"true"`
+	GoogleOauthClientSecret string `required:"true" split_words:"true"`
+	GoogleOauthRedirectUrl  string `required:"true" split_words:"true"`
+}
+
+func NewConfig() (*Config, error) {
+	var cfg Config
+	err := envconfig.Process("APP", &cfg)
+	return &cfg, errors.Wrap(err, "cannot process configuration")
+}
