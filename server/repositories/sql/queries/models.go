@@ -5,32 +5,23 @@
 package queries
 
 import (
-	"github.com/Sidney-Bernardin/server"
+	"github.com/Sidney-Bernardin/Rollbringer/server"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type GoogleUser struct {
-	GoogleID  string
-	CreatedAt pgtype.Timestamp
-	UpdatedAt pgtype.Timestamp
-	GivenName string
-	Email     string
-}
-
-type SpotifyUser struct {
-	SpotifyID   string
-	CreatedAt   pgtype.Timestamp
-	UpdatedAt   pgtype.Timestamp
-	DisplayName string
-	Email       string
+	GoogleID  string           `json:"google_id"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
+	UpdatedAt pgtype.Timestamp `json:"updated_at"`
+	GivenName string           `json:"given_name"`
+	Email     string           `json:"email"`
 }
 
 type User struct {
-	ID             server.UUID
-	CreatedAt      pgtype.Timestamp
-	UpdatedAt      pgtype.Timestamp
-	GoogleID       *string
-	SpotifyID      *string
-	Username       string
-	ProfilePicture string
+	ID             server.UUID      `json:"id"`
+	CreatedAt      pgtype.Timestamp `json:"created_at"`
+	UpdatedAt      pgtype.Timestamp `json:"updated_at"`
+	GoogleID       *string          `json:"google_id"`
+	Username       string           `json:"username"`
+	ProfilePicture string           `json:"profile_picture"`
 }

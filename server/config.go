@@ -8,10 +8,10 @@ import (
 )
 
 type Config struct {
-	DevMode                 bool          `default:"true" split_words:"true"`
-	GracfullShutdownTimeout time.Duration `default:"3s" split_words:"true"`
+	HttpAddr                    string        `required:"true" split_words:"true"`
+	HttpGracfullShutdownTimeout time.Duration `default:"3s" split_words:"true"`
 
-	HttpAddr string `required:"true" split_words:"true"`
+	SessionTimeout time.Duration `default:"12h" split_words:"true"`
 
 	NatsUrl        string   `required:"true" split_words:"true"`
 	PostgresUrl    string   `required:"true" split_words:"true"`
@@ -25,5 +25,5 @@ type Config struct {
 func NewConfig() (*Config, error) {
 	var cfg Config
 	err := envconfig.Process("APP", &cfg)
-	return &cfg, errors.Wrap(err, "cannot process configuration")
+	return &cfg, errors.WithStack(err)
 }

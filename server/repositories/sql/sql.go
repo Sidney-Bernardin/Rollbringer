@@ -21,6 +21,8 @@ const version = 20250530153240
 //go:embed Migrations/*.sql
 var migrations embed.FS
 
+var ErrNoRows = pgx.ErrNoRows
+
 type SQL struct {
 	*queries.Queries
 
@@ -38,7 +40,7 @@ func New(ctx context.Context, config *server.Config, log *slog.Logger) (*SQL, er
 	}
 
 	if err := migrate(config.PostgresUrl); err != nil {
-		return nil, errors.Wrap(err, "ca")
+		return nil, errors.Wrap(err, "cannot migrate")
 	}
 
 	return &SQL{
@@ -77,7 +79,7 @@ func (sql *SQL) Transaction(ctx context.Context, callback func(tx *SQL) error) e
 	}
 
 	defer func() {
-		if err := tx.Rollback(ctx); err != nil {
+		if err := tx.Rollback(ctx); err != nil && err != pgx.ErrTxClosed {
 			sql.log.Warn("Transaction rollback failed", "err", err.Error())
 		}
 	}()

@@ -8,7 +8,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
 )
 
 type GoogleUser struct {
@@ -20,34 +19,14 @@ type GoogleUser struct {
 }
 
 type Google struct {
-	config *server.Config
-
-	oauthConfig *oauth2.Config
-}
-
-func New(config *server.Config) *Google {
-	return &Google{
-		config: config,
-		oauthConfig: &oauth2.Config{
-			Endpoint:     google.Endpoint,
-			ClientID:     config.GoogleOauthClientId,
-			ClientSecret: config.GoogleOauthClientSecret,
-			RedirectURL:  config.GoogleOauthRedirectUrl,
-			Scopes:       []string{"openid", "profile", "email"},
-		},
-	}
-}
-
-func (g *Google) ConsentURL() (url string, state string) {
-	state = server.CreateRandomString()
-	return g.oauthConfig.AuthCodeURL(state), state
+	OAuthConfig *oauth2.Config
 }
 
 func (g *Google) GetGoogleUser(ctx context.Context, code string) (*GoogleUser, error) {
 
-	token, err := g.oauthConfig.Exchange(ctx, code)
+	token, err := g.OAuthConfig.Exchange(ctx, code)
 	if err != nil {
-		return nil, &server.UserError{Type: server.UserErrorTypeUnauthorized}
+		return nil, server.NewUserError(server.UserErrorTypeUnauthorized, "", nil)
 	}
 
 	idTokenStr, ok := token.Extra("id_token").(string)

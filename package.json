@@ -1,12 +1,27 @@
 {
-  "name": "rollbringer",
-  "version": "1.0.0",
-  "description": "",
-  "license": "ISC",
-  "author": "",
-  "type": "commonjs",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  }
+    "name": "rollbringer",
+    "version": "1.0.0",
+    "description": "",
+    "license": "ISC",
+    "author": "",
+    "type": "commonjs",
+    "main": "index.js",
+    "devDependencies": {
+        "parcel": "^2.15.2"
+    },
+    "targets": {
+        "default": {
+            "distDir": "./server/http/static",
+            "source": [
+                "./web/*.ts",
+                "./web/*.scss",
+
+                "./web/pages/*.ts",
+                "./web/pages/*.scss",
+
+                "./web/components/*.ts",
+                "./web/components/*.scss"
+            ]
+        }
+    }
 }

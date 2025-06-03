@@ -9,9 +9,9 @@ import (
 )
 
 type Service struct {
-	config *server.Config
-	log    *slog.Logger
+	Config *server.Config
+	Log    *slog.Logger
 
-	sql  *sql.SQL
-	nats *nats.Nats
+	SQL  *sql.SQL
+	Nats *nats.Nats
 }

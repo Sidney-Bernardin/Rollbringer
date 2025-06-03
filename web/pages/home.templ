@@ -1,28 +1,32 @@
 package pages
 
-import "github.com/Sidney-Bernardin/Rollbringer/server/repositories/sql/queries"
+import (
+	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/nats"
+	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/sql/queries"
+)
 
 type HomeData struct {
 	Session *nats.Session
 	User    *queries.User
 }
 
-templ HomePage(data HomeData) {
+templ HomePage(data *HomeData) {
 	<html lang="en">
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<title>Home | Rollbringer</title>
 			<link rel="icon" type="image/x-icon" href="/static/favicon.png"/>
-			<link rel="stylesheet" type="text/css" href="/static/styles/home.css"/>
+			<link rel="stylesheet" type="text/css" href="/static/pages/home.css"/>
 			<script src="/static/pages/home.js" defer></script>
 		</head>
 		<body
 			if data.Session != nil {
-				hx-headers={ templ.JSONString(map[string]any{"CSRF-Token": page.Session.CSRFToken}) }
+				hx-headers={ templ.JSONString(map[string]any{"CSRF-Token": data.Session.CSRFToken}) }
 			}
 		>
 			<h1>Home</h1>
+			<a href="/logout">logout</a>
 			if data.Session == nil {
 				<a href="/login/google?type=signup">Sign-Up with Google</a>
 				<a href="/login/google?type=signin">Sign-In with Google</a>

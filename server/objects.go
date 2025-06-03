@@ -6,27 +6,6 @@ import (
 	googleUUID "github.com/google/uuid"
 )
 
-type UserError struct {
-	Type    UserErrorType  `json:"type"`
-	Message string         `json:"message,omitempty"`
-	Details map[string]any `json:"details,omitempty"`
-}
-
-func (err *UserError) Error() string {
-	return fmt.Sprintf("%s: %s %v", err.Type, err.Message, err.Details)
-}
-
-type UserErrorType string
-
-const (
-	UserErrorTypeInternalServerError     UserErrorType = "internal-server-error"
-	UserErrorTypeUnauthorized            UserErrorType = "unauthorized"
-	UserErrorTypeUUIDInvalid             UserErrorType = "uuid-invalid"
-	UserErrorTypeGoogleUserAlreadyExists UserErrorType = "google-user-already-exists"
-)
-
-/////
-
 type UUID struct {
 	googleUUID.UUID
 }
@@ -45,3 +24,31 @@ func ParseUUID(uuid string) (ret UUID, err error) {
 	}
 	return UUID{gUUID}, nil
 }
+
+/////
+
+type UserError struct {
+	Type    UserErrorType  `json:"type"`
+	Message string         `json:"message,omitempty"`
+	Details map[string]any `json:"details,omitempty"`
+}
+
+func NewUserError(typ UserErrorType, message string, details map[string]any) *UserError {
+	return &UserError{typ, message, details}
+}
+
+func (err *UserError) Error() string {
+	return fmt.Sprintf("%s: %s %v", err.Type, err.Message, err.Details)
+}
+
+type UserErrorType string
+
+const (
+	UserErrorTypeInternalServerError UserErrorType = "internal-server-error"
+	UserErrorTypeUnauthorized        UserErrorType = "unauthorized"
+	UserErrorTypeUUIDInvalid         UserErrorType = "uuid-invalid"
+
+	UserErrorTypeGoogleUserAlreadyExists UserErrorType = "google-user-already-exists"
+	UserErrorTypeGoogleUserNotExists     UserErrorType = "google-user-not-exists"
+	UserErrorTypeUserNotFound            UserErrorType = "user-not-found"
+)

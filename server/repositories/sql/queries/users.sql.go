@@ -8,11 +8,33 @@ package queries
 import (
 	"context"
 
-	"github.com/Sidney-Bernardin/server"
+	"github.com/Sidney-Bernardin/Rollbringer/server"
 )
 
+const createUser = `-- name: CreateUser :exec
+INSERT INTO users (id, google_id, username, profile_picture)
+VALUES ($1, $2, $3, $4)
+`
+
+type CreateUserParams struct {
+	ID             server.UUID `json:"id"`
+	GoogleID       *string     `json:"google_id"`
+	Username       string      `json:"username"`
+	ProfilePicture string      `json:"profile_picture"`
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg *CreateUserParams) error {
+	_, err := q.db.Exec(ctx, createUser,
+		arg.ID,
+		arg.GoogleID,
+		arg.Username,
+		arg.ProfilePicture,
+	)
+	return err
+}
+
 const getUser = `-- name: GetUser :one
-SELECT id, created_at, updated_at, google_id, spotify_id, username, profile_picture FROM users
+SELECT id, created_at, updated_at, google_id, username, profile_picture FROM users
 WHERE id = $1
 `
 
@@ -24,75 +46,20 @@ func (q *Queries) GetUser(ctx context.Context, userID server.UUID) (*User, error
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.GoogleID,
-		&i.SpotifyID,
 		&i.Username,
 		&i.ProfilePicture,
 	)
 	return &i, err
 }
 
-const insertGoogleUser = `-- name: InsertGoogleUser :execrows
-INSERT INTO google_users (google_id, given_name, email)
-VALUES ($1, $2, $3)
-ON CONFLICT (google_id) DO NOTHING
+const getUserID = `-- name: GetUserID :one
+SELECT id FROM users
+WHERE google_id = $1
 `
 
-type InsertGoogleUserParams struct {
-	GoogleID  string
-	GivenName string
-	Email     string
-}
-
-func (q *Queries) InsertGoogleUser(ctx context.Context, arg *InsertGoogleUserParams) (int64, error) {
-	result, err := q.db.Exec(ctx, insertGoogleUser, arg.GoogleID, arg.GivenName, arg.Email)
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected(), nil
-}
-
-const insertUser = `-- name: InsertUser :exec
-INSERT INTO users (id, google_id, spotify_id, username, profile_picture)
-VALUES ($1, $2, $3, $4, $5)
-`
-
-type InsertUserParams struct {
-	ID             server.UUID
-	GoogleID       *string
-	SpotifyID      *string
-	Username       string
-	ProfilePicture string
-}
-
-func (q *Queries) InsertUser(ctx context.Context, arg *InsertUserParams) error {
-	_, err := q.db.Exec(ctx, insertUser,
-		arg.ID,
-		arg.GoogleID,
-		arg.SpotifyID,
-		arg.Username,
-		arg.ProfilePicture,
-	)
-	return err
-}
-
-const updateGoogleUser = `-- name: UpdateGoogleUser :execrows
-UPDATE google_users
-SET
-    google_id = coalese($1, google_id),
-    given_name = coalese($2, given_name),
-    email = coalese($3, email)
-`
-
-type UpdateGoogleUserParams struct {
-	GoogleID  interface{}
-	GivenName interface{}
-	Email     interface{}
-}
-
-func (q *Queries) UpdateGoogleUser(ctx context.Context, arg *UpdateGoogleUserParams) (int64, error) {
-	result, err := q.db.Exec(ctx, updateGoogleUser, arg.GoogleID, arg.GivenName, arg.Email)
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected(), nil
+func (q *Queries) GetUserID(ctx context.Context, googleID *string) (server.UUID, error) {
+	row := q.db.QueryRow(ctx, getUserID, googleID)
+	var id server.UUID
+	err := row.Scan(&id)
+	return id, err
 }

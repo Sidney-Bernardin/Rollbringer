@@ -1,0 +1,21 @@
+services:
+
+  nats:
+    image: "nats:2.11.3"
+    container_name: "nats"
+    ports:
+      - "4222:4222"
+    volumes:
+      - "./tmp/nats:/tmp/nats"
+    command: "-js"
+
+  postgres:
+    image: "postgres:17.5"
+    container_name: "postgres"
+    environment:
+      POSTGRES_PASSWORD: "rollbringer"
+    ports:
+      - "5432:5432"
+    volumes:
+      - "./tmp/postgres:/var/lib/postgresql/data"
+      - "./Docker/postgres:/docker-entrypoint-initdb.d"

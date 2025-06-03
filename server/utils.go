@@ -8,15 +8,12 @@ import (
 
 	"github.com/dpotapov/slogpfx"
 	"github.com/lmittmann/tint"
-	"github.com/mattn/go-isatty"
 )
 
-func NewPrettyLogger(noColor bool) *slog.Logger {
+func NewPrettyLogger() *slog.Logger {
 
 	// Make logs pretty.
-	h := tint.NewHandler(os.Stderr, &tint.Options{
-		NoColor: noColor && !isatty.IsTerminal(os.Stderr.Fd()),
-	})
+	h := tint.NewHandler(os.Stderr, nil)
 
 	// Prominently displays "namespace" attributes.
 	h = slogpfx.NewHandler(h, &slogpfx.HandlerOptions{
