@@ -9,11 +9,43 @@ import (
 	"github.com/pkg/errors"
 )
 
+func (api *API) handleBasicLogin(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var (
+		sessionID server.UUID
+		err       error
+
+		username = r.FormValue("username")
+		password = r.FormValue("password")
+	)
+
+	switch r.URL.Query().Get("type") {
+	case "signup":
+		sessionID, err = api.Service.BasicSignup(ctx, username, password)
+		err = errors.Wrap(err, "cannot signup")
+	case "signin":
+		sessionID, err = api.Service.BasicSignin(ctx, username, password)
+		err = errors.Wrap(err, "cannot signin")
+	default:
+		api.err(w, r, server.NewUserError(server.UserErrorTypeUnauthorized, "", nil))
+		return
+	}
+
+	if err != nil {
+		api.err(w, r, errors.WithStack(err))
+		return
+	}
+
+	http.SetCookie(w, api.NewSessionCookie(sessionID))
+	w.Header().Set("HX-Redirect", "/")
+}
+
 func (api *API) handleGoogleLogin(w http.ResponseWriter, r *http.Request) {
 
 	var (
 		state      = server.CreateRandomString()
-		consentURL = api.Google.OAuthConfig.AuthCodeURL(state)
+		consentURL = api.Service.Google.OAuthConfig.AuthCodeURL(state)
 	)
 
 	http.SetCookie(w, &http.Cookie{
@@ -32,7 +64,7 @@ func (api *API) handleGoogleLogin(w http.ResponseWriter, r *http.Request) {
 		Secure:   true,
 	})
 
-	http.Redirect(w, r, consentURL, http.StatusTemporaryRedirect)
+	w.Header().Set("HX-Redirect", consentURL)
 }
 
 func (api *API) handleGoogleLoginCallback(w http.ResponseWriter, r *http.Request) {
@@ -50,7 +82,7 @@ func (api *API) handleGoogleLoginCallback(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	googleUser, err := api.Google.GetGoogleUser(ctx, r.FormValue("code"))
+	googleUser, err := api.Service.Google.GetGoogleUser(ctx, r.FormValue("code"))
 	if err != nil {
 		api.err(w, r, errors.Wrap(err, "cannot get google-user"))
 		return
@@ -74,16 +106,7 @@ func (api *API) handleGoogleLoginCallback(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	http.SetCookie(w, &http.Cookie{
-		Name:     "SESSION_ID",
-		Value:    sessionID.String(),
-		Path:     "/",
-		Expires:  time.Now().Add(api.Config.SessionTimeout),
-		Secure:   true,
-		HttpOnly: true,
-		SameSite: http.SameSiteStrictMode,
-	})
-
+	http.SetCookie(w, api.NewSessionCookie(sessionID))
 	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 }
 

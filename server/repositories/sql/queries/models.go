@@ -24,4 +24,6 @@ type User struct {
 	GoogleID       *string          `json:"google_id"`
 	Username       string           `json:"username"`
 	ProfilePicture string           `json:"profile_picture"`
+	PasswordHash   []byte           `json:"password_hash"`
+	PasswordSalt   *string          `json:"password_salt"`
 }

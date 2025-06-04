@@ -48,6 +48,9 @@ const (
 	UserErrorTypeUnauthorized        UserErrorType = "unauthorized"
 	UserErrorTypeUUIDInvalid         UserErrorType = "uuid-invalid"
 
+	UserErrorTypeUsernameInvalid         UserErrorType = "username-invalid"
+	UserErrorTypeUsernameTaken           UserErrorType = "username-taken"
+	UserErrorTypePasswordInvalid         UserErrorType = "password-invalid"
 	UserErrorTypeGoogleUserAlreadyExists UserErrorType = "google-user-already-exists"
 	UserErrorTypeGoogleUserNotExists     UserErrorType = "google-user-not-exists"
 	UserErrorTypeUserNotFound            UserErrorType = "user-not-found"

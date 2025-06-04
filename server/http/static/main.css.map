@@ -1,1 +1,1 @@
-{"mappings":"","sources":[],"sourcesContent":[],"names":[],"version":3,"file":"main.css.map","sourceRoot":"../../../"}
+{"mappings":"AAAA;;;;;AAKA;;;;;AAKA","sources":["web/main.scss"],"sourcesContent":["* {\n  margin: 0;\n  padding: 0;\n}\n\nbody {\n  width: 100%;\n  height: 100vh;\n}\n\ninput,\nbutton {\n  box-sizing: content-box;\n  height: 1em;\n  padding: 0.5em;\n}\n"],"names":[],"version":3,"file":"main.css.map","sourceRoot":"../../../"}

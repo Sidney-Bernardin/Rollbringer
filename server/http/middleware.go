@@ -35,7 +35,7 @@ func (api *API) mwAuthenticate(csrf bool) func(http.Handler) http.Handler {
 				return
 			}
 
-			session, err := api.Nats.GetSession(ctx, sessionID)
+			session, err := api.Service.Nats.GetSession(ctx, sessionID)
 			if err != nil || session == nil {
 				api.err(w, r, errors.Wrap(err, "cannot get session"))
 				return

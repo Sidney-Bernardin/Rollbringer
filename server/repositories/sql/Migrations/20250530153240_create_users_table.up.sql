@@ -6,6 +6,8 @@ CREATE TABLE users (
 
     google_id text REFERENCES google_users (google_id) UNIQUE,
 
-    username text NOT null,
-    profile_picture text NOT null
+    username text NOT null UNIQUE,
+    profile_picture text NOT null,
+    password_hash bytea,
+    password_salt text
 );

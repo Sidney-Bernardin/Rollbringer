@@ -7,6 +7,7 @@
     "type": "commonjs",
     "main": "index.js",
     "devDependencies": {
+        "@parcel/transformer-sass": "^2.15.2",
         "parcel": "^2.15.2"
     },
     "targets": {
@@ -15,13 +16,15 @@
             "source": [
                 "./web/*.ts",
                 "./web/*.scss",
-
                 "./web/pages/*.ts",
                 "./web/pages/*.scss",
-
                 "./web/components/*.ts",
                 "./web/components/*.scss"
             ]
         }
+    },
+    "dependencies": {
+        "alpinejs": "^3.14.9",
+        "htmx.org": "^2.0.4"
     }
 }

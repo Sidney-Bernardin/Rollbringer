@@ -41,7 +41,7 @@ func main() {
 
 	/////
 
-	sql, err := sql.New(ctx, config, log)
+	sql, err := sql.New(ctx, config, log.With("namespace", "sql"))
 	if err != nil {
 		log.Log(ctx, slog.LevelError, "Cannot create SQL repository", "err", err.Error())
 		return
@@ -69,17 +69,14 @@ func main() {
 		Server: &http.Server{
 			Addr: config.HttpAddr,
 		},
-		Config: config,
-		Log:    log,
+		Log: log.With("namespace", "http"),
 		Service: &service.Service{
 			Config: config,
-			Log:    log,
+			Log:    log.With("namespace", "service"),
 			SQL:    sql,
 			Nats:   nats,
+			Google: google,
 		},
-		SQL:    sql,
-		Nats:   nats,
-		Google: google,
 	}
 
 	go func() {

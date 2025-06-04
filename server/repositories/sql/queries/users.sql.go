@@ -11,9 +11,10 @@ import (
 	"github.com/Sidney-Bernardin/Rollbringer/server"
 )
 
-const createUser = `-- name: CreateUser :exec
-INSERT INTO users (id, google_id, username, profile_picture)
-VALUES ($1, $2, $3, $4)
+const createUser = `-- name: CreateUser :execrows
+INSERT INTO users (id, google_id, username, profile_picture, password_hash, password_salt)
+VALUES ($1, $2, $3, $4, $5, $6)
+ON CONFLICT (username) DO NOTHING
 `
 
 type CreateUserParams struct {
@@ -21,30 +22,43 @@ type CreateUserParams struct {
 	GoogleID       *string     `json:"google_id"`
 	Username       string      `json:"username"`
 	ProfilePicture string      `json:"profile_picture"`
+	PasswordHash   []byte      `json:"password_hash"`
+	PasswordSalt   *string     `json:"password_salt"`
 }
 
-func (q *Queries) CreateUser(ctx context.Context, arg *CreateUserParams) error {
-	_, err := q.db.Exec(ctx, createUser,
+func (q *Queries) CreateUser(ctx context.Context, arg *CreateUserParams) (int64, error) {
+	result, err := q.db.Exec(ctx, createUser,
 		arg.ID,
 		arg.GoogleID,
 		arg.Username,
 		arg.ProfilePicture,
+		arg.PasswordHash,
+		arg.PasswordSalt,
 	)
-	return err
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, created_at, updated_at, google_id, username, profile_picture FROM users
+SELECT id, google_id, username, profile_picture
+FROM users
 WHERE id = $1
 `
 
-func (q *Queries) GetUser(ctx context.Context, userID server.UUID) (*User, error) {
+type GetUserRow struct {
+	ID             server.UUID `json:"id"`
+	GoogleID       *string     `json:"google_id"`
+	Username       string      `json:"username"`
+	ProfilePicture string      `json:"profile_picture"`
+}
+
+func (q *Queries) GetUser(ctx context.Context, userID server.UUID) (*GetUserRow, error) {
 	row := q.db.QueryRow(ctx, getUser, userID)
-	var i User
+	var i GetUserRow
 	err := row.Scan(
 		&i.ID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 		&i.GoogleID,
 		&i.Username,
 		&i.ProfilePicture,
@@ -53,7 +67,8 @@ func (q *Queries) GetUser(ctx context.Context, userID server.UUID) (*User, error
 }
 
 const getUserID = `-- name: GetUserID :one
-SELECT id FROM users
+SELECT id
+FROM users
 WHERE google_id = $1
 `
 
@@ -62,4 +77,33 @@ func (q *Queries) GetUserID(ctx context.Context, googleID *string) (server.UUID,
 	var id server.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const getUserWithPassword = `-- name: GetUserWithPassword :one
+SELECT id, google_id, username, profile_picture, password_hash, password_salt
+FROM users
+WHERE username = $1
+`
+
+type GetUserWithPasswordRow struct {
+	ID             server.UUID `json:"id"`
+	GoogleID       *string     `json:"google_id"`
+	Username       string      `json:"username"`
+	ProfilePicture string      `json:"profile_picture"`
+	PasswordHash   []byte      `json:"password_hash"`
+	PasswordSalt   *string     `json:"password_salt"`
+}
+
+func (q *Queries) GetUserWithPassword(ctx context.Context, username string) (*GetUserWithPasswordRow, error) {
+	row := q.db.QueryRow(ctx, getUserWithPassword, username)
+	var i GetUserWithPasswordRow
+	err := row.Scan(
+		&i.ID,
+		&i.GoogleID,
+		&i.Username,
+		&i.ProfilePicture,
+		&i.PasswordHash,
+		&i.PasswordSalt,
+	)
+	return &i, err
 }

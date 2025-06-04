@@ -7,7 +7,7 @@ import (
 
 type HomeData struct {
 	Session *nats.Session
-	User    *queries.User
+	User    *queries.GetUserRow
 }
 
 templ HomePage(data *HomeData) {
@@ -25,14 +25,32 @@ templ HomePage(data *HomeData) {
 				hx-headers={ templ.JSONString(map[string]any{"CSRF-Token": data.Session.CSRFToken}) }
 			}
 		>
-			<h1>Home</h1>
-			<a href="/logout">logout</a>
+			<h1>Rollbringer</h1>
 			if data.Session == nil {
-				<a href="/login/google?type=signup">Sign-Up with Google</a>
-				<a href="/login/google?type=signin">Sign-In with Google</a>
+				@loginForm()
 			} else {
+				<a href="/logout">logout</a>
 				<p>{ data.User.Username }</p>
 			}
 		</body>
 	</html>
+}
+
+templ loginForm() {
+	<div class="login-form">
+		<form class="signup" hx-post="/login?type=signup">
+			<input type="text" name="username" placeholder="Username"/>
+			<input type="password" name="password" placeholder="Password"/>
+			<button>Sign-Up</button>
+			<hr/>
+			<button hx-get="/login/google?type=signup">Sign-Up with Google</button>
+		</form>
+		<form class="signin" hx-post="/login?type=signin">
+			<input type="text" name="username" placeholder="Username"/>
+			<input type="password" name="password" placeholder="Password"/>
+			<button>Sign-In</button>
+			<hr/>
+			<button hx-get="/login/google?type=signin">Sign-In with Google</button>
+		</form>
+	</div>
 }

@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (nats *Nats) PutUser(ctx context.Context, user *queries.User) error {
+func (nats *Nats) PutUser(ctx context.Context, user *queries.GetUserRow) error {
 
 	userJSON, err := json.Marshal(user)
 	if err != nil {
@@ -22,7 +22,7 @@ func (nats *Nats) PutUser(ctx context.Context, user *queries.User) error {
 	return errors.Wrap(err, "cannot put session")
 }
 
-func (nats *Nats) GetUser(ctx context.Context, userID server.UUID) (*queries.User, error) {
+func (nats *Nats) GetUser(ctx context.Context, userID server.UUID) (*queries.GetUserRow, error) {
 
 	res, err := nats.sessionsKV.Get(ctx, userID.String())
 	if err != nil {
@@ -34,7 +34,7 @@ func (nats *Nats) GetUser(ctx context.Context, userID server.UUID) (*queries.Use
 		}
 	}
 
-	var user queries.User
+	var user queries.GetUserRow
 	if err := json.Unmarshal(res.Value(), &user); err != nil {
 		return nil, errors.Wrap(err, "cannot decode user")
 	}

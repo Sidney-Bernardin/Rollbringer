@@ -6,11 +6,9 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"time"
 
 	"github.com/Sidney-Bernardin/Rollbringer/server"
-	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/google"
-	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/nats"
-	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/sql"
 	"github.com/Sidney-Bernardin/Rollbringer/server/service"
 
 	"github.com/a-h/templ"
@@ -23,6 +21,9 @@ var errorCodes = map[server.UserErrorType]int{
 	server.UserErrorTypeUnauthorized:        http.StatusUnauthorized,
 	server.UserErrorTypeUUIDInvalid:         http.StatusBadRequest,
 
+	server.UserErrorTypeUsernameInvalid:         http.StatusBadRequest,
+	server.UserErrorTypeUsernameTaken:           http.StatusConflict,
+	server.UserErrorTypePasswordInvalid:         http.StatusBadRequest,
 	server.UserErrorTypeGoogleUserAlreadyExists: http.StatusConflict,
 	server.UserErrorTypeGoogleUserNotExists:     http.StatusNotFound,
 	server.UserErrorTypeUserNotFound:            http.StatusNotFound,
@@ -31,14 +32,9 @@ var errorCodes = map[server.UserErrorType]int{
 type API struct {
 	*http.Server
 
-	Config *server.Config
-	Log    *slog.Logger
+	Log *slog.Logger
 
 	Service *service.Service
-
-	SQL    *sql.SQL
-	Nats   *nats.Nats
-	Google *google.Google
 }
 
 func (api *API) respond(w io.Writer, r *http.Request, code int, data any) {
@@ -80,5 +76,17 @@ func (api *API) err(w io.Writer, r *http.Request, err error) {
 	case http.ResponseWriter:
 		api.respond(w, r, errorCodes[userErr.Type], userErr)
 	case *websocket.Conn:
+	}
+}
+
+func (api *API) NewSessionCookie(sessionID server.UUID) *http.Cookie {
+	return &http.Cookie{
+		Name:     "SESSION_ID",
+		Value:    sessionID.String(),
+		Path:     "/",
+		Expires:  time.Now().Add(api.Service.Config.SessionTimeout),
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
 	}
 }
