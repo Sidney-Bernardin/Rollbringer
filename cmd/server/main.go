@@ -10,10 +10,11 @@ import (
 
 	"github.com/Sidney-Bernardin/Rollbringer/server"
 	HTTP "github.com/Sidney-Bernardin/Rollbringer/server/http"
+	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/cache"
 	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/google"
-	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/nats"
 	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/sql"
 	"github.com/Sidney-Bernardin/Rollbringer/server/service"
+
 	"golang.org/x/oauth2"
 	oaGoogle "golang.org/x/oauth2/google"
 )
@@ -43,13 +44,13 @@ func main() {
 
 	sql, err := sql.New(ctx, config, log.With("namespace", "sql"))
 	if err != nil {
-		log.Log(ctx, slog.LevelError, "Cannot create SQL repository", "err", err.Error())
+		log.Log(ctx, slog.LevelError, "Cannot create sql repository", "err", err.Error())
 		return
 	}
 
-	nats, err := nats.New(ctx, config)
+	cache, err := cache.New(ctx, config)
 	if err != nil {
-		log.Log(ctx, slog.LevelError, "Cannot create repositories", "err", err.Error())
+		log.Log(ctx, slog.LevelError, "Cannot create cache repository", "err", err.Error())
 		return
 	}
 
@@ -74,7 +75,7 @@ func main() {
 			Config: config,
 			Log:    log.With("namespace", "service"),
 			SQL:    sql,
-			Nats:   nats,
+			Cache:  cache,
 			Google: google,
 		},
 	}

@@ -1,4 +1,4 @@
--- name: CreateGoogleUser :execrows
+-- name: InsertGoogleUser :execrows
 INSERT INTO google_users (google_id, given_name, email)
 VALUES (@google_id, @given_name, @email)
 ON CONFLICT (google_id) DO NOTHING;

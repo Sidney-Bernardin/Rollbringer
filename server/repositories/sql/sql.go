@@ -16,7 +16,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-const version = 20250530153240
+const version = 20250605160758
 
 //go:embed Migrations/*.sql
 var migrations embed.FS
@@ -34,7 +34,16 @@ type SQL struct {
 
 func New(ctx context.Context, config *server.Config, log *slog.Logger) (*SQL, error) {
 
-	pool, err := pgxpool.New(ctx, config.PostgresUrl)
+	poolConfig, err := pgxpool.ParseConfig(config.PostgresUrl)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot parse config")
+	}
+
+	poolConfig.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
+		return registerTypes(ctx, conn, "user_room_permision", "user_room_permision[]")
+	}
+
+	pool, err := pgxpool.NewWithConfig(ctx, poolConfig)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot create create connection pool")
 	}
@@ -49,6 +58,18 @@ func New(ctx context.Context, config *server.Config, log *slog.Logger) (*SQL, er
 		log:     log,
 		pool:    pool,
 	}, nil
+}
+
+func registerTypes(ctx context.Context, conn *pgx.Conn, tt ...string) error {
+	for _, t := range tt {
+		typ, err := conn.LoadType(ctx, t)
+		if err != nil {
+			return errors.Wrapf(err, "cannot load type %s", t)
+		}
+		conn.TypeMap().RegisterType(typ)
+	}
+
+	return nil
 }
 
 func migrate(url string) error {

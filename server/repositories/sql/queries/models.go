@@ -5,9 +5,55 @@
 package queries
 
 import (
+	"database/sql/driver"
+	"fmt"
+
 	"github.com/Sidney-Bernardin/Rollbringer/server"
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type UserRoomPermision string
+
+const (
+	UserRoomPermisionOWNER      UserRoomPermision = "OWNER"
+	UserRoomPermisionGAMEMASTER UserRoomPermision = "GAME_MASTER"
+	UserRoomPermisionPLAYER     UserRoomPermision = "PLAYER"
+)
+
+func (e *UserRoomPermision) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = UserRoomPermision(s)
+	case string:
+		*e = UserRoomPermision(s)
+	default:
+		return fmt.Errorf("unsupported scan type for UserRoomPermision: %T", src)
+	}
+	return nil
+}
+
+type NullUserRoomPermision struct {
+	UserRoomPermision UserRoomPermision `json:"user_room_permision"`
+	Valid             bool              `json:"valid"` // Valid is true if UserRoomPermision is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullUserRoomPermision) Scan(value interface{}) error {
+	if value == nil {
+		ns.UserRoomPermision, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.UserRoomPermision.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullUserRoomPermision) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.UserRoomPermision), nil
+}
 
 type GoogleUser struct {
 	GoogleID  string           `json:"google_id"`
@@ -15,6 +61,13 @@ type GoogleUser struct {
 	UpdatedAt pgtype.Timestamp `json:"updated_at"`
 	GivenName string           `json:"given_name"`
 	Email     string           `json:"email"`
+}
+
+type Room struct {
+	ID        server.UUID      `json:"id"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
+	UpdatedAt pgtype.Timestamp `json:"updated_at"`
+	Name      string           `json:"name"`
 }
 
 type User struct {
@@ -26,4 +79,10 @@ type User struct {
 	ProfilePicture string           `json:"profile_picture"`
 	PasswordHash   []byte           `json:"password_hash"`
 	PasswordSalt   *string          `json:"password_salt"`
+}
+
+type UserRoom struct {
+	UserID     pgtype.UUID         `json:"user_id"`
+	RoomID     pgtype.UUID         `json:"room_id"`
+	Permisions []UserRoomPermision `json:"permisions"`
 }

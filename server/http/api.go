@@ -27,6 +27,9 @@ var errorCodes = map[server.UserErrorType]int{
 	server.UserErrorTypeGoogleUserAlreadyExists: http.StatusConflict,
 	server.UserErrorTypeGoogleUserNotExists:     http.StatusNotFound,
 	server.UserErrorTypeUserNotFound:            http.StatusNotFound,
+
+	server.UserErrorTypeRoomNameInvalid: http.StatusBadRequest,
+	server.UserErrorTypeRoomNotFound:    http.StatusNotFound,
 }
 
 type API struct {

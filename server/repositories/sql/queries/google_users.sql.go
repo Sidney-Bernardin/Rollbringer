@@ -9,20 +9,20 @@ import (
 	"context"
 )
 
-const createGoogleUser = `-- name: CreateGoogleUser :execrows
+const insertGoogleUser = `-- name: InsertGoogleUser :execrows
 INSERT INTO google_users (google_id, given_name, email)
 VALUES ($1, $2, $3)
 ON CONFLICT (google_id) DO NOTHING
 `
 
-type CreateGoogleUserParams struct {
+type InsertGoogleUserParams struct {
 	GoogleID  string `json:"google_id"`
 	GivenName string `json:"given_name"`
 	Email     string `json:"email"`
 }
 
-func (q *Queries) CreateGoogleUser(ctx context.Context, arg *CreateGoogleUserParams) (int64, error) {
-	result, err := q.db.Exec(ctx, createGoogleUser, arg.GoogleID, arg.GivenName, arg.Email)
+func (q *Queries) InsertGoogleUser(ctx context.Context, arg *InsertGoogleUserParams) (int64, error) {
+	result, err := q.db.Exec(ctx, insertGoogleUser, arg.GoogleID, arg.GivenName, arg.Email)
 	if err != nil {
 		return 0, err
 	}

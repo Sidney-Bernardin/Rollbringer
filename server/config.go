@@ -13,9 +13,11 @@ type Config struct {
 
 	SessionTimeout time.Duration `default:"12h" split_words:"true"`
 
-	NatsUrl        string   `required:"true" split_words:"true"`
 	PostgresUrl    string   `required:"true" split_words:"true"`
 	CassandraHosts []string `required:"true" split_words:"true"`
+	RedisAddr      string   `required:"true" split_words:"true"`
+	RedisPassword  string   `required:"true" split_words:"true"`
+	NatsUrl        string   `required:"true" split_words:"true"`
 
 	GoogleOauthClientId     string `required:"true" split_words:"true"`
 	GoogleOauthClientSecret string `required:"true" split_words:"true"`

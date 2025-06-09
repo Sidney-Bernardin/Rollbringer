@@ -4,8 +4,8 @@ import (
 	"log/slog"
 
 	"github.com/Sidney-Bernardin/Rollbringer/server"
+	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/cache"
 	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/google"
-	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/nats"
 	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/sql"
 )
 
@@ -14,6 +14,6 @@ type Service struct {
 	Log    *slog.Logger
 
 	SQL    *sql.SQL
-	Nats   *nats.Nats
+	Cache  *cache.Cache
 	Google *google.Google
 }

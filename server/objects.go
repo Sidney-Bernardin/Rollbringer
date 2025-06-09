@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"strings"
 
 	googleUUID "github.com/google/uuid"
 )
@@ -23,6 +24,10 @@ func ParseUUID(uuid string) (ret UUID, err error) {
 		}
 	}
 	return UUID{gUUID}, nil
+}
+
+func (uuid UUID) Escape() string {
+	return strings.Replace(uuid.String(), `-`, `\-`, -1)
 }
 
 /////
@@ -54,4 +59,7 @@ const (
 	UserErrorTypeGoogleUserAlreadyExists UserErrorType = "google-user-already-exists"
 	UserErrorTypeGoogleUserNotExists     UserErrorType = "google-user-not-exists"
 	UserErrorTypeUserNotFound            UserErrorType = "user-not-found"
+
+	UserErrorTypeRoomNameInvalid UserErrorType = "room-name-invalid"
+	UserErrorTypeRoomNotFound    UserErrorType = "room-not-found"
 )

@@ -2,24 +2,25 @@ package service
 
 import (
 	"context"
-	"database/sql"
 	"log/slog"
 	"time"
 
 	"github.com/Sidney-Bernardin/Rollbringer/server"
+	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/cache"
+	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/sql"
 	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/sql/queries"
 
 	"github.com/pkg/errors"
 )
 
-func (svc *Service) GetUser(ctx context.Context, userID server.UUID) (*queries.GetUserRow, error) {
+func (svc *Service) GetUser(ctx context.Context, userID server.UUID) (*queries.SelectUserRow, error) {
 
-	user, err := svc.Nats.GetUser(ctx, userID)
-	if err != nil || user != nil {
-		return user, errors.Wrap(err, "cannot get user from Nats")
+	user, err := svc.Cache.GetUser(ctx, userID)
+	if !errors.Is(err, cache.ErrNotFound) {
+		return user, errors.Wrap(err, "cannot get user from Cache")
 	}
 
-	user, err = svc.SQL.GetUser(ctx, userID)
+	user, err = svc.SQL.SelectUser(ctx, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, server.NewUserError(server.UserErrorTypeUserNotFound, "", nil)
@@ -32,8 +33,8 @@ func (svc *Service) GetUser(ctx context.Context, userID server.UUID) (*queries.G
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		if err := svc.Nats.PutUser(ctx, user); err != nil {
-			svc.Log.Log(ctx, slog.LevelWarn, "Nats put user", "err", err.Error())
+		if err := svc.Cache.SetUser(ctx, user); err != nil {
+			svc.Log.Log(ctx, slog.LevelWarn, "Cache cannot set user", "err", err.Error())
 		}
 	}()
 

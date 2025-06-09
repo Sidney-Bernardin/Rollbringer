@@ -1,7 +1,16 @@
-function docker-compose {
-    docker compose \
-        -f Docker/docker-compose.yaml \
-        --project-directory . \
+function watch-server {
+    air $@
+}
+
+function watch-web {
+    npx parcel watch $@
+}
+
+#####
+
+function sqlc {
+    sqlc \
+        -f server/repositories/sql/sqlc.yaml \
         $@
 }
 
@@ -19,10 +28,13 @@ function migrate-postgres-create {
         $@
 }
 
-function sqlc-generate {
-    sqlc generate -f server/repositories/sql/sqlc.yaml
-}
+#####
 
-###
+function docker-compose {
+    docker compose \
+        -f Docker/docker-compose.yaml \
+        --project-directory . \
+        $@
+}
 
 $@

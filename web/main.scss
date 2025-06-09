@@ -1,6 +1,7 @@
 * {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
 body {
@@ -13,4 +14,42 @@ button {
   box-sizing: content-box;
   height: 1em;
   padding: 0.5em;
+}
+
+button {
+  display: flex;
+  cursor: pointer;
+  gap: 0.5em;
+  align-items: center;
+
+  iconify-icon {
+    font-size: 1.5em;
+  }
+}
+
+dialog {
+  border: 0.25rem outset lightgray;
+  margin: auto;
+  padding: 1rem;
+
+  header {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  hr {
+    margin: 1rem 0;
+  }
+
+  form {
+    display: flex;
+    gap: 1rem;
+    flex-direction: column;
+
+    button {
+      justify-content: center;
+    }
+  }
 }

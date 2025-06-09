@@ -1,0 +1,32 @@
+.room-card {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  list-style-type: none;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: row;
+
+  &:hover {
+    backdrop-filter: brightness(0.75);
+  }
+
+  a {
+    flex: 1;
+  }
+
+  .players {
+    display: flex;
+    flex: 1;
+    flex-direction: row-reverse;
+
+    img {
+      border-radius: 50%;
+      height: 2rem;
+    }
+  }
+
+  .options {
+    flex: 1;
+  }
+}

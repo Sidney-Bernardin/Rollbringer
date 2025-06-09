@@ -13,8 +13,9 @@ sql:
         emit_result_struct_pointers: true
         emit_params_struct_pointers: true
         emit_pointers_for_null_types: true
+        emit_empty_slices: true
         overrides:
-        - db_type: "uuid"
-          go_type:
-            import: "github.com/Sidney-Bernardin/Rollbringer/server"
-            type: "UUID"
+          - db_type: "uuid"
+            go_type:
+              import: "github.com/Sidney-Bernardin/Rollbringer/server"
+              type: "UUID"

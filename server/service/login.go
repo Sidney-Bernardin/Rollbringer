@@ -37,7 +37,7 @@ func (svc *Service) BasicSignup(ctx context.Context, username, password string) 
 		return sessionID, errors.Wrap(err, "cannot hash password")
 	}
 
-	affected, err := svc.SQL.CreateUser(ctx, &queries.CreateUserParams{
+	affected, err := svc.SQL.InsertUser(ctx, &queries.InsertUserParams{
 		ID:           userID,
 		Username:     username,
 		PasswordHash: passwordHash,
@@ -50,13 +50,13 @@ func (svc *Service) BasicSignup(ctx context.Context, username, password string) 
 		return sessionID, server.NewUserError(server.UserErrorTypeUsernameTaken, "", nil)
 	}
 
-	sessionID, err = svc.Nats.PutSession(ctx, userID)
+	sessionID, err = svc.Cache.SetSession(ctx, userID)
 	return sessionID, errors.Wrap(err, "cannot put session")
 }
 
 func (svc *Service) BasicSignin(ctx context.Context, username, password string) (sessionID server.UUID, err error) {
 
-	user, err := svc.SQL.GetUserWithPassword(ctx, username)
+	user, err := svc.SQL.SelectUserWithPassword(ctx, username)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return sessionID, server.NewUserError(server.UserErrorTypeUnauthorized, "", nil)
@@ -69,7 +69,7 @@ func (svc *Service) BasicSignin(ctx context.Context, username, password string) 
 		return sessionID, server.NewUserError(server.UserErrorTypeUnauthorized, "", nil)
 	}
 
-	sessionID, err = svc.Nats.PutSession(ctx, user.ID)
+	sessionID, err = svc.Cache.SetSession(ctx, user.ID)
 	return sessionID, errors.Wrap(err, "cannot put session")
 }
 
@@ -78,7 +78,7 @@ func (svc *Service) GoogleSignup(ctx context.Context, googleUser *google.GoogleU
 
 	err = svc.SQL.Transaction(ctx, func(tx *sql.SQL) error {
 
-		affected, err := tx.CreateGoogleUser(ctx, &queries.CreateGoogleUserParams{
+		affected, err := tx.InsertGoogleUser(ctx, &queries.InsertGoogleUserParams{
 			GoogleID:  googleUser.Subject,
 			GivenName: googleUser.GivenName,
 			Email:     googleUser.Email,
@@ -91,7 +91,7 @@ func (svc *Service) GoogleSignup(ctx context.Context, googleUser *google.GoogleU
 				"That Google account is being used by another Rollbringer user.", nil)
 		}
 
-		_, err = tx.CreateUser(ctx, &queries.CreateUserParams{
+		_, err = tx.InsertUser(ctx, &queries.InsertUserParams{
 			ID:             userID,
 			GoogleID:       &googleUser.Subject,
 			Username:       fmt.Sprintf("%s %s", googleUser.GivenName, googleUser.Subject),
@@ -105,7 +105,7 @@ func (svc *Service) GoogleSignup(ctx context.Context, googleUser *google.GoogleU
 		return sessionID, errors.WithStack(err)
 	}
 
-	sessionID, err = svc.Nats.PutSession(ctx, userID)
+	sessionID, err = svc.Cache.SetSession(ctx, userID)
 	return sessionID, errors.Wrap(err, "cannot put session")
 }
 
@@ -127,7 +127,7 @@ func (svc *Service) GoogleSignin(ctx context.Context, googleUser *google.GoogleU
 				"That Google account isn't being used by another Rollbringer user.", nil)
 		}
 
-		userID, err = tx.GetUserID(ctx, &googleUser.Subject)
+		userID, err = tx.SelectUserID(ctx, &googleUser.Subject)
 		return errors.Wrap(err, "cannot get user")
 	})
 
@@ -135,6 +135,6 @@ func (svc *Service) GoogleSignin(ctx context.Context, googleUser *google.GoogleU
 		return sessionID, errors.WithStack(err)
 	}
 
-	sessionID, err = svc.Nats.PutSession(ctx, userID)
+	sessionID, err = svc.Cache.SetSession(ctx, userID)
 	return sessionID, errors.Wrap(err, "cannot put session")
 }

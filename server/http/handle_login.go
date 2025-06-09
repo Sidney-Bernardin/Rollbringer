@@ -10,14 +10,14 @@ import (
 )
 
 func (api *API) handleBasicLogin(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
 
 	var (
-		sessionID server.UUID
-		err       error
-
+		ctx      = r.Context()
 		username = r.FormValue("username")
 		password = r.FormValue("password")
+
+		sessionID server.UUID
+		err       error
 	)
 
 	switch r.URL.Query().Get("type") {

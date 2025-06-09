@@ -6,6 +6,8 @@ import (
 	"net/http"
 
 	"github.com/Sidney-Bernardin/Rollbringer/server"
+	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/cache"
+
 	"github.com/pkg/errors"
 )
 
@@ -35,9 +37,13 @@ func (api *API) mwAuthenticate(csrf bool) func(http.Handler) http.Handler {
 				return
 			}
 
-			session, err := api.Service.Nats.GetSession(ctx, sessionID)
-			if err != nil || session == nil {
-				api.err(w, r, errors.Wrap(err, "cannot get session"))
+			session, err := api.Service.Cache.GetSession(ctx, sessionID)
+			if err != nil {
+				if errors.Is(err, cache.ErrNotFound) {
+					next.ServeHTTP(w, r)
+				} else {
+					api.err(w, r, errors.Wrap(err, "cannot get session"))
+				}
 				return
 			}
 

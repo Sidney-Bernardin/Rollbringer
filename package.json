@@ -25,6 +25,7 @@
     },
     "dependencies": {
         "alpinejs": "^3.14.9",
-        "htmx.org": "^2.0.4"
+        "htmx.org": "^2.0.4",
+        "iconify-icon": "^3.0.0"
     }
 }

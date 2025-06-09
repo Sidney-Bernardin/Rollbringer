@@ -9,15 +9,16 @@ import (
 	"context"
 
 	"github.com/Sidney-Bernardin/Rollbringer/server"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const createUser = `-- name: CreateUser :execrows
+const insertUser = `-- name: InsertUser :execrows
 INSERT INTO users (id, google_id, username, profile_picture, password_hash, password_salt)
 VALUES ($1, $2, $3, $4, $5, $6)
 ON CONFLICT (username) DO NOTHING
 `
 
-type CreateUserParams struct {
+type InsertUserParams struct {
 	ID             server.UUID `json:"id"`
 	GoogleID       *string     `json:"google_id"`
 	Username       string      `json:"username"`
@@ -26,8 +27,8 @@ type CreateUserParams struct {
 	PasswordSalt   *string     `json:"password_salt"`
 }
 
-func (q *Queries) CreateUser(ctx context.Context, arg *CreateUserParams) (int64, error) {
-	result, err := q.db.Exec(ctx, createUser,
+func (q *Queries) InsertUser(ctx context.Context, arg *InsertUserParams) (int64, error) {
+	result, err := q.db.Exec(ctx, insertUser,
 		arg.ID,
 		arg.GoogleID,
 		arg.Username,
@@ -41,22 +42,64 @@ func (q *Queries) CreateUser(ctx context.Context, arg *CreateUserParams) (int64,
 	return result.RowsAffected(), nil
 }
 
-const getUser = `-- name: GetUser :one
+const selectRoomUsers = `-- name: SelectRoomUsers :many
+SELECT
+    users.id, users.google_id, users.username, users.profile_picture,
+    user_rooms.permisions
+FROM users
+INNER JOIN user_rooms ON user_rooms.room_id = $1
+`
+
+type SelectRoomUsersRow struct {
+	ID             server.UUID         `json:"id"`
+	GoogleID       *string             `json:"google_id"`
+	Username       string              `json:"username"`
+	ProfilePicture string              `json:"profile_picture"`
+	Permisions     []UserRoomPermision `json:"permisions"`
+}
+
+func (q *Queries) SelectRoomUsers(ctx context.Context, roomID pgtype.UUID) ([]*SelectRoomUsersRow, error) {
+	rows, err := q.db.Query(ctx, selectRoomUsers, roomID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*SelectRoomUsersRow{}
+	for rows.Next() {
+		var i SelectRoomUsersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.GoogleID,
+			&i.Username,
+			&i.ProfilePicture,
+			&i.Permisions,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const selectUser = `-- name: SelectUser :one
 SELECT id, google_id, username, profile_picture
 FROM users
 WHERE id = $1
 `
 
-type GetUserRow struct {
+type SelectUserRow struct {
 	ID             server.UUID `json:"id"`
 	GoogleID       *string     `json:"google_id"`
 	Username       string      `json:"username"`
 	ProfilePicture string      `json:"profile_picture"`
 }
 
-func (q *Queries) GetUser(ctx context.Context, userID server.UUID) (*GetUserRow, error) {
-	row := q.db.QueryRow(ctx, getUser, userID)
-	var i GetUserRow
+func (q *Queries) SelectUser(ctx context.Context, userID server.UUID) (*SelectUserRow, error) {
+	row := q.db.QueryRow(ctx, selectUser, userID)
+	var i SelectUserRow
 	err := row.Scan(
 		&i.ID,
 		&i.GoogleID,
@@ -66,26 +109,26 @@ func (q *Queries) GetUser(ctx context.Context, userID server.UUID) (*GetUserRow,
 	return &i, err
 }
 
-const getUserID = `-- name: GetUserID :one
+const selectUserID = `-- name: SelectUserID :one
 SELECT id
 FROM users
 WHERE google_id = $1
 `
 
-func (q *Queries) GetUserID(ctx context.Context, googleID *string) (server.UUID, error) {
-	row := q.db.QueryRow(ctx, getUserID, googleID)
+func (q *Queries) SelectUserID(ctx context.Context, googleID *string) (server.UUID, error) {
+	row := q.db.QueryRow(ctx, selectUserID, googleID)
 	var id server.UUID
 	err := row.Scan(&id)
 	return id, err
 }
 
-const getUserWithPassword = `-- name: GetUserWithPassword :one
+const selectUserWithPassword = `-- name: SelectUserWithPassword :one
 SELECT id, google_id, username, profile_picture, password_hash, password_salt
 FROM users
 WHERE username = $1
 `
 
-type GetUserWithPasswordRow struct {
+type SelectUserWithPasswordRow struct {
 	ID             server.UUID `json:"id"`
 	GoogleID       *string     `json:"google_id"`
 	Username       string      `json:"username"`
@@ -94,9 +137,9 @@ type GetUserWithPasswordRow struct {
 	PasswordSalt   *string     `json:"password_salt"`
 }
 
-func (q *Queries) GetUserWithPassword(ctx context.Context, username string) (*GetUserWithPasswordRow, error) {
-	row := q.db.QueryRow(ctx, getUserWithPassword, username)
-	var i GetUserWithPasswordRow
+func (q *Queries) SelectUserWithPassword(ctx context.Context, username string) (*SelectUserWithPasswordRow, error) {
+	row := q.db.QueryRow(ctx, selectUserWithPassword, username)
+	var i SelectUserWithPasswordRow
 	err := row.Scan(
 		&i.ID,
 		&i.GoogleID,

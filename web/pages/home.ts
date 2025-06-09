@@ -1,6 +1,7 @@
 import Alpine from 'alpinejs'
 
 import "htmx.org"
+import "iconify-icon"
 
 /////
 

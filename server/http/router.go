@@ -21,8 +21,15 @@ func (api *API) Router() http.Handler {
 	r.Get("/login/google/callback", api.handleGoogleLoginCallback)
 	r.Get("/logout", api.handleLogout)
 
-	public := r.With(api.mwAuthenticate(false))
-	public.HandleFunc("/", api.handleHomePage)
+	r.Route("/rooms", func(rr chi.Router) {
+		authCSRF := rr.With(api.mwAuthenticate(true))
+		authCSRF.Post("/", api.handleRoomsPost)
+		authCSRF.Delete("/{room_id}", api.handleRoomsDelete)
+	})
+
+	auth := r.With(api.mwAuthenticate(false))
+	auth.HandleFunc("/", api.handleHomePage)
+	auth.HandleFunc("/play", api.handlePlayPage)
 
 	return r
 }

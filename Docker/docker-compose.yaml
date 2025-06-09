@@ -1,21 +1,28 @@
 services:
 
-  nats:
-    image: "nats:2.11.3"
-    container_name: "nats"
-    ports:
-      - "4222:4222"
-    volumes:
-      - "./tmp/nats:/tmp/nats"
-    command: "-js"
-
   postgres:
-    image: "postgres:17.5"
+    image: "postgres:17.5-alpine"
     container_name: "postgres"
     environment:
-      POSTGRES_PASSWORD: "rollbringer"
+      POSTGRES_PASSWORD: "password"
     ports:
       - "5432:5432"
     volumes:
       - "./tmp/postgres:/var/lib/postgresql/data"
       - "./Docker/postgres:/docker-entrypoint-initdb.d"
+
+  redis:
+    image: "redis:8.0.2-alpine"
+    container_name: "redis"
+    environment:
+      REDIS_PASSWORD: "password"
+    ports:
+      - "6379:6379"
+    volumes:
+      - "./tmp/redis:/data"
+
+  nats:
+    image: "nats:2.11.3-alpine"
+    container_name: "nats"
+    ports:
+      - "4222:4222"
