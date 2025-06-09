@@ -1,4 +1,5 @@
-.env
 tmp
+.env
+server/http/static/
 node_modules
-server/http/static
+.parcel-cache
