@@ -47,6 +47,4 @@ func (api *API) handleRoomsDelete(w http.ResponseWriter, r *http.Request) {
 		api.err(w, r, errors.Wrap(err, "cannot delete room"))
 		return
 	}
-
-	w.WriteHeader(http.StatusNoContent)
 }

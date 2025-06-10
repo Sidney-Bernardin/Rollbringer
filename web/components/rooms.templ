@@ -19,7 +19,7 @@ templ RoomCard(
 			for userIdx := range userIds {
 				<img
 					src={ profilePictures[userIdx] }
-					alt={ usernames[userIdx] }
+					title={ usernames[userIdx] }
 					referrerpolicy="no-referrer"
 				/>
 			}
@@ -28,6 +28,8 @@ templ RoomCard(
 			<button
 				hx-delete={ "/rooms/" + roomID.String() }
 				hx-confirm={ fmt.Sprintf("Are you sure you want to delete this room? (%s)", name) }
+				hx-target={ fmt.Sprintf(`.room-card[data-room-id="%s"]`, roomID) }
+				hx-swap="outerHTML"
 			>
 				<iconify-icon icon="material-symbols:delete"></iconify-icon>
 				Delete

@@ -1,4 +1,4 @@
-package pages
+package home
 
 import (
 	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/cache"
@@ -19,8 +19,8 @@ templ HomePage(data *HomeData) {
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<title>Home | Rollbringer</title>
 			<link rel="icon" type="image/x-icon" href="/static/favicon.png"/>
-			<link rel="stylesheet" type="text/css" href="/static/pages/home.css"/>
-			<script src="/static/pages/home.js" defer></script>
+			<link rel="stylesheet" type="text/css" href="/static/pages/home/home.css"/>
+			<script src="/static/pages/home/home.js" defer></script>
 		</head>
 		<body
 			x-data
@@ -28,23 +28,7 @@ templ HomePage(data *HomeData) {
 				hx-headers={ templ.JSONString(map[string]any{"CSRF-Token": data.Session.CSRFToken}) }
 			}
 		>
-			<div class="nav-bar">
-				<div class="left">
-					if data.Session != nil {
-						<a href="/logout">logout</a>
-					}
-				</div>
-				<h1>Rollbringer</h1>
-				<div class="right">
-					if data.Session != nil {
-						<img
-							src={ data.User.ProfilePicture }
-							alt={ data.User.Username }
-							referrerpolicy="no-referrer"
-						/>
-					}
-				</div>
-			</div>
+			@navBar(data)
 			if data.Session == nil {
 				@loginForm()
 			} else {
@@ -52,6 +36,26 @@ templ HomePage(data *HomeData) {
 			}
 		</body>
 	</html>
+}
+
+templ navBar(data *HomeData) {
+	<div class="nav-bar">
+		<div class="left">
+			if data.Session != nil {
+				<a href="/logout">logout</a>
+			}
+		</div>
+		<h1>Rollbringer</h1>
+		<div class="right">
+			if data.Session != nil {
+				<img
+					src={ data.User.ProfilePicture }
+					title={ data.User.Username }
+					referrerpolicy="no-referrer"
+				/>
+			}
+		</div>
+	</div>
 }
 
 templ loginForm() {

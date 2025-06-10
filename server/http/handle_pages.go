@@ -5,7 +5,8 @@ import (
 
 	"github.com/Sidney-Bernardin/Rollbringer/server"
 	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/cache"
-	"github.com/Sidney-Bernardin/Rollbringer/web/pages"
+	"github.com/Sidney-Bernardin/Rollbringer/web/pages/home"
+	"github.com/Sidney-Bernardin/Rollbringer/web/pages/play"
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 )
@@ -14,12 +15,12 @@ func (api *API) handleHomePage(w http.ResponseWriter, r *http.Request) {
 
 	var (
 		ctx  = r.Context()
-		data pages.HomeData
+		data home.HomeData
 	)
 
 	data.Session, _ = ctx.Value("session").(*cache.Session)
 	if data.Session == nil {
-		api.respond(w, r, http.StatusOK, pages.HomePage(&data))
+		api.respond(w, r, http.StatusOK, home.HomePage(&data))
 		return
 	}
 
@@ -40,19 +41,19 @@ func (api *API) handleHomePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	api.respond(w, r, http.StatusOK, pages.HomePage(&data))
+	api.respond(w, r, http.StatusOK, home.HomePage(&data))
 }
 
 func (api *API) handlePlayPage(w http.ResponseWriter, r *http.Request) {
 
 	var (
 		ctx  = r.Context()
-		data pages.PlayData
+		data play.PlayData
 	)
 
 	data.Session, _ = ctx.Value("session").(*cache.Session)
 	if data.Session == nil {
-		api.respond(w, r, http.StatusOK, pages.PlayPage(&data))
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 
@@ -79,5 +80,5 @@ func (api *API) handlePlayPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	api.respond(w, r, http.StatusOK, pages.PlayPage(&data))
+	api.respond(w, r, http.StatusOK, play.PlayPage(&data))
 }

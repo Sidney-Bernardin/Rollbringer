@@ -14,18 +14,16 @@
         "default": {
             "distDir": "./server/http/static",
             "source": [
-                "./web/*.ts",
-                "./web/*.scss",
-                "./web/pages/*.ts",
-                "./web/pages/*.scss",
-                "./web/components/*.ts",
-                "./web/components/*.scss"
+                "./web/**/*.ts",
+                "./web/**/*.scss"
             ]
         }
     },
     "dependencies": {
         "alpinejs": "^3.14.9",
         "htmx.org": "^2.0.4",
-        "iconify-icon": "^3.0.0"
+        "iconify-icon": "^3.0.0",
+        "konva": "^9.3.20",
+        "split-grid": "^1.0.11"
     }
 }

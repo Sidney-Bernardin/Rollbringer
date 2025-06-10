@@ -1,5 +1,0 @@
-package fake
-
-func main() {
-
-}

@@ -3,6 +3,7 @@ function watch-server {
 }
 
 function watch-web {
+    rm -r .parcel-cache
     npx parcel watch $@
 }
 
