@@ -216,7 +216,7 @@ func rooms(data *HomeData) templ.Component {
 			templ_7745c5c3_Var7 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<div class=\"rooms\"><dialog class=\"create-room\" x-ref=\"createRoom\"><header><h1>Create Room</h1><button @click=\"$refs.createRoom.close()\"><iconify-icon icon=\"material-symbols:close\"></iconify-icon> Close</button></header><hr><form hx-post=\"/rooms\" hx-target=\".rooms ul\" hx-swap=\"beforeend\"><input type=\"hidden\" name=\"operation\" value=\"CreateBoard\"> <input type=\"text\" name=\"name\" placeholder=\"Name\"> <button>Create</button></form></dialog><header><h2>Rooms</h2><button @click=\"$refs.createRoom.showModal()\"><iconify-icon icon=\"material-symbols:add\"></iconify-icon> Create Room</button></header><hr><ul>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<div class=\"rooms\"><dialog class=\"create-room\" x-ref=\"createRoom\"><header><h1>Create Room</h1><button @click=\"$refs.createRoom.close()\"><iconify-icon icon=\"material-symbols:close\"></iconify-icon> Close</button></header><hr><form hx-post=\"/rooms\" hx-target=\".rooms ul\" hx-swap=\"beforeend\"><input type=\"text\" name=\"name\" placeholder=\"Name\"> <button>Create</button></form></dialog><header><h2>Rooms</h2><button @click=\"$refs.createRoom.showModal()\"><iconify-icon icon=\"material-symbols:add\"></iconify-icon> Create Room</button></header><hr><ul>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -11,7 +11,9 @@ import (
 	"github.com/Sidney-Bernardin/Rollbringer/server"
 	HTTP "github.com/Sidney-Bernardin/Rollbringer/server/http"
 	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/cache"
+	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/cql"
 	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/google"
+	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/pubsub"
 	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/sql"
 	"github.com/Sidney-Bernardin/Rollbringer/server/service"
 
@@ -48,9 +50,21 @@ func main() {
 		return
 	}
 
+	cql, err := cql.New()
+	if err != nil {
+		log.Log(ctx, slog.LevelError, "Cannot create cql repository", "err", err.Error())
+		return
+	}
+
 	cache, err := cache.New(ctx, config)
 	if err != nil {
 		log.Log(ctx, slog.LevelError, "Cannot create cache repository", "err", err.Error())
+		return
+	}
+
+	pubsub, err := pubsub.New(ctx, config, log)
+	if err != nil {
+		log.Log(ctx, slog.LevelError, "Cannot create pubsub repository", "err", err.Error())
 		return
 	}
 
@@ -75,7 +89,9 @@ func main() {
 			Config: config,
 			Log:    log.With("namespace", "service"),
 			SQL:    sql,
+			CQL:    cql,
 			Cache:  cache,
+			PubSub: pubsub,
 			Google: google,
 		},
 	}

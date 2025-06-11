@@ -89,7 +89,6 @@ templ rooms(data *HomeData) {
 			</header>
 			<hr/>
 			<form hx-post="/rooms" hx-target=".rooms ul" hx-swap="beforeend">
-				<input type="hidden" name="operation" value="CreateBoard"/>
 				<input type="text" name="name" placeholder="Name"/>
 				<button>Create</button>
 			</form>

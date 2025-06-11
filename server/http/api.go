@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"io"
 	"log/slog"
-	"net"
 	"net/http"
 	"time"
 
@@ -59,7 +58,7 @@ func (api *API) respond(w io.Writer, r *http.Request, code int, data any) {
 		err = errors.Wrap(err, "cannot JSON encode response")
 	}
 
-	if err != nil && !errors.Is(err, io.EOF) && !errors.Is(err, net.ErrClosed) {
+	if err != nil {
 		api.Log.Log(r.Context(), slog.LevelError, "Cannot write response", "err", err.Error())
 	}
 }
@@ -79,10 +78,11 @@ func (api *API) err(w io.Writer, r *http.Request, err error) {
 	case http.ResponseWriter:
 		api.respond(w, r, errorCodes[userErr.Type], userErr)
 	case *websocket.Conn:
+		api.respond(w, r, 0, userErr)
 	}
 }
 
-func (api *API) NewSessionCookie(sessionID server.UUID) *http.Cookie {
+func (api *API) newSessionCookie(sessionID server.UUID) *http.Cookie {
 	return &http.Cookie{
 		Name:     "SESSION_ID",
 		Value:    sessionID.String(),
@@ -92,4 +92,24 @@ func (api *API) NewSessionCookie(sessionID server.UUID) *http.Cookie {
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 	}
+}
+
+func wsReceive(conn *websocket.Conn, msg *[]byte) (string, error) {
+
+	if err := websocket.Message.Receive(conn, msg); err != nil {
+		return "", errors.Wrap(err, "cannot receive message")
+	}
+
+	head := struct {
+		Type string `json:"type"`
+	}{}
+
+	if err := json.Unmarshal(*msg, &head); err != nil {
+		return "", &server.UserError{
+			Type:    server.UserErrorTypeJSONInvalid,
+			Message: err.Error(),
+		}
+	}
+
+	return head.Type, nil
 }

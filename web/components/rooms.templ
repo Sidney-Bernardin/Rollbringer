@@ -1,9 +1,9 @@
 package components
 
 import (
-	"fmt"
 	"github.com/Sidney-Bernardin/Rollbringer/server"
 	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/sql/queries"
+	. "github.com/Sidney-Bernardin/Rollbringer/web"
 )
 
 templ RoomCard(
@@ -26,9 +26,9 @@ templ RoomCard(
 		</div>
 		<div class="options">
 			<button
-				hx-delete={ "/rooms/" + roomID.String() }
-				hx-confirm={ fmt.Sprintf("Are you sure you want to delete this room? (%s)", name) }
-				hx-target={ fmt.Sprintf(`.room-card[data-room-id="%s"]`, roomID) }
+				hx-delete={ S("/rooms/%s", roomID) }
+				hx-confirm={ S("Are you sure you want to delete this room? (%s)", name) }
+				hx-target={ S(`.room-card[data-room-id="%s"]`, roomID) }
 				hx-swap="outerHTML"
 			>
 				<iconify-icon icon="material-symbols:delete"></iconify-icon>

@@ -16,7 +16,10 @@ import (
 func (svc *Service) CreateRoom(ctx context.Context, creatorID server.UUID, name string) (*queries.InsertRoomRow, error) {
 
 	if len(name) < 3 || 32 < len(name) {
-		return nil, server.NewUserError(server.UserErrorTypeRoomNameInvalid, "Username must be between 3 and 32 characters long.", nil)
+		return nil, &server.UserError{
+			Type:    server.UserErrorTypeRoomNameInvalid,
+			Message: "Username must be between 3 and 32 characters long.",
+		}
 	}
 
 	room, err := svc.SQL.InsertRoom(ctx, &queries.InsertRoomParams{
@@ -38,7 +41,9 @@ func (svc *Service) CreateRoom(ctx context.Context, creatorID server.UUID, name 
 		defer cancel()
 
 		if err := svc.Cache.DeleteUserRooms(ctx, creatorID); err != nil {
-			svc.Log.Log(ctx, slog.LevelWarn, "Cache cannot delete user rooms", "err", err.Error())
+			svc.Log.Log(ctx, slog.LevelWarn, "Cache cannot delete user's rooms",
+				"err", err.Error(),
+				"deleter_id", creatorID)
 		}
 	}()
 
@@ -55,7 +60,10 @@ func (svc *Service) GetRoom(ctx context.Context, roomID server.UUID) (*queries.S
 	room, err = svc.SQL.SelectRoom(ctx, roomID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, server.NewUserError(server.UserErrorTypeRoomNotFound, "", nil)
+			return nil, &server.UserError{
+				Type:    server.UserErrorTypeRoomNotFound,
+				Message: "Cannot find a room with that ID",
+			}
 		}
 
 		return nil, errors.Wrap(err, "cannot get room from SQL")
@@ -66,7 +74,9 @@ func (svc *Service) GetRoom(ctx context.Context, roomID server.UUID) (*queries.S
 		defer cancel()
 
 		if err := svc.Cache.SetRoom(ctx, room); err != nil {
-			svc.Log.Log(ctx, slog.LevelWarn, "Cache cannot set room", "err", err.Error())
+			svc.Log.Log(ctx, slog.LevelWarn, "Cache cannot set room",
+				"err", err.Error(),
+				"room_id", roomID)
 		}
 	}()
 
@@ -90,7 +100,9 @@ func (svc *Service) GetUserRooms(ctx context.Context, userID server.UUID) ([]*qu
 		defer cancel()
 
 		if err := svc.Cache.SetUserRooms(ctx, userID, rooms); err != nil {
-			svc.Log.Log(ctx, slog.LevelWarn, "Cache cannot set user rooms", "err", err.Error())
+			svc.Log.Log(ctx, slog.LevelWarn, "Cache cannot set user's rooms",
+				"err", err.Error(),
+				"setter_id", userID)
 		}
 	}()
 
@@ -112,7 +124,10 @@ func (svc *Service) DeleteRoom(ctx context.Context, userID, roomID server.UUID) 
 		defer cancel()
 
 		if err := svc.Cache.DeleteRoom(ctx, roomID); err != nil {
-			svc.Log.Log(ctx, slog.LevelWarn, "Cache cannot delete room", "err", err.Error())
+			svc.Log.Log(ctx, slog.LevelWarn, "Cache cannot delete room",
+				"err", err.Error(),
+				"room_id", roomID,
+				"deleter_id", userID)
 		}
 	}()
 

@@ -15,7 +15,7 @@ func (api *API) handleRoomsPost(w http.ResponseWriter, r *http.Request) {
 
 	session, _ := ctx.Value("session").(*cache.Session)
 	if session == nil {
-		server.NewUserError(server.UserErrorTypeUnauthorized, "", nil)
+		api.err(w, r, &server.UserError{Type: server.UserErrorTypeUnauthorized})
 		return
 	}
 
@@ -33,7 +33,7 @@ func (api *API) handleRoomsDelete(w http.ResponseWriter, r *http.Request) {
 
 	session, _ := ctx.Value("session").(*cache.Session)
 	if session == nil {
-		server.NewUserError(server.UserErrorTypeUnauthorized, "", nil)
+		api.err(w, r, &server.UserError{Type: server.UserErrorTypeUnauthorized})
 		return
 	}
 

@@ -1,13 +1,19 @@
 package http
 
 import (
+	"encoding/json"
+	"io"
+	"net"
 	"net/http"
 
 	"github.com/Sidney-Bernardin/Rollbringer/server"
 	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/cache"
+	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/pubsub"
 	"github.com/Sidney-Bernardin/Rollbringer/web/pages/home"
 	"github.com/Sidney-Bernardin/Rollbringer/web/pages/play"
+
 	"github.com/pkg/errors"
+	"golang.org/x/net/websocket"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -80,5 +86,79 @@ func (api *API) handlePlayPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	data.ChatMessages = []*pubsub.ChatMessage{}
 	api.respond(w, r, http.StatusOK, play.PlayPage(&data))
+}
+
+func (api *API) handlePlayPageWebSocket(conn *websocket.Conn) {
+
+	var (
+		r   = conn.Request()
+		ctx = r.Context()
+	)
+
+	session, _ := ctx.Value("session").(*cache.Session)
+	if session == nil {
+		return
+	}
+
+	roomID, err := server.ParseUUID(r.URL.Query().Get("r"))
+	if err != nil {
+		api.err(conn, r, errors.Wrap(err, "cannot parse room-ID"))
+		return
+	}
+
+	user, err := api.Service.GetUser(ctx, session.UserID)
+	if err != nil {
+		api.err(conn, r, errors.Wrap(err, "cannot get user"))
+		return
+	}
+
+	go func() {
+		err := api.Service.PubSub.SubRoom(ctx, roomID,
+			func(event any) {
+				switch e := event.(type) {
+				case *pubsub.ChatMessage:
+					api.respond(conn, r, 0, play.ChatMessage(e))
+				}
+			})
+		api.err(conn, r, errors.Wrap(err, "cannot subscribe to room events"))
+		conn.Close()
+	}()
+
+	var (
+		msg     []byte
+		payload any
+		action  = func() {}
+	)
+
+	for {
+
+		msgType, err := wsReceive(conn, &msg)
+		if err != nil {
+			if errors.Is(err, io.EOF) || errors.Is(err, net.ErrClosed) {
+				return
+			}
+
+			api.err(conn, r, errors.Wrap(err, "cannot receive message"))
+			continue
+		}
+
+		switch msgType {
+		case "send-chat-message":
+			payload, action = &sendChatMessageReq{}, func() {
+				err := api.Service.SendChatMessage(ctx, roomID, user, payload.(*sendChatMessageReq).Content)
+				api.err(conn, r, errors.Wrap(err, "cannot send chat-message"))
+			}
+		}
+
+		if err := json.Unmarshal(msg, &payload); err != nil {
+			api.err(conn, r, &server.UserError{
+				Type:    server.UserErrorTypeJSONInvalid,
+				Message: err.Error()})
+			continue
+		}
+
+		action()
+	}
 }

@@ -1,14 +1,17 @@
 package play
 
 import (
+	"fmt"
 	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/cache"
+	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/pubsub"
 	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/sql/queries"
 )
 
 type PlayData struct {
-	Session *cache.Session
-	User    *queries.SelectUserRow
-	Room    *queries.SelectRoomRow
+	Session      *cache.Session
+	User         *queries.SelectUserRow
+	Room         *queries.SelectRoomRow
+	ChatMessages []*pubsub.ChatMessage
 }
 
 templ PlayPage(data *PlayData) {
@@ -23,6 +26,8 @@ templ PlayPage(data *PlayData) {
 		</head>
 		<body
 			x-data
+			hx-ext="ws"
+			ws-connect={ fmt.Sprintf("/play/ws?r=%s", data.Room.ID) }
 			if data.Session != nil {
 				hx-headers={ templ.JSONString(map[string]any{"CSRF-Token": data.Session.CSRFToken}) }
 			}
@@ -37,7 +42,7 @@ templ PlayPage(data *PlayData) {
 				</header>
 				<hr/>
 				<form ws-send>
-					<input type="hidden" name="operation" value="CreateBoard"/>
+					<input type="hidden" name="type" value="create-board"/>
 					<input type="text" name="name" placeholder="Name"/>
 					<button>Create</button>
 				</form>
@@ -101,24 +106,36 @@ templ social(data *PlayData) {
 		<div class="chat">
 			<div class="messages">
 				<div class="inner">
-					<div class="message">
-						<img src="https://static-00.iconduck.com/assets.00/dungeons-and-dragons-icon-512x492-vw90341y.png" title="Username" referrerpolicy="no-referrer"/>
-						<p>
-							<strong class="username">Username</strong>
-							<strong class="message">Lorem ipsum dolor sit amet consectetur adipisicing elit. Odio et quis nulla consequuntur nisi amet dignissimos, inventore ducimus commodi repellendus temporibus unde repudiandae iusto eius sed laudantium minima in optio.</strong>
-						</p>
-					</div>
+					for _, chatMessage := range data.ChatMessages {
+						@ChatMessage(chatMessage)
+					}
 					<div class="anchor"></div>
 				</div>
 			</div>
 		</div>
-		<form>
-			<input type="hidden" name="operation" value="ChatMessage"/>
-			<input type="text" name="message" placeholder="Hello, World!"/>
+		<form ws-send>
+			<input type="hidden" name="type" value="send-chat-message"/>
+			<input type="text" name="content" placeholder="Hello, World!"/>
 			<button>
 				<iconify-icon icon="material-symbols:send"></iconify-icon>
 				Send
 			</button>
 		</form>
+	</div>
+}
+
+templ ChatMessage(chatMessage *pubsub.ChatMessage) {
+	<div hx-swap-oob="beforebegin:.chat .messages .inner .anchor">
+		<div class="message">
+			<img
+				src={ chatMessage.Author.ProfilePicture }
+				title={ chatMessage.Author.Username }
+				referrerpolicy="no-referrer"
+			/>
+			<p>
+				<strong class="username">{ chatMessage.Author.Username }</strong>
+				<strong class="message">{ chatMessage.Content }</strong>
+			</p>
+		</div>
 	</div>
 }

@@ -9,14 +9,17 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"fmt"
 	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/cache"
+	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/pubsub"
 	"github.com/Sidney-Bernardin/Rollbringer/server/repositories/sql/queries"
 )
 
 type PlayData struct {
-	Session *cache.Session
-	User    *queries.SelectUserRow
-	Room    *queries.SelectRoomRow
+	Session      *cache.Session
+	User         *queries.SelectUserRow
+	Room         *queries.SelectRoomRow
+	ChatMessages []*pubsub.ChatMessage
 }
 
 func PlayPage(data *PlayData) templ.Component {
@@ -47,36 +50,49 @@ func PlayPage(data *PlayData) templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(data.Room.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/play.templ`, Line: 19, Col: 26}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/play.templ`, Line: 22, Col: 26}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " | Rollbringer</title><link rel=\"icon\" type=\"image/x-icon\" href=\"/static/favicon.png\"><link rel=\"stylesheet\" type=\"text/css\" href=\"/static/pages/play/play.css\"><script src=\"/static/pages/play/play.js\" defer></script></head><body x-data")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " | Rollbringer</title><link rel=\"icon\" type=\"image/x-icon\" href=\"/static/favicon.png\"><link rel=\"stylesheet\" type=\"text/css\" href=\"/static/pages/play/play.css\"><script src=\"/static/pages/play/play.js\" defer></script></head><body x-data hx-ext=\"ws\" ws-connect=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var3 string
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/play/ws?r=%s", data.Room.ID))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/play.templ`, Line: 30, Col: 58}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if data.Session != nil {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " hx-headers=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, " hx-headers=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var3 string
-			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(templ.JSONString(map[string]any{"CSRF-Token": data.Session.CSRFToken}))
+			var templ_7745c5c3_Var4 string
+			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(templ.JSONString(map[string]any{"CSRF-Token": data.Session.CSRFToken}))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/play.templ`, Line: 27, Col: 87}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/play.templ`, Line: 32, Col: 87}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "><dialog class=\"create-board\" x-ref=\"createBoard\"><header><h1>Create Board</h1><button @click=\"$refs.createBoard.close()\"><iconify-icon icon=\"material-symbols:close\"></iconify-icon> Close</button></header><hr><form ws-send><input type=\"hidden\" name=\"operation\" value=\"CreateBoard\"> <input type=\"text\" name=\"name\" placeholder=\"Name\"> <button>Create</button></form></dialog><div class=\"layout\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "><dialog class=\"create-board\" x-ref=\"createBoard\"><header><h1>Create Board</h1><button @click=\"$refs.createBoard.close()\"><iconify-icon icon=\"material-symbols:close\"></iconify-icon> Close</button></header><hr><form ws-send><input type=\"hidden\" name=\"type\" value=\"create-board\"> <input type=\"text\" name=\"name\" placeholder=\"Name\"> <button>Create</button></form></dialog><div class=\"layout\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -84,7 +100,7 @@ func PlayPage(data *PlayData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div class=\"document-viewer\"></div><div class=\"boards\"></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div class=\"document-viewer\"></div><div class=\"boards\"></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -96,7 +112,7 @@ func PlayPage(data *PlayData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<span class=\"gutter g1\"></span> <span class=\"gutter g2\"></span> <span class=\"gutter g3\"></span> <span class=\"gutter g4\"></span></div></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<span class=\"gutter g1\"></span> <span class=\"gutter g2\"></span> <span class=\"gutter g3\"></span> <span class=\"gutter g4\"></span></div></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -120,12 +136,12 @@ func topBar(data *PlayData) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var4 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var4 == nil {
-			templ_7745c5c3_Var4 = templ.NopComponent
+		templ_7745c5c3_Var5 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var5 == nil {
+			templ_7745c5c3_Var5 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"top-bar\"><a href=\"/\">Home</a></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<div class=\"top-bar\"><a href=\"/\">Home</a></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -149,12 +165,12 @@ func materials(data *PlayData) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var5 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var5 == nil {
-			templ_7745c5c3_Var5 = templ.NopComponent
+		templ_7745c5c3_Var6 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var6 == nil {
+			templ_7745c5c3_Var6 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<div class=\"materials\"><div class=\"board-cards\"><div class=\"tool-bar\"><button @click=\"$refs.createBoard.showModal()\"><iconify-icon icon=\"material-symbols:add\"></iconify-icon> Create Board</button></div><div class=\"grid\"><div class=\"board-card\"><img class=\"logo\" src=\"https://static-00.iconduck.com/assets.00/dungeons-and-dragons-icon-512x492-vw90341y.png\"><p><strong>Name</strong> <button><iconify-icon icon=\"material-symbols:more-vert\"></iconify-icon></button></p><div class=\"users\"><img src=\"https://static-00.iconduck.com/assets.00/dungeons-and-dragons-icon-512x492-vw90341y.png\" title=\"Username\" referrerpolicy=\"no-referrer\"></div></div></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<div class=\"materials\"><div class=\"board-cards\"><div class=\"tool-bar\"><button @click=\"$refs.createBoard.showModal()\"><iconify-icon icon=\"material-symbols:add\"></iconify-icon> Create Board</button></div><div class=\"grid\"><div class=\"board-card\"><img class=\"logo\" src=\"https://static-00.iconduck.com/assets.00/dungeons-and-dragons-icon-512x492-vw90341y.png\"><p><strong>Name</strong> <button><iconify-icon icon=\"material-symbols:more-vert\"></iconify-icon></button></p><div class=\"users\"><img src=\"https://static-00.iconduck.com/assets.00/dungeons-and-dragons-icon-512x492-vw90341y.png\" title=\"Username\" referrerpolicy=\"no-referrer\"></div></div></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -178,12 +194,103 @@ func social(data *PlayData) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var6 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var6 == nil {
-			templ_7745c5c3_Var6 = templ.NopComponent
+		templ_7745c5c3_Var7 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var7 == nil {
+			templ_7745c5c3_Var7 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<div class=\"social\"><div class=\"users\"><div class=\"user-bubble\"><img src=\"https://static-00.iconduck.com/assets.00/dungeons-and-dragons-icon-512x492-vw90341y.png\" title=\"Username\" referrerpolicy=\"no-referrer\"></div></div><div class=\"chat\"><div class=\"messages\"><div class=\"inner\"><div class=\"message\"><img src=\"https://static-00.iconduck.com/assets.00/dungeons-and-dragons-icon-512x492-vw90341y.png\" title=\"Username\" referrerpolicy=\"no-referrer\"><p><strong class=\"username\">Username</strong> <strong class=\"message\">Lorem ipsum dolor sit amet consectetur adipisicing elit. Odio et quis nulla consequuntur nisi amet dignissimos, inventore ducimus commodi repellendus temporibus unde repudiandae iusto eius sed laudantium minima in optio.</strong></p></div><div class=\"anchor\"></div></div></div></div><form><input type=\"hidden\" name=\"operation\" value=\"ChatMessage\"> <input type=\"text\" name=\"message\" placeholder=\"Hello, World!\"> <button><iconify-icon icon=\"material-symbols:send\"></iconify-icon> Send</button></form></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"social\"><div class=\"users\"><div class=\"user-bubble\"><img src=\"https://static-00.iconduck.com/assets.00/dungeons-and-dragons-icon-512x492-vw90341y.png\" title=\"Username\" referrerpolicy=\"no-referrer\"></div></div><div class=\"chat\"><div class=\"messages\"><div class=\"inner\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		for _, chatMessage := range data.ChatMessages {
+			templ_7745c5c3_Err = ChatMessage(chatMessage).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<div class=\"anchor\"></div></div></div></div><form ws-send><input type=\"hidden\" name=\"type\" value=\"send-chat-message\"> <input type=\"text\" name=\"content\" placeholder=\"Hello, World!\"> <button><iconify-icon icon=\"material-symbols:send\"></iconify-icon> Send</button></form></div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func ChatMessage(chatMessage *pubsub.ChatMessage) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var8 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var8 == nil {
+			templ_7745c5c3_Var8 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<div hx-swap-oob=\"beforebegin:.chat .messages .inner .anchor\"><div class=\"message\"><img src=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var9 string
+		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(chatMessage.Author.ProfilePicture)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/play.templ`, Line: 131, Col: 43}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\" title=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var10 string
+		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(chatMessage.Author.Username)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/play.templ`, Line: 132, Col: 39}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\" referrerpolicy=\"no-referrer\"><p><strong class=\"username\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var11 string
+		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(chatMessage.Author.Username)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/play.templ`, Line: 136, Col: 58}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</strong> <strong class=\"message\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var12 string
+		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(chatMessage.Content)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pages/play/play.templ`, Line: 137, Col: 49}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</strong></p></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

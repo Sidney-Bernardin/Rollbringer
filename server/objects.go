@@ -15,6 +15,10 @@ func NewRandomUUID() UUID {
 	return UUID{googleUUID.Must(googleUUID.NewRandom())}
 }
 
+func NewV1UUID() UUID {
+	return UUID{googleUUID.Must(googleUUID.NewUUID())}
+}
+
 func ParseUUID(uuid string) (ret UUID, err error) {
 	gUUID, err := googleUUID.Parse(uuid)
 	if err != nil {
@@ -38,10 +42,6 @@ type UserError struct {
 	Details map[string]any `json:"details,omitempty"`
 }
 
-func NewUserError(typ UserErrorType, message string, details map[string]any) *UserError {
-	return &UserError{typ, message, details}
-}
-
 func (err *UserError) Error() string {
 	return fmt.Sprintf("%s: %s %v", err.Type, err.Message, err.Details)
 }
@@ -51,6 +51,7 @@ type UserErrorType string
 const (
 	UserErrorTypeInternalServerError UserErrorType = "internal-server-error"
 	UserErrorTypeUnauthorized        UserErrorType = "unauthorized"
+	UserErrorTypeJSONInvalid         UserErrorType = "json-invalid"
 	UserErrorTypeUUIDInvalid         UserErrorType = "uuid-invalid"
 
 	UserErrorTypeUsernameInvalid         UserErrorType = "username-invalid"

@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"golang.org/x/net/websocket"
 )
 
 //go:embed static
@@ -30,6 +31,7 @@ func (api *API) Router() http.Handler {
 	auth := r.With(api.mwAuthenticate(false))
 	auth.HandleFunc("/", api.handleHomePage)
 	auth.HandleFunc("/play", api.handlePlayPage)
+	auth.Handle("/play/ws", websocket.Handler(api.handlePlayPageWebSocket))
 
 	return r
 }

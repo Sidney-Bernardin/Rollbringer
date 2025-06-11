@@ -26,7 +26,7 @@ func (g *Google) GetGoogleUser(ctx context.Context, code string) (*GoogleUser, e
 
 	token, err := g.OAuthConfig.Exchange(ctx, code)
 	if err != nil {
-		return nil, server.NewUserError(server.UserErrorTypeUnauthorized, "", nil)
+		return nil, &server.UserError{Type: server.UserErrorTypeUnauthorized}
 	}
 
 	idTokenStr, ok := token.Extra("id_token").(string)

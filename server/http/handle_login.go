@@ -28,7 +28,7 @@ func (api *API) handleBasicLogin(w http.ResponseWriter, r *http.Request) {
 		sessionID, err = api.Service.BasicSignin(ctx, username, password)
 		err = errors.Wrap(err, "cannot signin")
 	default:
-		api.err(w, r, server.NewUserError(server.UserErrorTypeUnauthorized, "", nil))
+		api.err(w, r, &server.UserError{Type: server.UserErrorTypeUnauthorized})
 		return
 	}
 
@@ -37,7 +37,7 @@ func (api *API) handleBasicLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.SetCookie(w, api.NewSessionCookie(sessionID))
+	http.SetCookie(w, api.newSessionCookie(sessionID))
 	w.Header().Set("HX-Redirect", "/")
 }
 
@@ -72,13 +72,13 @@ func (api *API) handleGoogleLoginCallback(w http.ResponseWriter, r *http.Request
 
 	cState, err := r.Cookie("OAUTH_STATE")
 	if err != nil || cState.Value != r.FormValue("state") {
-		api.err(w, r, server.NewUserError(server.UserErrorTypeUnauthorized, "", nil))
+		api.err(w, r, &server.UserError{Type: server.UserErrorTypeUnauthorized})
 		return
 	}
 
 	cLoginType, err := r.Cookie("LOGIN_TYPE")
 	if err != nil {
-		api.err(w, r, server.NewUserError(server.UserErrorTypeUnauthorized, "", nil))
+		api.err(w, r, &server.UserError{Type: server.UserErrorTypeUnauthorized})
 		return
 	}
 
@@ -97,7 +97,7 @@ func (api *API) handleGoogleLoginCallback(w http.ResponseWriter, r *http.Request
 		sessionID, err = api.Service.GoogleSignin(ctx, googleUser)
 		err = errors.Wrap(err, "cannot signin")
 	default:
-		api.err(w, r, server.NewUserError(server.UserErrorTypeUnauthorized, "", nil))
+		api.err(w, r, &server.UserError{Type: server.UserErrorTypeUnauthorized})
 		return
 	}
 
@@ -106,7 +106,7 @@ func (api *API) handleGoogleLoginCallback(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	http.SetCookie(w, api.NewSessionCookie(sessionID))
+	http.SetCookie(w, api.newSessionCookie(sessionID))
 	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 }
 

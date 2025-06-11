@@ -23,7 +23,10 @@ func (svc *Service) GetUser(ctx context.Context, userID server.UUID) (*queries.S
 	user, err = svc.SQL.SelectUser(ctx, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, server.NewUserError(server.UserErrorTypeUserNotFound, "", nil)
+			return nil, &server.UserError{
+				Type:    server.UserErrorTypeUserNotFound,
+				Message: "Cannot find a user with that ID",
+			}
 		}
 
 		return nil, errors.Wrap(err, "cannot get user from SQL")
@@ -34,7 +37,9 @@ func (svc *Service) GetUser(ctx context.Context, userID server.UUID) (*queries.S
 		defer cancel()
 
 		if err := svc.Cache.SetUser(ctx, user); err != nil {
-			svc.Log.Log(ctx, slog.LevelWarn, "Cache cannot set user", "err", err.Error())
+			svc.Log.Log(ctx, slog.LevelWarn, "Cache cannot set user",
+				"err", err.Error(),
+				"user_id", user.ID)
 		}
 	}()
 
