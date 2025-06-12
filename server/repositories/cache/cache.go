@@ -30,7 +30,7 @@ func New(ctx context.Context, config *server.Config) (*Cache, error) {
 		return nil, errors.Wrap(err, "cannot ping redis")
 	}
 
-	err := client.FTCreate(ctx, "room_index",
+	cmd := client.FTCreate(ctx, "room_index",
 		&redis.FTCreateOptions{
 			OnJSON: true,
 			Prefix: []any{"room:", "user_rooms:"},
@@ -44,10 +44,8 @@ func New(ctx context.Context, config *server.Config) (*Cache, error) {
 			FieldName: "$.[*].id",
 			As:        "user_rooms_ids",
 			FieldType: redis.SearchFieldTypeTag,
-		},
-	).Err()
-
-	if err != nil && err.Error() != "Index already exists" {
+		})
+	if err := cmd.Err(); err != nil && err.Error() != "Index already exists" {
 		return nil, errors.Wrap(err, "cannot create rooms index")
 	}
 
@@ -74,10 +72,8 @@ func jsonGet[T any](ctx context.Context, tx redis.Cmdable, key, path string) (re
 
 func ftDelete(ctx context.Context, tx redis.Cmdable, index, query string) error {
 
-	res, err := tx.FTSearchWithArgs(ctx, index, query, &redis.FTSearchOptions{
-		NoContent: true,
-	}).Result()
-
+	res, err := tx.FTSearchWithArgs(ctx, index, query, &redis.FTSearchOptions{NoContent: true}).
+		Result()
 	if err != nil {
 		return errors.Wrap(err, "cannot search index")
 	}

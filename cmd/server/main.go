@@ -50,7 +50,7 @@ func main() {
 		return
 	}
 
-	cql, err := cql.New()
+	cql, err := cql.New(config)
 	if err != nil {
 		log.Log(ctx, slog.LevelError, "Cannot create cql repository", "err", err.Error())
 		return
@@ -97,6 +97,7 @@ func main() {
 	}
 
 	go func() {
+		log.Log(ctx, slog.LevelInfo, "Ready")
 		api.Server.Handler = api.Router()
 		if err := api.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Log(ctx, slog.LevelError, "HTTP failed", "err", err.Error())

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gocql/gocql"
 	googleUUID "github.com/google/uuid"
 )
 
@@ -32,6 +33,14 @@ func ParseUUID(uuid string) (ret UUID, err error) {
 
 func (uuid UUID) Escape() string {
 	return strings.Replace(uuid.String(), `-`, `\-`, -1)
+}
+
+func (uuid UUID) MarshalCQL(_ gocql.TypeInfo) ([]byte, error) {
+	return uuid.UUID.MarshalBinary()
+}
+
+func (uuid *UUID) UnmarshalCQL(_ gocql.TypeInfo, data []byte) error {
+	return uuid.UUID.UnmarshalBinary(data)
 }
 
 /////

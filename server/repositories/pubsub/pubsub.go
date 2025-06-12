@@ -52,7 +52,7 @@ func (ps *PubSub) sub(ctx context.Context, subject string, cb func(*nats.Msg) er
 	}
 
 	for {
-		msg, err := sub.NextMsgWithContext(ctx)
+		natsMsg, err := sub.NextMsgWithContext(ctx)
 		if err != nil {
 			if errors.Is(err, context.Canceled) {
 				return nil
@@ -62,7 +62,7 @@ func (ps *PubSub) sub(ctx context.Context, subject string, cb func(*nats.Msg) er
 		}
 
 		go func() {
-			if err := cb(msg); err != nil {
+			if err := cb(natsMsg); err != nil {
 				ps.log.Log(ctx, slog.LevelError, "Cannot handle incoming message",
 					"err", err.Error(),
 					"subject", subject)

@@ -50,9 +50,7 @@ func (svc *Service) BasicSignup(ctx context.Context, username, password string) 
 		ID:           userID,
 		Username:     username,
 		PasswordHash: passwordHash,
-		PasswordSalt: &passwordSalt,
-	})
-
+		PasswordSalt: &passwordSalt})
 	if err != nil {
 		return sessionID, errors.Wrap(err, "cannot create user")
 	} else if affected < 1 {
@@ -93,9 +91,7 @@ func (svc *Service) GoogleSignup(ctx context.Context, googleUser *google.GoogleU
 		affected, err := tx.InsertGoogleUser(ctx, &queries.InsertGoogleUserParams{
 			GoogleID:  googleUser.Subject,
 			GivenName: googleUser.GivenName,
-			Email:     googleUser.Email,
-		})
-
+			Email:     googleUser.Email})
 		if err != nil {
 			return errors.Wrap(err, "cannot create google-user")
 		} else if affected < 1 {
@@ -109,9 +105,7 @@ func (svc *Service) GoogleSignup(ctx context.Context, googleUser *google.GoogleU
 			ID:             userID,
 			GoogleID:       &googleUser.Subject,
 			Username:       fmt.Sprintf("%s %s", googleUser.GivenName, googleUser.Subject),
-			ProfilePicture: googleUser.Picture,
-		})
-
+			ProfilePicture: googleUser.Picture})
 		return errors.Wrap(err, "cannot create user")
 	})
 
@@ -131,9 +125,7 @@ func (svc *Service) GoogleSignin(ctx context.Context, googleUser *google.GoogleU
 		affected, err := tx.UpdateGoogleUser(ctx, &queries.UpdateGoogleUserParams{
 			GoogleID:  googleUser.Subject,
 			GivenName: googleUser.GivenName,
-			Email:     googleUser.Email,
-		})
-
+			Email:     googleUser.Email})
 		if err != nil {
 			return errors.Wrap(err, "cannot update google-user")
 		} else if affected <= 0 {

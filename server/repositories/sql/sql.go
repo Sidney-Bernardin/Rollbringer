@@ -40,7 +40,8 @@ func New(ctx context.Context, config *server.Config, log *slog.Logger) (*SQL, er
 	}
 
 	poolConfig.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
-		return registerTypes(ctx, conn, "user_room_permision", "user_room_permision[]")
+		return registerTypes(ctx, conn,
+			"user_room_permision", "user_room_permision[]")
 	}
 
 	pool, err := pgxpool.NewWithConfig(ctx, poolConfig)
@@ -105,13 +106,11 @@ func (sql *SQL) Transaction(ctx context.Context, callback func(tx *SQL) error) e
 		}
 	}()
 
-	txRepo := &SQL{
+	err = callback(&SQL{
 		Queries: sql.Queries.WithTx(tx),
 		config:  sql.config,
-		log:     sql.log,
-	}
-
-	if err := callback(txRepo); err != nil {
+		log:     sql.log})
+	if err != nil {
 		return errors.Wrap(err, "transaction failed")
 	}
 

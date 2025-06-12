@@ -11,6 +11,17 @@ services:
       - "./tmp/postgres:/var/lib/postgresql/data"
       - "./Docker/postgres:/docker-entrypoint-initdb.d"
 
+  cassandra:
+    image: "cassandra:5.0.4"
+    container_name: "cassandra"
+    ports:
+      - "9042:9042"
+      - "7000:7000"
+    volumes:
+      - "./Docker/cassandra:/setup"
+      - "./tmp/cassandra:/var/lib/cassandra:rw"
+    entrypoint: ["/bin/bash", "/setup/entrypoint.sh"]
+
   redis:
     image: "redis:8.0.2-alpine"
     container_name: "redis"

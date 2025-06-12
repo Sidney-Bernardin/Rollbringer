@@ -29,9 +29,7 @@ func (svc *Service) CreateRoom(ctx context.Context, creatorID server.UUID, name 
 		Permisions: []queries.UserRoomPermision{
 			queries.UserRoomPermisionOWNER,
 			queries.UserRoomPermisionGAMEMASTER,
-		},
-	})
-
+		}})
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot insert room")
 	}
@@ -112,9 +110,7 @@ func (svc *Service) GetUserRooms(ctx context.Context, userID server.UUID) ([]*qu
 func (svc *Service) DeleteRoom(ctx context.Context, userID, roomID server.UUID) error {
 	err := svc.SQL.DeleteRoom(ctx, &queries.DeleteRoomParams{
 		RoomID: roomID,
-		UserID: userID,
-	})
-
+		UserID: userID})
 	if err != nil {
 		return errors.WithStack(err)
 	}

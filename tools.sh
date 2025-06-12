@@ -23,9 +23,23 @@ function migrate-postgres {
 }
 
 function migrate-postgres-create {
-    migrate-postgres create \
+    migrate create \
         -ext sql \
         -dir server/repositories/sql/Migrations \
+        $@
+}
+
+function migrate-cassandra {
+    migrate \
+        -path server/repositories/cql/Migrations \
+        -database "cassandra://$(cut -d ',' -f 1 <<< $APP_CASSANDRA_HOSTS)/rollbringer" \
+        $@
+}
+
+function migrate-cassandra-create {
+    migrate create \
+        -ext sql \
+        -dir server/repositories/cql/Migrations \
         $@
 }
 

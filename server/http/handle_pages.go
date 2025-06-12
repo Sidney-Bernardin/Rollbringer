@@ -81,12 +81,34 @@ func (api *API) handlePlayPage(w http.ResponseWriter, r *http.Request) {
 		return errors.Wrap(err, "cannot get room")
 	})
 
+	errs.Go(func() (err error) {
+
+		chatMessages, err := api.Service.CQL.SelectChatMessages(errsCtx, roomID)
+		if err != nil {
+			return errors.Wrap(err, "cannot get user")
+		}
+
+		for _, chatMsg := range chatMessages {
+
+			author, err := api.Service.GetUser(ctx, chatMsg.AuthorID)
+			if err != nil {
+				return errors.Wrap(err, "cannot get author of chat-message")
+			}
+
+			data.ChatMessages = append(data.ChatMessages, &pubsub.ChatMessage{
+				ChatMessage: *chatMsg,
+				Author:      author,
+			})
+		}
+
+		return nil
+	})
+
 	if err := errs.Wait(); err != nil {
 		api.err(w, r, errors.WithStack(err))
 		return
 	}
 
-	data.ChatMessages = []*pubsub.ChatMessage{}
 	api.respond(w, r, http.StatusOK, play.PlayPage(&data))
 }
 
